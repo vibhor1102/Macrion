@@ -55,6 +55,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 
 class LocalService(
@@ -96,6 +97,9 @@ class LocalService(
             onScenarioChanged = ::synchronizeScenarioChanged,
         )
     }
+    private val scenarioChangeMutex = Mutex()
+    /** Updated before the delayed Dumb-engine setup, so external launches always see the active selection. */
+    private var loadedDumbScenarioId: Long? = null
 
     /** Controls the notifications for the foreground service. */
     private val notificationController: ServiceNotificationController by lazy {
@@ -120,6 +124,15 @@ class LocalService(
     internal val isStarted: Boolean
         get() = state.isStarted
 
+    override fun isSmartScreenRecordActive(): Boolean =
+        state.isStarted && state.isSmartLoaded && smartProcessingRepository.isScreenRecordActive()
+
+    override fun getSmartScenarioId(): Long? =
+        if (state.isSmartLoaded) smartProcessingRepository.getScenarioId()?.databaseId else null
+
+    override fun getDumbScenarioId(): Long? =
+        if (state.isStarted && !state.isSmartLoaded) loadedDumbScenarioId else null
+
     init {
         combine(dumbEngine.isRunning, smartProcessingRepository.detectionState) { dumbIsRunning, smartState ->
             dumbIsRunning || smartState == DetectionState.DETECTING
@@ -138,9 +151,10 @@ class LocalService(
             .launchIn(serviceScope)
     }
 
-    override fun startDumbScenario(dumbScenario: DumbScenario) {
+    override fun launchDumbScenario(dumbScenario: DumbScenario) {
         if (state.isStarted) return
         state = LocalServiceState(isStarted = true, isSmartLoaded = false, sessionId = ++nextServiceSessionId)
+        loadedDumbScenarioId = dumbScenario.id.databaseId
         onStart(dumbScenario.id.databaseId, false, null)
 
         startJob = serviceScope.launch {
@@ -169,7 +183,7 @@ class LocalService(
      * [android.app.Activity.onActivityResult]
      * @param scenario the identifier of the scenario of clicks to be used for detection.
      */
-    override fun startSmartScenario(resultCode: Int, data: Intent, scenario: Scenario) {
+    override fun launchSmartScenario(resultCode: Int, data: Intent, scenario: Scenario) {
         if (isStarted) return
         state = LocalServiceState(isStarted = true, isSmartLoaded = true, sessionId = ++nextServiceSessionId)
 
@@ -210,22 +224,54 @@ class LocalService(
     }
 
     override fun stopScenario() {
+        serviceScope.launch { scenarioChangeMutex.withLock { stopAndWait() } }
+    }
+
+    override fun replaceDumbScenario(dumbScenario: DumbScenario) {
+        serviceScope.launch {
+            scenarioChangeMutex.withLock {
+                stopAndWait()
+                launchDumbScenario(dumbScenario)
+            }
+        }
+    }
+
+    override fun replaceSmartScenario(resultCode: Int, data: Intent, scenario: Scenario) {
+        serviceScope.launch {
+            scenarioChangeMutex.withLock {
+                stopAndWait()
+                launchSmartScenario(resultCode, data, scenario)
+            }
+        }
+    }
+
+    override fun replaceSmartScenarioWithCurrentProjection(scenario: Scenario) {
+        serviceScope.launch {
+            scenarioChangeMutex.withLock {
+                if (!isSmartScreenRecordActive()) return@withLock
+                smartProcessingRepository.stopDetection()
+                smartScenarioSwitcher.switchTo(scenario)
+                if (overlayManager.isStackHidden.value) overlayManager.restoreVisibility()
+            }
+        }
+    }
+
+    private suspend fun stopAndWait() {
         if (!isStarted) return
         state = state.copy(isStarted = false, isSmartLoaded = false)
         scenarioSwitcherOpeningJob?.cancel()
         scenarioSwitcherOpeningJob = null
+        loadedDumbScenarioId = null
 
-        serviceScope.launch {
-            startJob?.join()
-            startJob = null
+        startJob?.join()
+        startJob = null
 
-            dumbEngine.release()
-            overlayManager.closeAll(context)
-            smartProcessingRepository.stopScreenRecord()
+        dumbEngine.release()
+        overlayManager.closeAll(context)
+        smartProcessingRepository.stopScreenRecord()
 
-            onStop()
-            notificationController.destroyNotification()
-        }
+        onStop()
+        notificationController.destroyNotification()
     }
 
     override fun release() {
