@@ -19,6 +19,7 @@ package com.buzbuz.smartautoclicker.feature.externallaunch.domain
 import android.content.Context
 import android.content.Intent
 import android.service.quicksettings.Tile
+import android.util.Log
 
 import com.buzbuz.smartautoclicker.core.base.di.Dispatcher
 import com.buzbuz.smartautoclicker.core.base.di.HiltCoroutineDispatchers.IO
@@ -29,6 +30,9 @@ import com.buzbuz.smartautoclicker.core.dumb.domain.model.DumbScenario
 import com.buzbuz.smartautoclicker.core.dumb.engine.DumbEngine
 import com.buzbuz.smartautoclicker.core.processing.domain.SmartProcessingRepository
 import com.buzbuz.smartautoclicker.feature.externallaunch.R
+import com.buzbuz.smartautoclicker.feature.externallaunch.localeplugin.domain.LocalePluginContract
+import com.buzbuz.smartautoclicker.feature.externallaunch.localeplugin.scenariostate.ScenarioState
+import com.buzbuz.smartautoclicker.feature.externallaunch.localeplugin.scenariostate.ScenarioStatePluginContract
 import com.buzbuz.smartautoclicker.feature.externallaunch.qstile.data.QSTileScenarioInfo
 import com.buzbuz.smartautoclicker.feature.externallaunch.qstile.data.QsTileConfigDataSource
 import com.buzbuz.smartautoclicker.feature.externallaunch.qstile.domain.QSTileDisplayInfo
@@ -58,7 +62,7 @@ import javax.inject.Singleton
 @OptIn(ExperimentalCoroutinesApi::class)
 @Singleton
 class ExternalLaunchRepository @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
     @param:Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     private val dumbRepository: DumbRepository,
     private val dumbEngine: DumbEngine,
@@ -71,6 +75,7 @@ class ExternalLaunchRepository @Inject constructor(
         CoroutineScope(SupervisorJob() + ioDispatcher)
 
     private var actionHandler: ExternalLaunchActionHandler? = null
+    private var lastPublishedScenarioStatus: PublishedScenarioStatus? = null
 
     private val tileDisplayInfo: Flow<QSTileDisplayInfo> = qsTileConfigDataSource.getQSTileScenarioInfo()
         .flatMapLatest { scenarioInfo ->
@@ -117,11 +122,44 @@ class ExternalLaunchRepository @Inject constructor(
         this.actionHandler = actionHandler
     }
 
+    /** Ask every active Locale/Tasker host to query the current scenario condition again. */
+    @Synchronized
+    fun notifyScenarioStateChanged() {
+        val scenarioId = getSmartScenarioId() ?: getDumbScenarioId()
+        val status = PublishedScenarioStatus(
+            scenarioId = scenarioId,
+            state = ScenarioState.from(
+                isScenarioOpen = scenarioId != null,
+                isRunning = isScenarioRunning(),
+                isOverlayHidden = isOverlayHidden(),
+                isSettingsOpen = isScenarioConfigurationOpen(),
+            ),
+        )
+        if (status == lastPublishedScenarioStatus) return
+        Log.d(TAG, "Scenario status changed: $lastPublishedScenarioStatus -> $status; requesting requery")
+        lastPublishedScenarioStatus = status
+
+        context.sendBroadcast(
+            LocalePluginContract.createRequestQueryIntent(
+                ScenarioStatePluginContract.CONFIGURATION_ACTIVITY_CLASS_NAME,
+            ),
+        )
+    }
+
     internal fun getLastScenarioDetails(): Pair<Long?, Boolean?> =
         qsTileDisplayInfo.value?.scenarioId to qsTileDisplayInfo.value?.isSmart
 
     internal fun isAccessibilityServiceStarted(): Boolean =
         actionHandler?.isRunning() ?: false
+
+    internal fun isScenarioRunning(): Boolean =
+        actionHandler?.isScenarioRunning() ?: false
+
+    internal fun isOverlayVisible(): Boolean =
+        actionHandler?.isOverlayVisible() ?: false
+
+    internal fun isOverlayHidden(): Boolean =
+        actionHandler?.isOverlayHidden() ?: false
 
     /** True while the user is editing the currently loaded scenario. */
     internal fun isScenarioConfigurationOpen(): Boolean =
@@ -132,6 +170,9 @@ class ExternalLaunchRepository @Inject constructor(
 
     internal fun getSmartScenarioId(): Long? =
         actionHandler?.getSmartScenarioId()
+
+    internal fun getDumbScenarioId(): Long? =
+        actionHandler?.getDumbScenarioId()
 
     internal fun isDumbScenarioRunning(scenarioId: Long): Boolean =
         actionHandler?.isRunning() == true && actionHandler?.getDumbScenarioId() == scenarioId
@@ -179,4 +220,11 @@ class ExternalLaunchRepository @Inject constructor(
         )
     }
 }
+
+private data class PublishedScenarioStatus(
+    val scenarioId: Long?,
+    val state: ScenarioState,
+)
+
+private const val TAG = "ExternalLaunchRepository"
 

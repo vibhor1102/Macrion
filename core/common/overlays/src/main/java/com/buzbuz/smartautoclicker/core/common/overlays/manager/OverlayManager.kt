@@ -236,6 +236,9 @@ class OverlayManager @Inject internal constructor(
     fun hasVisibleOverlayAboveRoot(): Boolean =
         !isOverlayStackHidden() && overlayBackStack.size > 1
 
+    /** @return true when a child overlay is open above a scenario's main menu, even if the stack is hidden. */
+    fun hasOverlayAboveRoot(): Boolean = overlayBackStack.size > 1
+
     /**
      * Set an overlay as being shown above all overlays in the backstack.
      * It will not be added to the backstack, and can be seen as "an overlay for overlays".

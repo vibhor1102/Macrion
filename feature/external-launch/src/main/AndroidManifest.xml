@@ -89,6 +89,19 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".localeplugin.ui.ScenarioStateConditionConfigurationActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:icon="@drawable/ic_click"
+            android:label="@string/locale_plugin_scenario_state_name"
+            android:theme="@style/AppTheme.TranslucentActivity">
+            <intent-filter>
+                <action android:name="com.twofortyfouram.locale.intent.action.EDIT_CONDITION" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <receiver
             android:name=".localeplugin.receiver.LocalePluginFireReceiver"
             android:exported="true"
@@ -99,7 +112,7 @@
         </receiver>
 
         <receiver
-            android:name=".localeplugin.receiver.ExternalActionEventQueryReceiver"
+            android:name=".localeplugin.receiver.LocalePluginConditionQueryReceiver"
             android:exported="true"
             android:label="@string/external_action_event_plugin_name">
             <intent-filter>

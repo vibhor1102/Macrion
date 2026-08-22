@@ -16,6 +16,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <resources>
+    <string name="locale_plugin_scenario_state_name">Klick\'r Status</string>
+    <string name="locale_plugin_scenario_state_blurb">Provides the current Klick\'r scenario status</string>
     <string name="tile_label_launch_scenario">Launch Klick\'r</string>
     <string name="tile_label_stop_scenario">Stop Klick\'r</string>
     <string name="tile_subtext_unavailable">No Scenario defined</string>

@@ -22,6 +22,9 @@ import com.buzbuz.smartautoclicker.core.dumb.domain.model.DumbScenario
 
 interface ExternalLaunchActionHandler {
     fun isRunning(): Boolean
+    fun isScenarioRunning(): Boolean
+    fun isOverlayVisible(): Boolean
+    fun isOverlayHidden(): Boolean
     fun isScenarioConfigurationOpen(): Boolean
     fun isSmartScreenRecordActive(): Boolean
     fun getSmartScenarioId(): Long?

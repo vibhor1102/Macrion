@@ -71,6 +71,7 @@ class LocalService(
     private val debuggingRepository: DebuggingRepository,
     private val onStart: (scenarioId: Long, isSmart: Boolean, foregroundNotification: Notification?) -> Unit,
     private val onScenarioChanged: (scenarioId: Long, isSmart: Boolean) -> Unit,
+    private val onScenarioStateChanged: () -> Unit,
     private val onStop: () -> Unit,
 ) : LocalAccessibilityService {
 
@@ -133,11 +134,15 @@ class LocalService(
     override fun getDumbScenarioId(): Long? =
         if (state.isStarted && !state.isSmartLoaded) loadedDumbScenarioId else null
 
+    override fun isScenarioRunning(): Boolean =
+        dumbEngine.isRunning.value || smartProcessingRepository.isRunning()
+
     init {
         combine(dumbEngine.isRunning, smartProcessingRepository.detectionState) { dumbIsRunning, smartState ->
             dumbIsRunning || smartState == DetectionState.DETECTING
         }.onEach { isRunning ->
             notificationController.updateNotification(context, isRunning, !overlayManager.isOverlayStackHidden())
+            onScenarioStateChanged()
         }.launchIn(serviceScope)
 
         overlayManager.isStackHidden
@@ -147,7 +152,12 @@ class LocalService(
                     dumbEngine.isRunning.value || smartProcessingRepository.isRunning(),
                     !isStackHidden
                 )
+                onScenarioStateChanged()
             }
+            .launchIn(serviceScope)
+
+        overlayManager.backStackTopFlow
+            .onEach { onScenarioStateChanged() }
             .launchIn(serviceScope)
     }
 
@@ -262,6 +272,7 @@ class LocalService(
         scenarioSwitcherOpeningJob?.cancel()
         scenarioSwitcherOpeningJob = null
         loadedDumbScenarioId = null
+        onScenarioStateChanged()
 
         startJob?.join()
         startJob = null
@@ -347,6 +358,7 @@ class LocalService(
         }
         try {
             onScenarioChanged(scenario.id.databaseId, true)
+            onScenarioStateChanged()
         } catch (error: Exception) {
             Log.w(TAG, "Unable to update the quick-settings tile after switching scenario", error)
         }

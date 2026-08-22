@@ -22,6 +22,7 @@ import com.buzbuz.smartautoclicker.core.dumb.domain.model.DumbScenario
 
 interface LocalAccessibilityService {
 
+    fun isScenarioRunning(): Boolean
     fun isSmartScreenRecordActive(): Boolean
     fun getSmartScenarioId(): Long?
     fun getDumbScenarioId(): Long?

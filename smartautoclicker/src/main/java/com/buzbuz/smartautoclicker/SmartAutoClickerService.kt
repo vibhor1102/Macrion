@@ -99,8 +99,12 @@ class SmartAutoClickerService : AccessibilityService() {
         externalLaunchRepository.setActionHandler(
             object : ExternalLaunchActionHandler {
                 override fun isRunning(): Boolean = localServiceConnection.isServiceStarted()
+                override fun isScenarioRunning(): Boolean =
+                    localServiceConnection.getLocalService()?.isScenarioRunning() ?: false
+                override fun isOverlayVisible(): Boolean = overlayManager.isOverlayStackVisible()
+                override fun isOverlayHidden(): Boolean = overlayManager.isOverlayStackHidden()
                 override fun isScenarioConfigurationOpen(): Boolean =
-                    overlayManager.hasVisibleOverlayAboveRoot()
+                    overlayManager.hasOverlayAboveRoot()
                 override fun isSmartScreenRecordActive(): Boolean =
                     localServiceConnection.getLocalService()?.isSmartScreenRecordActive() ?: false
                 override fun getSmartScenarioId(): Long? =
@@ -142,6 +146,7 @@ class SmartAutoClickerService : AccessibilityService() {
                 tutorialRepository = tutorialRepository,
                 onStart = ::onLocalServiceStarted,
                 onScenarioChanged = ::onLocalScenarioChanged,
+                onScenarioStateChanged = externalLaunchRepository::notifyScenarioStateChanged,
                 onStop = ::onLocalServiceStopped,
             )
         )
@@ -153,6 +158,7 @@ class SmartAutoClickerService : AccessibilityService() {
             release()
         }
         localServiceConnection.onAccessibilityServiceStopped()
+        externalLaunchRepository.notifyScenarioStateChanged()
 
         qualityMetricsMonitor.onServiceUnbind()
         actionExecutor.clear()
