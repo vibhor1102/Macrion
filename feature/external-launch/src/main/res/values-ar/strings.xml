@@ -16,11 +16,14 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <resources>
+    <string name="locale_plugin_scenario_state_name">حالة Klick\'r</string>
+    <string name="locale_plugin_scenario_state_blurb">يوفّر حالة سيناريو Klick\'r الحالي</string>
     <string name="tile_label_launch_scenario">تشغيل Klick\'r</string>
     <string name="tile_label_stop_scenario">أوقف النقر</string>
     <string name="tile_subtext_unavailable">لم يتم تحديد أي سيناريو</string>
     <string name="locale_plugin_launch_name">تشغيل سيناريو Klick\'r</string>
     <string name="locale_plugin_stop_name">إيقاف Klick\'r</string>
+    <string name="locale_plugin_run_current_name">تشغيل سيناريو Klick\'r الحالي</string>
     <string name="locale_plugin_title">تشغيل سيناريو Klick\'r</string>
     <string name="locale_plugin_description">اختر السيناريو الذي سيجهزه Klick\'r. اضغط تشغيل في Klick\'r عندما تكون مستعدًا.</string>
     <string name="locale_plugin_scenario_hint">السيناريو</string>
@@ -31,17 +34,18 @@
     <string name="locale_plugin_cancel">إلغاء</string>
     <string name="locale_plugin_blurb_launch">تشغيل %1$s (%2$s)</string>
     <string name="locale_plugin_blurb_stop">إيقاف Klick\'r</string>
+    <string name="locale_plugin_blurb_run_current">تشغيل سيناريو Klick\'r الحالي</string>
     <string name="locale_plugin_type_smart">ذكي</string>
     <string name="locale_plugin_type_dumb">بسيط</string>
     <string name="locale_plugin_scenario_icon">نوع السيناريو</string>
     <string name="locale_plugin_notification_channel">تشغيل الأتمتة</string>
     <string name="locale_plugin_notification_launch_title">إكمال تشغيل Klick\'r</string>
     <string name="locale_plugin_notification_launch_text">اضغط لتشغيل %1$s</string>
-    <string name="locale_plugin_notification_error_title">تحتاج أتمتة Klick\'r إلى انتباه</string>
+    <string name="locale_plugin_notification_error_title">تتطلب أتمتة Klick\'r اهتمامك</string>
     <string name="locale_plugin_error_invalid">لم يعد هذا الإجراء المحفوظ صالحًا. افتحه واحفظه مجددًا في تطبيق الأتمتة.</string>
     <string name="locale_plugin_error_missing_scenario">لم يعد السيناريو المحدد موجودًا. عدّل هذا الإجراء في تطبيق الأتمتة.</string>
     <string name="locale_plugin_error_permissions">لم يتم منح أذونات Klick\'r المطلوبة.</string>
-    <string name="locale_plugin_error_fallback_unavailable">تعذر على Klick\'r الفتح مباشرةً، كما أن الإشعارات معطلة للبديل.</string>
+    <string name="locale_plugin_error_fallback_unavailable">تعذر فتح Klick\'r مباشرةً، كما أن الإشعارات معطلة كخيار احتياطي.</string>
     <string name="locale_plugin_error_projection">لم يتم منح إذن تسجيل الشاشة.</string>
     <string name="external_action_event_plugin_name">إجراء Klick\'r خارجي</string>
     <string name="external_action_event_title">اختر إجراءً خارجيًا</string>

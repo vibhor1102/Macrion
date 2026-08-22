@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="locale_plugin_scenario_state_name">Klick\'r 狀態</string>
+    <string name="locale_plugin_scenario_state_blurb">提供目前 Klick\'r 情境的狀態</string>
     <string name="tile_label_launch_scenario">啟動 Klick\'r</string>
     <string name="tile_label_stop_scenario">停止 Klick\'r</string>
     <string name="tile_subtext_unavailable">尚未定義情境</string>
     <string name="locale_plugin_launch_name">啟動 Klick\'r 情境</string>
     <string name="locale_plugin_stop_name">停止 Klick\'r</string>
+    <string name="locale_plugin_run_current_name">執行目前的 Klick\'r 情境</string>
     <string name="locale_plugin_title">啟動 Klick\'r 情境</string>
     <string name="locale_plugin_description">選擇 Klick\'r 要準備的情境。準備好後，在 Klick\'r 中按下播放。</string>
     <string name="locale_plugin_scenario_hint">情境</string>
@@ -15,13 +18,14 @@
     <string name="locale_plugin_cancel">取消</string>
     <string name="locale_plugin_blurb_launch">啟動 %1$s（%2$s）</string>
     <string name="locale_plugin_blurb_stop">停止 Klick\'r</string>
+    <string name="locale_plugin_blurb_run_current">執行目前的 Klick\'r 情境</string>
     <string name="locale_plugin_type_smart">智慧</string>
     <string name="locale_plugin_type_dumb">簡單</string>
     <string name="locale_plugin_scenario_icon">情境類型</string>
     <string name="locale_plugin_notification_channel">自動化啟動</string>
     <string name="locale_plugin_notification_launch_title">完成 Klick\'r 啟動</string>
     <string name="locale_plugin_notification_launch_text">點按以啟動 %1$s</string>
-    <string name="locale_plugin_notification_error_title">Klick\'r 自動化需要處理</string>
+    <string name="locale_plugin_notification_error_title">Klick\'r 自動化需要注意</string>
     <string name="locale_plugin_error_invalid">儲存的動作已無效。請在自動化應用程式中重新開啟並儲存。</string>
     <string name="locale_plugin_error_missing_scenario">所選情境已不存在。請在自動化應用程式中編輯此動作。</string>
     <string name="locale_plugin_error_permissions">未授予 Klick\'r 所需的權限。</string>

@@ -16,11 +16,14 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <resources>
+    <string name="locale_plugin_scenario_state_name">Estado de Klick\'r</string>
+    <string name="locale_plugin_scenario_state_blurb">Proporciona el estado actual del escenario de Klick\'r</string>
     <string name="tile_label_launch_scenario">Iniciar Klick\'r</string>
     <string name="tile_label_stop_scenario">Detener Klick\'r</string>
     <string name="tile_subtext_unavailable">Ningún escenario definido</string>
     <string name="locale_plugin_launch_name">Iniciar escenario de Klick\'r</string>
     <string name="locale_plugin_stop_name">Detener Klick\'r</string>
+    <string name="locale_plugin_run_current_name">Ejecutar el escenario actual de Klick\'r</string>
     <string name="locale_plugin_title">Iniciar escenario de Klick\'r</string>
     <string name="locale_plugin_description">Elige el escenario que Klick\'r debe preparar. Pulsa Reproducir en Klick\'r cuando estés listo.</string>
     <string name="locale_plugin_scenario_hint">Escenario</string>
@@ -31,6 +34,7 @@
     <string name="locale_plugin_cancel">Cancelar</string>
     <string name="locale_plugin_blurb_launch">Iniciar %1$s (%2$s)</string>
     <string name="locale_plugin_blurb_stop">Detener Klick\'r</string>
+    <string name="locale_plugin_blurb_run_current">Ejecutar el escenario actual de Klick\'r</string>
     <string name="locale_plugin_type_smart">Inteligente</string>
     <string name="locale_plugin_type_dumb">Simple</string>
     <string name="locale_plugin_scenario_icon">Tipo de escenario</string>
@@ -41,7 +45,7 @@
     <string name="locale_plugin_error_invalid">Esta acción guardada ya no es válida. Ábrela y guárdala de nuevo en tu aplicación de automatización.</string>
     <string name="locale_plugin_error_missing_scenario">El escenario seleccionado ya no existe. Edita esta acción en tu aplicación de automatización.</string>
     <string name="locale_plugin_error_permissions">No se concedieron los permisos necesarios de Klick\'r.</string>
-    <string name="locale_plugin_error_fallback_unavailable">Klick\'r no pudo abrirse directamente y las notificaciones están desactivadas para el recurso alternativo.</string>
+    <string name="locale_plugin_error_fallback_unavailable">Klick\'r no pudo abrirse directamente y las notificaciones están desactivadas como alternativa.</string>
     <string name="locale_plugin_error_projection">No se concedió el permiso para capturar la pantalla.</string>
     <string name="external_action_event_plugin_name">Acción externa de Klick\'r</string>
     <string name="external_action_event_title">Elegir acción externa</string>

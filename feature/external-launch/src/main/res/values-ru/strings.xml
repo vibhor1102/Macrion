@@ -16,11 +16,14 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <resources>
+    <string name="locale_plugin_scenario_state_name">Состояние Klick\'r</string>
+    <string name="locale_plugin_scenario_state_blurb">Предоставляет текущее состояние сценария Klick\'r</string>
     <string name="tile_label_launch_scenario">Запустить Klick\'r</string>
     <string name="tile_label_stop_scenario">Остановить Klick\'r</string>
     <string name="tile_subtext_unavailable">Сценарий не был определён</string>
     <string name="locale_plugin_launch_name">Запустить сценарий Klick\'r</string>
     <string name="locale_plugin_stop_name">Остановить Klick\'r</string>
+    <string name="locale_plugin_run_current_name">Запустить текущий сценарий Klick\'r</string>
     <string name="locale_plugin_title">Запустить сценарий Klick\'r</string>
     <string name="locale_plugin_description">Выберите сценарий, который должен подготовить Klick\'r. Когда будете готовы, нажмите «Воспроизвести» в Klick\'r.</string>
     <string name="locale_plugin_scenario_hint">Сценарий</string>
@@ -31,6 +34,7 @@
     <string name="locale_plugin_cancel">Отмена</string>
     <string name="locale_plugin_blurb_launch">Запустить %1$s (%2$s)</string>
     <string name="locale_plugin_blurb_stop">Остановить Klick\'r</string>
+    <string name="locale_plugin_blurb_run_current">Запустить текущий сценарий Klick\'r</string>
     <string name="locale_plugin_type_smart">Умный</string>
     <string name="locale_plugin_type_dumb">Простой</string>
     <string name="locale_plugin_scenario_icon">Тип сценария</string>

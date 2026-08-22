@@ -482,4 +482,17 @@
     <string name="scenario_switcher_retry">Réessayer</string>
     <string name="scenario_switcher_switching">Passage à %1$s</string>
 
+    <string name="item_external_action_title">Action externe</string>
+    <string name="item_external_action_desc">Déclencher une application d’automatisation externe</string>
+    <string name="item_external_action_details">Déclencher \"%1$s\"</string>
+    <string name="item_external_action_details_error">Le nom de l’action externe n’est pas valide</string>
+    <string name="dialog_title_external_action">Action externe</string>
+    <string name="field_external_action_name_label">Nom de l’action externe</string>
+    <string name="field_external_action_help">Utilisez ce nom dans le déclencheur d’action externe Klick\'r de votre application d’automatisation.</string>
+    <string name="field_external_action_selection_title_empty">Aucune action externe sélectionnée</string>
+    <string name="field_external_action_selection_desc_empty">Appuyez ici pour réutiliser le nom d’une action externe</string>
+    <string name="field_external_action_selection_desc">Nom réutilisable du déclencheur d’automatisation</string>
+    <string name="dialog_title_external_action_selection">Actions externes</string>
+    <string name="message_empty_external_action_list_title">Aucune action externe trouvée</string>
+    <string name="message_empty_external_action_list_desc">Saisissez d’abord un nouveau nom d’action externe dans un scénario intelligent.</string>
 </resources>

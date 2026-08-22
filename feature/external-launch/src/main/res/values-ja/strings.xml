@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="locale_plugin_scenario_state_name">Klick\'r の状態</string>
+    <string name="locale_plugin_scenario_state_blurb">現在の Klick\'r シナリオの状態を提供します</string>
     <string name="tile_label_launch_scenario">Klick\'r を起動</string>
     <string name="tile_label_stop_scenario">Klick\'r を停止</string>
     <string name="tile_subtext_unavailable">シナリオが定義されていません</string>
     <string name="locale_plugin_launch_name">Klick\'r シナリオを起動</string>
     <string name="locale_plugin_stop_name">Klick\'r を停止</string>
+    <string name="locale_plugin_run_current_name">現在の Klick\'r シナリオを実行</string>
     <string name="locale_plugin_title">Klick\'r シナリオを起動</string>
     <string name="locale_plugin_description">Klick\'r で準備するシナリオを選択します。準備ができたら Klick\'r で再生を押してください。</string>
     <string name="locale_plugin_scenario_hint">シナリオ</string>
@@ -15,6 +18,7 @@
     <string name="locale_plugin_cancel">キャンセル</string>
     <string name="locale_plugin_blurb_launch">%1$s を起動（%2$s）</string>
     <string name="locale_plugin_blurb_stop">Klick\'r を停止</string>
+    <string name="locale_plugin_blurb_run_current">現在の Klick\'r シナリオを実行</string>
     <string name="locale_plugin_type_smart">スマート</string>
     <string name="locale_plugin_type_dumb">シンプル</string>
     <string name="locale_plugin_scenario_icon">シナリオの種類</string>
@@ -25,7 +29,7 @@
     <string name="locale_plugin_error_invalid">保存したアクションは無効です。自動化アプリで開いて再度保存してください。</string>
     <string name="locale_plugin_error_missing_scenario">選択したシナリオは存在しません。自動化アプリでこのアクションを編集してください。</string>
     <string name="locale_plugin_error_permissions">Klick\'r に必要な権限が許可されていません。</string>
-    <string name="locale_plugin_error_fallback_unavailable">Klick\'r を直接開けませんでした。代替手段の通知も無効です。</string>
+    <string name="locale_plugin_error_fallback_unavailable">Klick\'r を直接開けませんでした。代替通知も無効です。</string>
     <string name="locale_plugin_error_projection">画面キャプチャ権限が許可されていません。</string>
     <string name="external_action_event_plugin_name">Klick\'r 外部アクション</string>
     <string name="external_action_event_title">外部アクションを選択</string>

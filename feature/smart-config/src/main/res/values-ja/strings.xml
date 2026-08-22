@@ -341,4 +341,17 @@
     <string name="scenario_switcher_retry">再試行</string>
     <string name="scenario_switcher_switching">%1$s に切り替え中</string>
 
+    <string name="item_external_action_title">外部アクション</string>
+    <string name="item_external_action_desc">外部のオートメーションアプリを起動します</string>
+    <string name="item_external_action_details">「%1$s」を実行</string>
+    <string name="item_external_action_details_error">外部アクション名が無効です</string>
+    <string name="dialog_title_external_action">外部アクション</string>
+    <string name="field_external_action_name_label">外部アクション名</string>
+    <string name="field_external_action_help">オートメーションアプリの Klick\'r 外部アクショントリガーでこの名前を使用します。</string>
+    <string name="field_external_action_selection_title_empty">外部アクションが選択されていません</string>
+    <string name="field_external_action_selection_desc_empty">タップして外部アクション名を再利用</string>
+    <string name="field_external_action_selection_desc">再利用できるオートメーショントリガー名</string>
+    <string name="dialog_title_external_action_selection">外部アクション</string>
+    <string name="message_empty_external_action_list_title">外部アクションがありません</string>
+    <string name="message_empty_external_action_list_desc">先にスマートシナリオで新しい外部アクション名を入力してください。</string>
 </resources>

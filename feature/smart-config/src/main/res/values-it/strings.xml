@@ -481,4 +481,17 @@
     <string name="scenario_switcher_retry">Riprova</string>
     <string name="scenario_switcher_switching">Passaggio a %1$s</string>
 
+    <string name="item_external_action_title">Azione esterna</string>
+    <string name="item_external_action_desc">Attiva un’app di automazione esterna</string>
+    <string name="item_external_action_details">Attiva \"%1$s\"</string>
+    <string name="item_external_action_details_error">Il nome dell’azione esterna non è valido</string>
+    <string name="dialog_title_external_action">Azione esterna</string>
+    <string name="field_external_action_name_label">Nome dell’azione esterna</string>
+    <string name="field_external_action_help">Usa questo nome nel trigger dell’azione esterna di Klick\'r nell’app di automazione.</string>
+    <string name="field_external_action_selection_title_empty">Nessuna azione esterna selezionata</string>
+    <string name="field_external_action_selection_desc_empty">Tocca qui per riutilizzare il nome di un’azione esterna</string>
+    <string name="field_external_action_selection_desc">Nome riutilizzabile del trigger di automazione</string>
+    <string name="dialog_title_external_action_selection">Azioni esterne</string>
+    <string name="message_empty_external_action_list_title">Nessuna azione esterna trovata</string>
+    <string name="message_empty_external_action_list_desc">Inserisci prima un nuovo nome di azione esterna in uno scenario intelligente.</string>
 </resources>

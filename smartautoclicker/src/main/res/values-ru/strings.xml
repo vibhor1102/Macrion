@@ -162,4 +162,6 @@
 
     <string name="dialog_title_locale_plugin_background_launch">Фоновый запуск заблокирован</string>
     <string name="message_locale_plugin_background_launch">Klick\'r не удалось автоматически открыть окно записи экрана.\n\nЧтобы завершить запуск сценария, было показано уведомление.\n\nНекоторые телефоны Android сильнее ограничивают фоновые приложения. Обратитесь к этому руководству, чтобы повысить стабильность разрешений.</string>
+    <string name="field_tutorial_title">Обучение</string>
+    <string name="field_tutorial_desc">Узнайте, как пользоваться Klick\'r</string>
 </resources>
