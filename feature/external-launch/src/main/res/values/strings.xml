@@ -24,6 +24,7 @@
 
     <string name="locale_plugin_launch_name">Launch Klick\'r scenario</string>
     <string name="locale_plugin_stop_name">Stop Klick\'r</string>
+    <string name="locale_plugin_run_current_name">Run current Klick\'r scenario</string>
     <string name="locale_plugin_title">Launch Klick\'r scenario</string>
     <string name="locale_plugin_description">Choose the scenario Klick\'r should prepare. Press Play in Klick\'r when ready.</string>
     <string name="locale_plugin_scenario_hint">Scenario</string>
@@ -34,6 +35,7 @@
     <string name="locale_plugin_cancel">Cancel</string>
     <string name="locale_plugin_blurb_launch">Launch %1$s (%2$s)</string>
     <string name="locale_plugin_blurb_stop">Stop Klick\'r</string>
+    <string name="locale_plugin_blurb_run_current">Run current Klick\'r scenario</string>
     <string name="locale_plugin_type_smart">Smart</string>
     <string name="locale_plugin_type_dumb">Dumb</string>
     <string name="locale_plugin_scenario_icon">Scenario type</string>

@@ -31,6 +31,7 @@ interface LocalAccessibilityService {
     fun replaceDumbScenario(dumbScenario: DumbScenario)
     fun replaceSmartScenario(resultCode: Int, data: Intent, scenario: Scenario)
     fun replaceSmartScenarioWithCurrentProjection(scenario: Scenario)
+    fun runCurrentScenario()
     fun stopScenario()
     fun release()
 

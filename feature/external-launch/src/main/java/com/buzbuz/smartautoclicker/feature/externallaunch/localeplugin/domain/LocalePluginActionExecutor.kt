@@ -34,6 +34,7 @@ internal class LocalePluginActionExecutor @Inject constructor(
         withContext(ioDispatcher) {
             when (configuration.operation) {
                 LocalePluginOperation.STOP -> ResolvedLocalePluginAction.Stop
+                LocalePluginOperation.RUN_CURRENT -> ResolvedLocalePluginAction.RunCurrent
                 LocalePluginOperation.LAUNCH -> {
                     val id = configuration.scenarioId ?: return@withContext null
                     if (configuration.isSmart == true) {
@@ -51,6 +52,8 @@ internal class LocalePluginActionExecutor @Inject constructor(
     fun isScenarioConfigurationOpen(): Boolean = externalLaunchRepository.isScenarioConfigurationOpen()
 
     fun executeStop() = externalLaunchRepository.stopScenarios()
+
+    fun executeRunCurrent() = externalLaunchRepository.runCurrentScenario()
 
     fun launchDumb(action: ResolvedLocalePluginAction.LaunchDumb) {
         if (externalLaunchRepository.isDumbScenarioRunning(action.scenario.id.databaseId)) return
@@ -77,12 +80,14 @@ internal class LocalePluginActionExecutor @Inject constructor(
 
 internal sealed interface ResolvedLocalePluginAction {
     data object Stop : ResolvedLocalePluginAction
+    data object RunCurrent : ResolvedLocalePluginAction
     data class LaunchSmart(val scenario: Scenario) : ResolvedLocalePluginAction
     data class LaunchDumb(val scenario: DumbScenario) : ResolvedLocalePluginAction
 
     val scenarioName: String?
         get() = when (this) {
             Stop -> null
+            RunCurrent -> null
             is LaunchSmart -> scenario.name
             is LaunchDumb -> scenario.name
         }

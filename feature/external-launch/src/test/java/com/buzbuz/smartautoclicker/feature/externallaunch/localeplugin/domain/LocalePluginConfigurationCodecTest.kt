@@ -50,6 +50,13 @@ class LocalePluginConfigurationCodecTest {
     }
 
     @Test
+    fun `run current round trips without scenario fields`() {
+        val configuration = LocalePluginConfiguration(operation = LocalePluginOperation.RUN_CURRENT)
+
+        assertEquals(configuration, codec.decode(codec.encode(configuration)))
+    }
+
+    @Test
     fun `tampered payload is rejected`() {
         val encoded = codec.encode(
             LocalePluginConfiguration(

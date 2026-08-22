@@ -120,6 +120,10 @@ class LocalePluginExecutionActivity : AppCompatActivity() {
                 viewModel.executeStop()
                 close()
             }
+            ResolvedLocalePluginAction.RunCurrent -> {
+                viewModel.executeRunCurrent()
+                close()
+            }
             is ResolvedLocalePluginAction.LaunchDumb -> requestPermissions {
                 if (isCurrentRequest()) {
                     viewModel.launchDumb(action)

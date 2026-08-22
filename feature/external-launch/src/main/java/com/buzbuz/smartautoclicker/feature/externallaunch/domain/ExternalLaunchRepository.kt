@@ -192,6 +192,9 @@ class ExternalLaunchRepository @Inject constructor(
     internal fun replaceSmartScenarioWithCurrentProjection(scenario: Scenario) =
         actionHandler?.replaceSmartScenarioWithCurrentProjection(scenario)
 
+    internal fun runCurrentScenario() =
+        actionHandler?.runCurrentScenario()
+
     internal fun stopScenarios() =
         actionHandler?.stop()
 

@@ -305,6 +305,30 @@ class LocalService(
         }
     }
 
+    /**
+     * Runs the loaded scenario only when the root overlay is visible and unobstructed.
+     * Locale actions are intentionally ignored in every other state so they cannot disturb
+     * a running session or UI containing unsaved user changes.
+     */
+    override fun runCurrentScenario() {
+        serviceScope.launch {
+            if (!canRunCurrentScenario(
+                    isLoaded = state.isStarted,
+                    isRunning = isScenarioRunning(),
+                    isHidden = overlayManager.isOverlayStackHidden(),
+                    hasOverlayAboveRoot = overlayManager.hasOverlayAboveRoot(),
+                )
+            ) return@launch
+
+            if (state.isSmartLoaded) {
+                if (shouldStartPaywall()) startPaywall(onlyIfRootVisible = true)
+                else startSmartScenario(onlyIfRootVisible = true)
+            } else {
+                dumbEngine.startDumbScenario()
+            }
+        }
+    }
+
     private fun pause() {
         serviceScope.launch {
             when {
@@ -318,25 +342,28 @@ class LocalService(
         revenueRepository.userBillingState.value == UserBillingState.AD_REQUESTED &&
                 !tutorialRepository.isTutorialStarted()
 
-    private fun startPaywall() {
+    private fun startPaywall(onlyIfRootVisible: Boolean = false) {
         revenueRepository.startPaywallUiFlow(context)
 
         paywallResultJob = combine(revenueRepository.isBillingFlowInProgress, revenueRepository.userBillingState) { inProgress, state ->
             if (inProgress) return@combine
 
-            if (state != UserBillingState.AD_REQUESTED) startSmartScenario()
+            if (state != UserBillingState.AD_REQUESTED) startSmartScenario(onlyIfRootVisible)
             paywallResultJob?.cancel()
             paywallResultJob = null
         }.launchIn(serviceScope)
     }
 
-    private fun startSmartScenario() {
+    private fun startSmartScenario(onlyIfRootVisible: Boolean = false) {
         serviceScope.launch {
             // Ignore Play while a switch owns this transition. Starting afterward could silently start detection on a
             // scenario different from the one the user saw when they pressed Play.
             if (!smartScenarioTransitionMutex.tryLock()) return@launch
             try {
                 if (!state.isSmartLoaded || smartProcessingRepository.isRunning()) return@launch
+                if (onlyIfRootVisible &&
+                    (overlayManager.isOverlayStackHidden() || overlayManager.hasOverlayAboveRoot())
+                ) return@launch
 
                 smartProcessingRepository.startDetection(
                     context = context,
@@ -418,6 +445,13 @@ class LocalService(
 
 private const val SCENARIO_SWITCHER_PAUSE_TIMEOUT_MS = 5_000L
 private const val TAG = "LocalService"
+
+internal fun canRunCurrentScenario(
+    isLoaded: Boolean,
+    isRunning: Boolean,
+    isHidden: Boolean,
+    hasOverlayAboveRoot: Boolean,
+): Boolean = isLoaded && !isRunning && !isHidden && !hasOverlayAboveRoot
 
 private data class LocalServiceState(
     val isStarted: Boolean,

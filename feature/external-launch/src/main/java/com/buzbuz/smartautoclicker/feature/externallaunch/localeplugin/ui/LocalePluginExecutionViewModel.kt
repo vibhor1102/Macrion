@@ -70,5 +70,7 @@ internal class LocalePluginExecutionViewModel @Inject constructor(
 
     fun executeStop() = executor.executeStop()
 
+    fun executeRunCurrent() = executor.executeRunCurrent()
+
     fun isEntireScreenCaptureForced(): Boolean = settingsRepository.isEntireScreenCaptureForced()
 }

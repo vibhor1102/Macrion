@@ -50,6 +50,15 @@ class LocalePluginActionExecutorTest {
     }
 
     @Test
+    fun `run current resolves without a scenario and delegates to the live session`() = runTest {
+        val action = executor.resolve(LocalePluginConfiguration(operation = LocalePluginOperation.RUN_CURRENT))
+
+        assertSame(ResolvedLocalePluginAction.RunCurrent, action)
+        executor.executeRunCurrent()
+        verify(exactly = 1) { externalLaunchRepository.runCurrentScenario() }
+    }
+
+    @Test
     fun `smart launch resolves and uses atomic replacement with fresh projection`() = runTest {
         val scenario = mockk<Scenario>()
         coEvery { smartRepository.getScenario(42L) } returns scenario

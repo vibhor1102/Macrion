@@ -11,7 +11,7 @@ package com.buzbuz.smartautoclicker.feature.externallaunch.localeplugin.domain
 import kotlinx.serialization.Serializable
 
 @Serializable
-internal enum class LocalePluginOperation { LAUNCH, STOP }
+internal enum class LocalePluginOperation { LAUNCH, RUN_CURRENT, STOP }
 
 @Serializable
 internal data class LocalePluginConfiguration(
@@ -22,6 +22,7 @@ internal data class LocalePluginConfiguration(
 ) {
     fun isValid(): Boolean = when (operation) {
         LocalePluginOperation.LAUNCH -> scenarioId != null && scenarioId > 0L && isSmart != null
+        LocalePluginOperation.RUN_CURRENT,
         LocalePluginOperation.STOP -> scenarioId == null && isSmart == null
     }
 }

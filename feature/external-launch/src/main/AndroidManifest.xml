@@ -90,6 +90,19 @@
         </activity>
 
         <activity
+            android:name=".localeplugin.ui.LocalePluginRunCurrentConfigurationActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:icon="@drawable/ic_play_arrow"
+            android:label="@string/locale_plugin_run_current_name"
+            android:theme="@style/AppTheme.TranslucentActivity">
+            <intent-filter>
+                <action android:name="com.twofortyfouram.locale.intent.action.EDIT_SETTING" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name=".localeplugin.ui.ScenarioStateConditionConfigurationActivity"
             android:exported="true"
             android:excludeFromRecents="true"

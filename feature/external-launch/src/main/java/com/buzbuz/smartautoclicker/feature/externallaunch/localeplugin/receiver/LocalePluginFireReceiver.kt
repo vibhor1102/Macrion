@@ -81,8 +81,15 @@ class LocalePluginFireReceiver : BroadcastReceiver() {
             }
             ResolvedLocalePluginAction.Stop -> {
                 directLaunchTracker.abandon(requestId)
+                launchFailureStore.clearLaunchPending()
                 notifications.cancelLaunchFallback()
                 executor.executeStop()
+            }
+            ResolvedLocalePluginAction.RunCurrent -> {
+                directLaunchTracker.abandon(requestId)
+                launchFailureStore.clearLaunchPending()
+                notifications.cancelLaunchFallback()
+                executor.executeRunCurrent()
             }
             is ResolvedLocalePluginAction.LaunchDumb -> {
                 if (deferForOpenScenarioConfiguration(configurationJson, action.scenario.name, requestId)) {

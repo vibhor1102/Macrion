@@ -126,6 +126,9 @@ class SmartAutoClickerService : AccessibilityService() {
                 override fun replaceSmartScenarioWithCurrentProjection(scenario: Scenario) {
                     localServiceConnection.getLocalService()?.replaceSmartScenarioWithCurrentProjection(scenario)
                 }
+                override fun runCurrentScenario() {
+                    localServiceConnection.getLocalService()?.runCurrentScenario()
+                }
                 override fun stop() {
                     localServiceConnection.getLocalService()?.stopScenario()
                 }
