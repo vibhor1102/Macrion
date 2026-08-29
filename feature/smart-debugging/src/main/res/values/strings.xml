@@ -107,6 +107,8 @@
     <!-- Debug Report Event Occurrence dialog ====================================================================== -->
 
     <string name="menu_item_debug_event_occurrence_conditions">Conditions</string>
+    <string name="content_desc_event_occurrence_fast_scroller">Event occurrence details fast scroller</string>
+    <string name="content_desc_filtered_events_fast_scroller">Filtered events fast scroller</string>
     <string name="menu_item_debug_event_occurrence_counters">Counters</string>
     <string name="menu_item_debug_event_occurrence_events_state">States</string>
 
