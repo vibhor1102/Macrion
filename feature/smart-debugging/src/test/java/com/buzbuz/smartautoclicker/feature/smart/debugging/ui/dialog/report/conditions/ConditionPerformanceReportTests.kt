@@ -126,8 +126,8 @@ class ConditionPerformanceReportTests {
 
     private fun source(id: Long, name: String, order: Int) = ConditionPerformanceSource(
         condition = TriggerCondition.OnTimerReached(
-            id = Identifier(id),
-            eventId = Identifier(100 + id),
+            id = Identifier(databaseId = id),
+            eventId = Identifier(databaseId = 100 + id),
             name = name,
             durationMs = 1_000,
             restartWhenReached = false,
