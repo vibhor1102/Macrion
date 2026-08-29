@@ -21,6 +21,7 @@
 
     <string name="dialog_overlay_title_debug_report">Debug report</string>
     <string name="menu_item_debug_report_overview">Overview</string>
+    <string name="menu_item_debug_report_conditions">Conditions</string>
     <string name="menu_item_debug_report_timeline">Timeline</string>
 
     <!-- Debug Report Overview Tab-->
@@ -46,13 +47,31 @@
     <string name="desc_event_activity_empty">This scenario does not currently contain any events.</string>
     <string name="content_desc_event_activity_sort">Sort Event activity</string>
     <string name="content_desc_event_activity_fast_scroller">Event activity fast scroller</string>
-    <string name="dialog_overlay_title_event_activity_sort">Sort Event activity</string>
     <string name="event_activity_sort_scenario_order">Scenario order</string>
-    <string name="event_activity_sort_scenario_order_desc">Use the order shown in the Scenario editor</string>
     <string name="event_activity_sort_most_frequent">Most frequent</string>
-    <string name="event_activity_sort_most_frequent_desc">Show events with the most occurrences first</string>
     <string name="event_activity_sort_first_execution">First execution</string>
-    <string name="event_activity_sort_first_execution_desc">Use the order in which events were first reached</string>
+
+    <!-- Debug Report Conditions Tab -->
+    <string name="title_condition_performance_unavailable">Condition performance is not available for this report.</string>
+    <string name="content_desc_condition_performance_sort">Sort Conditions</string>
+    <string name="content_desc_condition_performance_fast_scroller">Condition performance fast scroller</string>
+    <string name="item_condition_performance_total_time">Total time: %1$s s</string>
+    <string name="item_condition_performance_fulfilled">Fulfilled: %1$s %2$s out of %3$s %4$s</string>
+    <plurals name="item_condition_performance_time">
+        <item quantity="one">time</item>
+        <item quantity="other">times</item>
+    </plurals>
+    <plurals name="item_condition_performance_check">
+        <item quantity="one">check</item>
+        <item quantity="other">checks</item>
+    </plurals>
+    <string name="item_condition_performance_average">Average: %1$s ms per check</string>
+    <string name="item_condition_performance_average_unavailable">Average: N/A</string>
+    <string name="desc_condition_performance_footer">Percentages show each condition’s share of the total time spent checking conditions in this report. They do not represent total scenario time or battery usage.</string>
+    <string name="condition_performance_sort_total_time">Total time</string>
+    <string name="condition_performance_sort_average">Average per check</string>
+    <string name="condition_performance_sort_checks">Checks</string>
+    <string name="condition_performance_sort_scenario_order">Scenario order</string>
 
     <!-- Debug Report Timeline Tab -->
     <string name="title_event_occurrence_empty">No events</string>
