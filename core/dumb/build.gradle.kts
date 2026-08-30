@@ -23,7 +23,7 @@ plugins {
 }
 
 android {
-    namespace = "com.smartautoclicker.core.dumb"
+    namespace = "io.github.vibhor1102.macrion.core.dumb"
 
     sourceSets {
         getByName("test") {

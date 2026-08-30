@@ -1,0 +1,76 @@
+/*
+ * Copyright (C) 2023 Kevin Buzeau
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package io.github.vibhor1102.macrion.core.ui.bindings.dialogs
+
+import android.view.View
+import android.view.inputmethod.InputMethodManager
+import androidx.annotation.StringRes
+import androidx.core.widget.doAfterTextChanged
+import io.github.vibhor1102.macrion.core.ui.R
+import io.github.vibhor1102.macrion.core.ui.databinding.IncludeDialogSearchTopBarBinding
+import androidx.core.view.isGone
+
+
+fun IncludeDialogSearchTopBarBinding.setup(@StringRes title: Int, @StringRes searchHint: Int) {
+    dialogTitle.setText(title)
+    searchEdit.setHint(searchHint)
+
+    buttonSearchCancel.setOnClickListener {
+        if (searchEdit.isGone) toSearchMode()
+        else toTitleMode()
+    }
+    toTitleMode()
+}
+
+fun IncludeDialogSearchTopBarBinding.setOnTextChangedListener(onSearchTextChanged: (String) -> Unit) {
+    searchEdit.doAfterTextChanged { onSearchTextChanged(it.toString()) }
+}
+
+fun IncludeDialogSearchTopBarBinding.setOnDismissClickedListener(onDismissClicked: () -> Unit) {
+    buttonDismiss.setOnClickListener { onDismissClicked() }
+}
+
+private fun IncludeDialogSearchTopBarBinding.toTitleMode() {
+    buttonDismiss.visibility = View.VISIBLE
+    buttonCopy.visibility = View.VISIBLE
+    dialogTitle.visibility = View.VISIBLE
+    buttonSearchCancel.setIconResource(R.drawable.ic_search)
+
+    searchEdit.apply {
+        visibility = View.GONE
+
+        context.getSystemService(InputMethodManager::class.java)
+            .hideSoftInputFromWindow(searchEdit.windowToken, 0)
+        clearFocus()
+        text?.clear()
+    }
+}
+
+private fun IncludeDialogSearchTopBarBinding.toSearchMode() {
+    buttonDismiss.visibility = View.GONE
+    dialogTitle.visibility = View.GONE
+    buttonCopy.visibility = View.GONE
+    buttonSearchCancel.setIconResource(R.drawable.ic_cancel)
+
+    searchEdit.apply {
+        visibility = View.VISIBLE
+
+        requestFocus()
+        context.getSystemService(InputMethodManager::class.java)
+            .showSoftInput(searchEdit, 0)
+    }
+}

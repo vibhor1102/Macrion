@@ -1,0 +1,107 @@
+/*
+ * Copyright (C) 2024 Kevin Buzeau
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.imageevents
+
+import android.content.Context
+import android.view.View
+
+import androidx.lifecycle.ViewModel
+
+import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
+import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
+import io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.copy.availability.IsScreenEventCopyAvailableUseCase
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.UiImageEvent
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.toUiImageEvent
+
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.mapNotNull
+
+import javax.inject.Inject
+
+class ImageEventListViewModel @Inject constructor(
+    isScreenEventCopyAvailableUseCase: IsScreenEventCopyAvailableUseCase,
+    private val editionRepository: EditionRepository,
+    private val monitoredViewsManager: MonitoredViewsManager,
+) : ViewModel() {
+
+    /** Currently configured events. */
+    val eventsItems = editionRepository.editionState.editedScreenEventsState
+        .mapNotNull { imageEventsState ->
+            imageEventsState.value?.map { imageEvent ->
+                imageEvent.toUiImageEvent(inError = !imageEvent.isComplete())
+            }
+        }
+
+    /** Tells if the copy button should be visible or not. */
+    val copyButtonIsVisible: Flow<Boolean> = isScreenEventCopyAvailableUseCase()
+
+    /**
+     * Creates a new event item.
+     * @param context the Android context.
+     * @return the new event item.
+     */
+    fun createNewEvent(context: Context): ScreenEvent =
+        editionRepository.editedItemsBuilder.createNewImageEvent(context)
+
+    fun startEventEdition(event: ScreenEvent) = editionRepository.startEventEdition(event)
+
+    /** Add or update an event. If the event id is unset, it will be added. If not, updated. */
+    fun saveEventEdition() = editionRepository.upsertEditedEvent()
+
+    /** Delete an event. */
+    fun deleteEditedEvent() = editionRepository.deleteEditedEvent()
+
+    /** Drop all changes made to the currently edited event. */
+    fun dismissEditedEvent() = editionRepository.stopEventEdition()
+
+    /** Update the priority of the events in the scenario. */
+    fun updateEventsPriority(uiEvents: List<UiImageEvent>) =
+        editionRepository.updateImageEventsOrder(
+            uiEvents.map { it.event }
+        )
+
+    fun monitorEventView(index: Int, view: View) {
+        val type = when (index) {
+            0 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_FIRST_EVENT
+            1 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_SECOND_EVENT
+            2 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_THIRD_EVENT
+            3 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_FOURTH_EVENT
+            else -> return
+        }
+        monitoredViewsManager.attach(type, view)
+    }
+
+    fun stopEventViewMonitoring(index: Int) {
+        val type = when (index) {
+            0 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_FIRST_EVENT
+            1 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_SECOND_EVENT
+            2 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_THIRD_EVENT
+            3 -> MonitoredViewType.SCENARIO_DIALOG_ITEM_FOURTH_EVENT
+            else -> return
+        }
+        monitoredViewsManager.detach(type)
+    }
+
+    fun stopViewMonitoring() {
+        monitoredViewsManager.detach(MonitoredViewType.SCENARIO_DIALOG_ITEM_FIRST_EVENT)
+        monitoredViewsManager.detach(MonitoredViewType.SCENARIO_DIALOG_ITEM_SECOND_EVENT)
+        monitoredViewsManager.detach(MonitoredViewType.SCENARIO_DIALOG_ITEM_THIRD_EVENT)
+        monitoredViewsManager.detach(MonitoredViewType.SCENARIO_DIALOG_ITEM_FOURTH_EVENT)
+    }
+}

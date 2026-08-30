@@ -24,7 +24,7 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.core.database"
+    namespace = "io.github.vibhor1102.macrion.core.database"
 
     sourceSets {
         getByName("test") {

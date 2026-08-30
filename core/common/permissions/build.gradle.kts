@@ -21,7 +21,7 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.core.common.permissions"
+    namespace = "io.github.vibhor1102.macrion.core.common.permissions"
     buildFeatures.viewBinding = true
 }
 

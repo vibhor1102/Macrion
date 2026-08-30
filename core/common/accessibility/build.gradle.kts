@@ -22,7 +22,7 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.core.common.accessibility"
+    namespace = "io.github.vibhor1102.macrion.core.common.accessibility"
 }
 
 dependencies {

@@ -23,7 +23,7 @@
     android:layout_height="match_parent"
     android:layout_gravity="bottom">
 
-    <com.buzbuz.smartautoclicker.core.ui.views.gesturerecord.GestureRecordView
+    <io.github.vibhor1102.macrion.core.ui.views.gesturerecord.GestureRecordView
         android:id="@+id/view_record"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -91,7 +91,7 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <com.buzbuz.smartautoclicker.core.ui.views.itembrief.ItemBriefView
+    <io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefView
         android:id="@+id/view_brief"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

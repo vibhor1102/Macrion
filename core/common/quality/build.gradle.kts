@@ -22,7 +22,7 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.core.common.quality"
+    namespace = "io.github.vibhor1102.macrion.core.common.quality"
 
     buildFeatures {
         buildConfig = true

@@ -20,5 +20,5 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.core.android"
+    namespace = "io.github.vibhor1102.macrion.core.android"
 }

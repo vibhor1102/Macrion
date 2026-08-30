@@ -23,7 +23,7 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.feature.backup"
+    namespace = "io.github.vibhor1102.macrion.feature.backup"
     buildFeatures.viewBinding = true
 }
 

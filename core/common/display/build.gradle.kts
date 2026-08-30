@@ -23,7 +23,7 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.core.capture"
+    namespace = "io.github.vibhor1102.macrion.core.capture"
 }
 
 dependencies {

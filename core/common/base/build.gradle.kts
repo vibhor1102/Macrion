@@ -24,7 +24,7 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.core.extensions"
+    namespace = "io.github.vibhor1102.macrion.core.extensions"
 }
 
 dependencies {

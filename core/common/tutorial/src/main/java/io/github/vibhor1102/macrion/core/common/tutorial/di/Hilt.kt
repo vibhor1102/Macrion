@@ -1,0 +1,44 @@
+﻿/*
+ * Copyright (C) 2026 Kevin Buzeau
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package io.github.vibhor1102.macrion.core.common.tutorial.di
+
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.TutorialRepository
+import io.github.vibhor1102.macrion.core.common.tutorial.impl.TutorialRepositoryImpl
+import io.github.vibhor1102.macrion.core.common.tutorial.impl.monitoring.MonitoredViewsManagerImpl
+
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+
+@Module
+@InstallIn(SingletonComponent::class)
+object SmartTutorialModule {
+
+    @Provides
+    @Singleton
+    internal fun providesTutorialRepository(repository: TutorialRepositoryImpl): TutorialRepository =
+        repository
+
+    @Provides
+    @Singleton
+    internal fun providesMonitoredViewManager(impl: MonitoredViewsManagerImpl): MonitoredViewsManager =
+        impl
+}

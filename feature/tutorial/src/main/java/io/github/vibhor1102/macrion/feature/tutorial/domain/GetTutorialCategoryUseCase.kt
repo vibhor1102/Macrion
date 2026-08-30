@@ -1,0 +1,100 @@
+/*
+ * Copyright (C) 2026 Kevin Buzeau
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package io.github.vibhor1102.macrion.feature.tutorial.domain
+
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.TutorialRepository
+import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialCategory
+import io.github.vibhor1102.macrion.feature.tutorial.data.mapping.toTutorialCategory
+import io.github.vibhor1102.macrion.feature.tutorial.data.mapping.toTutorialItem
+import io.github.vibhor1102.macrion.feature.tutorial.data.mapping.toTutorialSlideshow
+import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialCategoryUiItems
+import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialCategoryUiState
+
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import javax.inject.Inject
+
+class GetTutorialCategoryUseCase @Inject constructor(
+    private val tutorialRepository: TutorialRepository,
+) {
+
+
+    operator fun invoke(categoryType: TutorialCategory.Type = TutorialCategory.Type.ROOT): Flow<TutorialCategoryUiState> =
+        tutorialRepository.tutorialsCompletionState
+            .map { completionStateMap -> categoryType.toTutorialCategory().toUiState(completionStateMap) }
+            .onStart { emit(TutorialCategoryUiState.Loading) }
+
+    private fun TutorialCategory.toUiState(completionState: Map<String, Boolean>): TutorialCategoryUiState =
+        TutorialCategoryUiState.Loaded(
+            categoryNameRes = nameRes,
+            items = buildList {
+                add(this@toUiState.toHeaderUiItem())
+                addAll(content.map { it.toUiItem(completionState) })
+            }
+        )
+
+    private fun TutorialCategory.toHeaderUiItem(): TutorialCategoryUiItems.Header =
+        TutorialCategoryUiItems.Header(
+            categoryNameRes = nameRes,
+            descriptionRes = longDescriptionRes,
+            iconRes = iconRes,
+        )
+
+    private fun TutorialCategory.Content.toUiItem(completionState: Map<String, Boolean>): TutorialCategoryUiItems =
+        when (this) {
+            is TutorialCategory.Content.Divider -> TutorialCategoryUiItems.SectionDivider
+            is TutorialCategory.Content.Category -> toCategoryUiItem()
+            is TutorialCategory.Content.Tutorial -> toTutorialUiItem(completionState)
+            is TutorialCategory.Content.Slideshow -> toSlideshowUiItem()
+        }
+
+    private fun TutorialCategory.Content.Category.toCategoryUiItem(): TutorialCategoryUiItems.Item.Category {
+        val category = type.toTutorialCategory()
+        return TutorialCategoryUiItems.Item.Category(
+            type = type,
+            nameRes = category.nameRes,
+            descriptionRes = category.shortDescriptionRes,
+            iconRes = category.iconRes,
+        )
+    }
+
+    private fun TutorialCategory.Content.Tutorial.toTutorialUiItem(
+        completionState: Map<String, Boolean>,
+    ): TutorialCategoryUiItems.Item.Tutorial {
+        val item = type.toTutorialItem()
+        val info = item.getTutorialInfo()
+        val isCompleted = completionState[info.id] == true
+
+        return TutorialCategoryUiItems.Item.Tutorial(
+            type = type,
+            nameRes = info.nameResId,
+            descriptionRes = info.descResId,
+            tutorialCompleted = isCompleted,
+        )
+    }
+
+    private fun TutorialCategory.Content.Slideshow.toSlideshowUiItem(): TutorialCategoryUiItems.Item.Slideshow {
+        val slideshow = type.toTutorialSlideshow()
+        return TutorialCategoryUiItems.Item.Slideshow(
+            type = type,
+            nameRes = slideshow.nameRes,
+            descriptionRes = slideshow.shortDescriptionRes,
+        )
+    }
+
+}

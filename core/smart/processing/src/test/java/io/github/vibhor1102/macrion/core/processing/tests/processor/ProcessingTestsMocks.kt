@@ -1,0 +1,124 @@
+/*
+ * Copyright (C) 2024 Kevin Buzeau
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package io.github.vibhor1102.macrion.core.processing.tests.processor
+
+import android.graphics.Rect
+import io.github.vibhor1102.macrion.core.detection.DetectionResult
+import io.github.vibhor1102.macrion.core.detection.ImageDetector
+import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
+import io.github.vibhor1102.macrion.core.domain.model.event.TriggerEvent
+import io.github.vibhor1102.macrion.core.processing.data.scaling.ScreenConditionScalingInfo
+import io.github.vibhor1102.macrion.core.processing.data.scaling.ScalingManager
+import io.github.vibhor1102.macrion.core.processing.tests.processor.ProcessingTests.BitmapSupplier
+import io.github.vibhor1102.macrion.core.processing.utils.anyNotNull
+import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingListener
+import org.mockito.Mockito.times
+import org.mockito.Mockito.`when`
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+
+
+internal fun ScalingManager.mockScaling(testCondition: TestImageCondition, detectionArea: Rect? = null) {
+    `when`(getScreenConditionScalingInfo(testCondition.imageCondition)).thenReturn(
+        ScreenConditionScalingInfo.Image(
+            screenCondition = testCondition.imageCondition,
+            imageArea = testCondition.imageCondition.area,
+            detectionArea = detectionArea ?: testCondition.imageCondition.area,
+        )
+    )
+}
+
+internal suspend fun BitmapSupplier.mockBitmapProviding(testCondition: TestImageCondition) {
+    `when`(getBitmap(
+        testCondition.imageCondition.path,
+        testCondition.imageCondition.area.width(),
+        testCondition.imageCondition.area.height())
+    ).thenReturn(testCondition.mockedBitmap)
+}
+
+internal fun ImageDetector.mockAllDetectionResult(testConditions: List<TestImageCondition>, areAllDetected: Boolean) {
+    testConditions.forEach { testCondition ->
+        mockDetectionResult(testCondition, areAllDetected)
+    }
+}
+
+internal fun ImageDetector.mockDetectionResult(testCondition: TestImageCondition, isDetected: Boolean, detectionArea: Rect? = null) {
+    `when`(
+        detectImage(
+            conditionBitmap = testCondition.mockedBitmap,
+            conditionWidth = testCondition.imageCondition.area.width(),
+            conditionHeight = testCondition.imageCondition.area.height(),
+            detectionArea = detectionArea ?: testCondition.imageCondition.area,
+            threshold = testCondition.imageCondition.threshold,
+        )
+    ).thenReturn(DetectionResult(isDetected))
+}
+
+internal fun ImageDetector.verifyConditionNeverProcessed(testCondition: TestImageCondition) {
+    verify(this, never())
+        .detectImage(
+            conditionBitmap = eq(testCondition.mockedBitmap),
+            conditionWidth = eq(testCondition.imageCondition.area.width()),
+            conditionHeight = eq(testCondition.imageCondition.area.height()),
+            detectionArea = any(),
+            threshold = eq(testCondition.imageCondition.threshold),
+        )
+}
+
+internal fun SmartProcessingListener.verifyImageConditionProcessed(
+    condition: TestImageCondition,
+    detected: Boolean,
+    processedCount: Int = 1,
+): Unit = verify(this, times(processedCount))
+    .onScreenConditionProcessingCompleted(condition.expectedResult(detected))
+
+internal fun SmartProcessingListener.monitorImageEventProcessing(
+    events: List<ScreenEvent>,
+): Map<Long, Boolean> {
+
+    val results = mutableMapOf<Long, Boolean>()
+    events.forEach { event ->
+        results.put(event.id.databaseId, false)
+        `when`(onEventActionsExecuted(eq(event), anyNotNull())).doAnswer { invocationOnMock ->
+            results.put(event.id.databaseId, true)
+            Unit
+        }
+    }
+
+    return results
+}
+
+internal fun SmartProcessingListener.verifyTriggerEventFulfilled(
+    event: TriggerEvent,
+    expectedResult: Boolean,
+    processedCount: Int = 1,
+): Unit = verify(
+    mock = this,
+    mode = if (expectedResult) times(processedCount) else never()
+).onEventProcessingCompleted(event, processedCount > 0, event.expectedResult(expectedResult))
+
+internal fun SmartProcessingListener.verifyTriggerEventNotProcessed(event: TriggerEvent) {
+    verify(this, never()).onEventProcessingCompleted(event, true, event.expectedResult(true))
+    verify(this, never()).onEventProcessingCompleted(event, false, event.expectedResult(false))
+}
+
+internal fun SmartProcessingListener.verifyScreenEventNotProcessed(event: ScreenEvent) {
+    verify(this, never()).onEventProcessingStarted(event)
+}

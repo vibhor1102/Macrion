@@ -18,7 +18,7 @@
 <resources>
 
     <string name="tutorial_category_root_name">Tutoriais</string>
-    <string name="tutorial_category_root_desc_long">A automação do Klick\'r é baseada no que é exibido na sua tela, o
+    <string name="tutorial_category_root_desc_long">A automação do Macrion é baseada no que é exibido na sua tela, o
         que é bem diferente de um autoclicador comum baseado em tempo. Aprenda aqui como usá-la.</string>
 
     <string name="tutorial_category_basics_name">Noções básicas de um Cenário</string>
@@ -73,7 +73,7 @@
 
     <string name="tutorial_category_combine_event_name">Combinar Eventos</string>
     <string name="tutorial_category_combine_event_desc_short">Coordene múltiplos Eventos para controle avançado</string>
-    <string name="tutorial_category_combine_event_desc_long">O Klick\'r permite coordenar múltiplos Eventos para criar
+    <string name="tutorial_category_combine_event_desc_long">O Macrion permite coordenar múltiplos Eventos para criar
         fluxos de automação avançados. Controlando a ordem de avaliação e ativando ou desativando Eventos em tempo de
         execução, você pode criar Cenários complexos de várias etapas.\n\n Aprenda aqui a combinar Eventos de forma
         eficaz para ter controle total da sua automação.</string>

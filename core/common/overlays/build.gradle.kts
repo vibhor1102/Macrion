@@ -23,7 +23,7 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.core.common.overlays"
+    namespace = "io.github.vibhor1102.macrion.core.common.overlays"
     buildFeatures.viewBinding = true
 }
 

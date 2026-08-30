@@ -31,14 +31,14 @@ using namespace smartautoclicker;
 
 extern "C" {
 
-    JNIEXPORT jlong JNICALL Java_com_buzbuz_smartautoclicker_core_detection_NativeDetector_newDetector(
+    JNIEXPORT jlong JNICALL Java_io_github_vibhor1102_macrion_core_detection_NativeDetector_newDetector(
             JNIEnv *env,
             jobject self
     ) {
         return reinterpret_cast<jlong>(new Detector());
     }
 
-    JNIEXPORT jboolean JNICALL Java_com_buzbuz_smartautoclicker_core_detection_NativeDetector_loadDetectionModels(
+    JNIEXPORT jboolean JNICALL Java_io_github_vibhor1102_macrion_core_detection_NativeDetector_loadDetectionModels(
             JNIEnv* env,
             jobject self,
             jstring detectionModelPath,
@@ -77,7 +77,7 @@ extern "C" {
         return result ? JNI_TRUE : JNI_FALSE;
     }
 
-    JNIEXPORT void JNICALL Java_com_buzbuz_smartautoclicker_core_detection_NativeDetector_setScreenImage(
+    JNIEXPORT void JNICALL Java_io_github_vibhor1102_macrion_core_detection_NativeDetector_setScreenImage(
             JNIEnv *env,
             jobject self,
             jobject screenBitmap,
@@ -96,7 +96,7 @@ extern "C" {
         env->ReleaseStringUTFChars(metricsTag, nativeMetricsTag);
     }
 
-    JNIEXPORT jdoubleArray JNICALL Java_com_buzbuz_smartautoclicker_core_detection_NativeDetector_detectImageNative(
+    JNIEXPORT jdoubleArray JNICALL Java_io_github_vibhor1102_macrion_core_detection_NativeDetector_detectImageNative(
             JNIEnv *env,
             jobject self,
             jobject conditionBitmap,
@@ -131,7 +131,7 @@ extern "C" {
         return result;
     }
 
-    JNIEXPORT jdoubleArray JNICALL Java_com_buzbuz_smartautoclicker_core_detection_NativeDetector_detectColorNative(
+    JNIEXPORT jdoubleArray JNICALL Java_io_github_vibhor1102_macrion_core_detection_NativeDetector_detectColorNative(
             JNIEnv *env,
             jobject self,
             jint conditionColor,
@@ -155,7 +155,7 @@ extern "C" {
         }
     }
 
-    JNIEXPORT jdoubleArray JNICALL Java_com_buzbuz_smartautoclicker_core_detection_NativeDetector_detectTextNative(
+    JNIEXPORT jdoubleArray JNICALL Java_io_github_vibhor1102_macrion_core_detection_NativeDetector_detectTextNative(
             JNIEnv *env,
             jobject self,
             jstring conditionText,
@@ -189,7 +189,7 @@ extern "C" {
         return result;
     }
 
-    JNIEXPORT jdoubleArray JNICALL Java_com_buzbuz_smartautoclicker_core_detection_NativeDetector_detectNumberNative(
+    JNIEXPORT jdoubleArray JNICALL Java_io_github_vibhor1102_macrion_core_detection_NativeDetector_detectNumberNative(
             JNIEnv *env,
             jobject self,
             jint x,
@@ -214,7 +214,7 @@ extern "C" {
         return nullptr;
     }
 
-    JNIEXPORT void JNICALL Java_com_buzbuz_smartautoclicker_core_detection_NativeDetector_releaseScreenImage(
+    JNIEXPORT void JNICALL Java_io_github_vibhor1102_macrion_core_detection_NativeDetector_releaseScreenImage(
             JNIEnv *env,
             jobject self,
             jobject screenBitmap
@@ -222,7 +222,7 @@ extern "C" {
         releaseBitmapLock(env, screenBitmap);
     }
 
-    JNIEXPORT void JNICALL Java_com_buzbuz_smartautoclicker_core_detection_NativeDetector_deleteDetector(
+    JNIEXPORT void JNICALL Java_io_github_vibhor1102_macrion_core_detection_NativeDetector_deleteDetector(
             JNIEnv *env,
             jobject self
     ) {

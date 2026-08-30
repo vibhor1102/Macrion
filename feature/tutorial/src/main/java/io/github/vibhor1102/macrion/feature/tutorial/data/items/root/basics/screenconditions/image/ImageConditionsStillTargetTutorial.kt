@@ -1,0 +1,291 @@
+﻿/*
+ * Copyright (C) 2026 Kevin Buzeau
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package io.github.vibhor1102.macrion.feature.tutorial.data.items.root.basics.screenconditions.image
+
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.tutorial.Tutorial
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.tutorial.TutorialInfo
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.tutorial.step.TutorialStep
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.tutorial.step.TutorialStepEndCondition
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.tutorial.step.TutorialStepImage
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.tutorial.step.TutorialStepStartCondition
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.tutorial.subject.TutorialSubject
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
+import io.github.vibhor1102.macrion.feature.tutorial.R
+import io.github.vibhor1102.macrion.feature.tutorial.data.subjects.quickcountgame.image.OneStillTargetRules
+import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialItem
+
+
+object ImageConditionsStillTargetTutorial : TutorialItem {
+
+    override fun getType(): TutorialItem.Type =
+        TutorialItem.Type.IMAGE_DETECTION_STILL_TARGET
+
+    override fun getTutorialInfo(): TutorialInfo =
+        TutorialInfo(
+            id = getType().toTutorialId(),
+            nameResId = R.string.item_title_tutorial_screen_condition_still_target,
+            descResId = R.string.item_desc_tutorial_screen_condition_still_target,
+        )
+
+    override fun getTutorial(): Tutorial =
+        Tutorial(
+            info = getTutorialInfo(),
+            subject = TutorialSubject.QuickClickGame(
+                instructionsResId = R.string.message_game_tutorial_screen_condition_still_target,
+                scoreToReach = 100,
+                durationSeconds = 10,
+                rules = OneStillTargetRules(),
+            ),
+            steps = listOf(
+                // Beginning, hide the overlay for now
+                TutorialStep.ChangeFloatingUiVisibility(
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.MAIN_MENU,
+                    ),
+                    newVisibility = false,
+                ),
+                // Start screen, before first play
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_1,
+                    stepStartCondition = TutorialStepStartCondition.Immediate,
+                    stepEndCondition = TutorialStepEndCondition.NextButton,
+                ),
+                // First play lost, make floating menu visible
+                TutorialStep.ChangeFloatingUiVisibility(
+                    stepStartCondition = TutorialStepStartCondition.GameLost,
+                    newVisibility = true,
+                ),
+                // First play lost, open edit scenario
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_3,
+                    stepStartCondition = TutorialStepStartCondition.Immediate,
+                    stepEndCondition = TutorialStepEndCondition.MonitoredViewClicked(
+                        MonitoredViewType.MAIN_MENU_BUTTON_CONFIG,
+                    ),
+                ),
+                // Create a new event
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_4,
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.SCENARIO,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.MonitoredViewClicked(
+                        MonitoredViewType.SCENARIO_DIALOG_BUTTON_CREATE_EVENT,
+                    ),
+                ),
+                // Select condition tab
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_5,
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.EVENT,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.MonitoredViewClicked(
+                        MonitoredViewType.EVENT_DIALOG_FIELD_CONDITIONS,
+                    ),
+                ),
+                // Create a new condition
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_6,
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.SCREEN_CONDITIONS_BRIEF_MENU,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.MonitoredViewClicked(
+                        MonitoredViewType.CONDITIONS_BRIEF_MENU_BUTTON_CREATE,
+                    ),
+                ),
+                // Select Image Condition type
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_7,
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.SCREEN_CONDITION_TYPE_SELECTION,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.MonitoredViewClicked(
+                        MonitoredViewType.SCREEN_CONDITION_TYPE_SELECTION_IMAGE,
+                    ),
+                ),
+                // Take a screenshot
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_8,
+                    image = TutorialStepImage(
+                        imageResId = R.drawable.ic_capture,
+                        imageDescResId = R.string.message_tutorial_screen_condition_still_target_step_secondary_8,
+                    ),
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.CAPTURE_MENU,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.NextButton,
+                ),
+                // Ensure target is captured or retry
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_9,
+                    image = TutorialStepImage(
+                        imageResId = R.drawable.ic_cancel,
+                        imageDescResId = R.string.message_tutorial_screen_condition_still_target_step_secondary_9,
+                    ),
+                    stepStartCondition = TutorialStepStartCondition.MonitoredViewClicked(
+                        MonitoredViewType.SCREEN_CONDITION_CAPTURE_MENU_BUTTON_CAPTURE,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.NextButton,
+                ),
+                // Adjust screenshot
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_10,
+                    image = TutorialStepImage(
+                        imageResId = R.drawable.tutorial_instructions_capture_sizing,
+                        imageDescResId = R.string.message_tutorial_screen_condition_still_target_step_secondary_10,
+                    ),
+                    stepStartCondition = TutorialStepStartCondition.Immediate,
+                    stepEndCondition = TutorialStepEndCondition.NextButton,
+                ),
+                // Save condition
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_11,
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.IMAGE_CONDITION,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.MonitoredViewClicked(
+                        MonitoredViewType.SCREEN_CONDITION_DIALOG_BUTTON_SAVE,
+                    ),
+                ),
+                // Close condition list
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_12,
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.SCREEN_CONDITIONS_BRIEF_MENU,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.MonitoredViewClicked(
+                        MonitoredViewType.CONDITIONS_BRIEF_MENU_BUTTON_SAVE,
+                    ),
+                ),
+                // Select action tab
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_13,
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.EVENT,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.MonitoredViewClicked(
+                        MonitoredViewType.EVENT_DIALOG_FIELD_ACTIONS,
+                    ),
+                ),
+                // Create a new action
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_14,
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.SMART_ACTIONS_BRIEF_MENU,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.MonitoredViewClicked(
+                        MonitoredViewType.ACTIONS_BRIEF_MENU_BUTTON_CREATE_ACTION,
+                    ),
+                ),
+                // Create a new click
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_15,
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.ACTION_TYPE_SELECTION,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.MonitoredViewClicked(
+                        MonitoredViewType.ACTION_TYPE_DIALOG_CLICK_ACTION,
+                    ),
+                ),
+                // Select click location
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_16,
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.CLICK,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.MonitoredViewClicked(
+                        MonitoredViewType.CLICK_DIALOG_FIELD_SELECT_POSITION_OR_CONDITION,
+                    ),
+                ),
+                // Pick location
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_17,
+                    image = TutorialStepImage(
+                        imageResId = R.drawable.ic_visible_on,
+                        imageDescResId = R.string.message_tutorial_screen_condition_still_target_step_secondary_17,
+                    ),
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.CLICK_POSITION,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.NextButton,
+                ),
+                // Save click
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_18,
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.CLICK,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.MonitoredViewClicked(
+                        MonitoredViewType.CLICK_DIALOG_BUTTON_SAVE,
+                    ),
+                ),
+                // Close action list
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_19,
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.SMART_ACTIONS_BRIEF_MENU,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.MonitoredViewClicked(
+                        MonitoredViewType.ACTIONS_BRIEF_MENU_BUTTON_SAVE,
+                    ),
+                ),
+                // Save event
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_20,
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.EVENT,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.MonitoredViewClicked(
+                        MonitoredViewType.EVENT_DIALOG_BUTTON_SAVE,
+                    ),
+                ),
+                // Save scenario
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_21,
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.SCENARIO,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.MonitoredViewClicked(
+                        MonitoredViewType.SCENARIO_DIALOG_BUTTON_SAVE,
+                    ),
+                ),
+                // Play scenario
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_22,
+                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
+                        MonitoredOverlayType.MAIN_MENU,
+                    ),
+                    stepEndCondition = TutorialStepEndCondition.MonitoredViewClicked(
+                        MonitoredViewType.MAIN_MENU_BUTTON_PLAY,
+                    ),
+                ),
+                // Start game
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_23,
+                    stepStartCondition = TutorialStepStartCondition.Immediate,
+                    stepEndCondition = TutorialStepEndCondition.NextButton,
+                ),
+                // Game won
+                TutorialStep.TutorialOverlay(
+                    contentTextResId = R.string.message_tutorial_screen_condition_still_target_step_24,
+                    stepStartCondition = TutorialStepStartCondition.GameWon,
+                    stepEndCondition = TutorialStepEndCondition.NextButton,
+                ),
+            )
+        )
+}

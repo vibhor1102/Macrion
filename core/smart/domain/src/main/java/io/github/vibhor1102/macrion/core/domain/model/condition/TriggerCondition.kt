@@ -1,0 +1,72 @@
+/*
+ * Copyright (C) 2024 Kevin Buzeau
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package io.github.vibhor1102.macrion.core.domain.model.condition
+
+import io.github.vibhor1102.macrion.core.base.identifier.Identifier
+import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
+import io.github.vibhor1102.macrion.core.domain.model.counter.ComparisonOperation
+
+sealed class TriggerCondition: Condition() {
+
+    override fun hashCodeNoIds(): Int =
+        name.hashCode()
+
+    data class OnBroadcastReceived(
+        override val id: Identifier,
+        override val eventId: Identifier,
+        override val name: String,
+        val intentAction: String,
+    ) : TriggerCondition() {
+
+        override fun isComplete(): Boolean =
+            super.isComplete() && intentAction.isNotEmpty()
+
+        override fun hashCodeNoIds(): Int =
+            super.hashCode() + intentAction.hashCode()
+    }
+
+    data class OnCounterCountReached(
+        override val id: Identifier,
+        override val eventId: Identifier,
+        override val name: String,
+        val counterName: String,
+        val comparisonOperation: ComparisonOperation,
+        val counterValue: CounterOperationValue,
+    ) : TriggerCondition() {
+
+        override fun isComplete(): Boolean =
+            super.isComplete() && counterName.isNotEmpty() && counterValue.isComplete()
+
+        override fun hashCodeNoIds(): Int =
+            super.hashCode() + counterName.hashCode() + comparisonOperation.hashCode() + counterValue.hashCode()
+    }
+
+    data class OnTimerReached(
+        override val id: Identifier,
+        override val eventId: Identifier,
+        override val name: String,
+        val durationMs: Long,
+        val restartWhenReached: Boolean,
+    ) : TriggerCondition() {
+
+        override fun isComplete(): Boolean =
+            super.isComplete() && durationMs > 0
+
+        override fun hashCodeNoIds(): Int =
+            super.hashCode() + durationMs.hashCode()
+    }
+}

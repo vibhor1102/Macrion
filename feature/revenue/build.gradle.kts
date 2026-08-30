@@ -28,7 +28,7 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.feature.revenue"
+    namespace = "io.github.vibhor1102.macrion.feature.revenue"
 
     productFlavors {
         playStore {

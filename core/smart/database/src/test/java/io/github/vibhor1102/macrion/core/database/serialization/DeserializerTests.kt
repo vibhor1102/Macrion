@@ -1,0 +1,90 @@
+/*
+ * Copyright (C) 2024 Kevin Buzeau
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package io.github.vibhor1102.macrion.core.database.serialization
+
+import android.os.Build
+
+import androidx.test.ext.junit.runners.AndroidJUnit4
+
+import io.github.vibhor1102.macrion.core.database.DATABASE_VERSION
+import io.github.vibhor1102.macrion.core.database.entity.*
+import io.github.vibhor1102.macrion.core.database.utils.encodeToJsonObject
+
+import org.junit.Assert.*
+import org.junit.Test
+import org.junit.runner.RunWith
+
+import org.robolectric.annotation.Config
+
+/** Test the [Deserializer] class. */
+@RunWith(AndroidJUnit4::class)
+@Config(sdk = [Build.VERSION_CODES.Q])
+class DeserializerTests {
+
+    private companion object {
+
+        private val DEFAULT_COMPLETE_SCENARIO = CompleteScenario(
+            scenario = ScenarioEntity(1, "Scenario", 600, 0.0, false),
+            events = listOf(
+                CompleteEventEntity(
+                    event = EventEntity(1, 1, "Event", 1, 0, true, EventType.IMAGE_EVENT),
+                    conditions = listOf(
+                        ConditionEntity(1, 1, "Condition", ConditionType.ON_IMAGE_DETECTED, 0, true, "/toto/tutu", 1, 2, 3, 4, 5, 1)
+                    ),
+                    actions = listOf(
+                        CompleteActionEntity(
+                            action = ActionEntity(1, 1, 0, "Intent", ActionType.INTENT,
+                                isAdvanced = false, isBroadcast = false, intentAction = "org.action", flags = 0,
+                                componentName = "org.action/org.action.TOTO",
+                            ),
+                            intentExtras = listOf(
+                                IntentExtraEntity(1, 1, IntentExtraType.BOOLEAN, "ExtraKey", "true")
+                            ),
+                            eventsToggle = listOf(
+                                EventToggleEntity(1, 1, EventToggleType.DISABLE, 1)
+                            ),
+                        )
+                    )
+                )
+            ),
+            counters = emptyList()
+        )
+    }
+
+    @Test
+    fun deserialization_invalidVersion_lower() {
+        assertNull(DeserializerFactory.create(7))
+    }
+
+    @Test
+    fun deserialization_invalidVersion_higher() {
+        assertNull(DeserializerFactory.create(DATABASE_VERSION + 1))
+    }
+
+    @Test
+    fun deserialization_sameVersion() {
+        // Given
+        val jsonScenario = DEFAULT_COMPLETE_SCENARIO.encodeToJsonObject()
+
+        // When
+        val deserializedScenario = DeserializerFactory.create(DATABASE_VERSION)
+            ?.deserializeCompleteScenario(jsonScenario)
+
+        // Then
+        assertEquals(DEFAULT_COMPLETE_SCENARIO, deserializedScenario)
+    }
+}

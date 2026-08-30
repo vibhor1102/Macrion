@@ -31,15 +31,15 @@ plugins {
 
 obfuscationConfig {
     obfuscatedApplication {
-        create("com.buzbuz.smartautoclicker.application.SmartAutoClickerApplication")
+        create("io.github.vibhor1102.macrion.application.SmartAutoClickerApplication")
     }
     obfuscatedComponents {
-        create("com.buzbuz.smartautoclicker.scenarios.ScenarioActivity")
-        create("com.buzbuz.smartautoclicker.SmartAutoClickerService")
+        create("io.github.vibhor1102.macrion.scenarios.ScenarioActivity")
+        create("io.github.vibhor1102.macrion.SmartAutoClickerService")
     }
 
     setup(
-        applicationId = "com.buzbuz.smartautoclicker",
+        applicationId = "io.github.vibhor1102.macrion",
         appNameResId = "@string/app_name",
         shouldRandomize = buildParameters.randomizeAppId.typedValue &&
                 project.isBuildForVariant(KlickrFlavour.F_DROID),
@@ -47,7 +47,7 @@ obfuscationConfig {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker"
+    namespace = "io.github.vibhor1102.macrion"
 
     buildFeatures {
         viewBinding = true

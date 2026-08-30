@@ -21,7 +21,7 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.feature.review"
+    namespace = "io.github.vibhor1102.macrion.feature.review"
     buildFeatures.viewBinding = true
 }
 

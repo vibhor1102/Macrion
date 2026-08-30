@@ -49,7 +49,7 @@ sourceDownload {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.core.detection"
+    namespace = "io.github.vibhor1102.macrion.core.detection"
 
     androidResources {
         noCompress += listOf("bin", "param")

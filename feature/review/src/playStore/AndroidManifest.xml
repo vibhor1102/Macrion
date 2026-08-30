@@ -20,7 +20,7 @@
     <application>
 
         <activity
-            android:name="com.buzbuz.smartautoclicker.feature.review.ui.ReviewActivity"
+            android:name="io.github.vibhor1102.macrion.feature.review.ui.ReviewActivity"
             android:theme="@style/AppTheme.TranslucentActivity"
             android:exported="false"
             android:noHistory="true"

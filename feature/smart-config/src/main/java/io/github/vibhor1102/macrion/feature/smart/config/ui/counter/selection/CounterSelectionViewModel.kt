@@ -1,0 +1,60 @@
+/*
+ * Copyright (C) 2026 Kevin Buzeau
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package io.github.vibhor1102.macrion.feature.smart.config.ui.counter.selection
+
+import android.content.Context
+import android.view.View
+import androidx.lifecycle.ViewModel
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.MonitoredViewsManager
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredViewType
+
+import io.github.vibhor1102.macrion.feature.smart.config.R
+import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
+
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+
+class CounterSelectionViewModel @Inject constructor(
+    @ApplicationContext context: Context,
+    editionRepository: EditionRepository,
+    private val monitoredViewsManager: MonitoredViewsManager,
+) : ViewModel() {
+
+    val counterNames: Flow<List<CounterSelectionUiItem>> = editionRepository.editionState.allEditedCountersFlow
+        .map { counters ->
+            counters.map { counter ->
+                CounterSelectionUiItem(
+                    counterName = counter.counterName,
+                    counterStartingValueDesc = context.getString(
+                        R.string.field_counter_selection_desc,
+                        counter.defaultValue.toNaturalDisplayString(maxFractionDigits = 2),
+                    )
+                )
+            }.sortedBy { counter -> counter.counterName }
+        }
+
+    fun monitorCreateCounterView(view: View) {
+        monitoredViewsManager.attach(MonitoredViewType.COUNTER_SELECTION_DIALOG_BUTTON_CREATE, view)
+    }
+
+    fun stopViewMonitoring() {
+        monitoredViewsManager.detach(MonitoredViewType.COUNTER_SELECTION_DIALOG_BUTTON_CREATE)
+    }
+}

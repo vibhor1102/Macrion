@@ -17,7 +17,7 @@
 syntax = "proto3";
 option java_multiple_files = true;
 
-package com.buzbuz.smartautoclicker.core.smart.debugging;
+package io.github.vibhor1102.macrion.core.smart.debugging;
 
 /** Represents a event state change during an event execution. */
 message EventStateChange {

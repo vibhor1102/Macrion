@@ -1,0 +1,245 @@
+﻿/*
+ * Copyright (C) 2023 Kevin Buzeau
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package io.github.vibhor1102.macrion.feature.tutorial.ui.game.clickcount
+
+import android.graphics.Point
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.animation.AnimationUtils
+import android.widget.TextView
+import androidx.core.view.doOnLayout
+import androidx.core.view.marginStart
+import androidx.core.view.marginTop
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
+
+import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.tutorial.subject.quickclickgame.QuickClickGameTargetState
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.tutorial.subject.quickclickgame.QuickClickGameTargetType
+import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
+import io.github.vibhor1102.macrion.feature.tutorial.R
+import io.github.vibhor1102.macrion.feature.tutorial.databinding.DialogTutorialSuccessBinding
+import io.github.vibhor1102.macrion.feature.tutorial.databinding.FragmentClickCountGameBinding
+import io.github.vibhor1102.macrion.feature.tutorial.ui.overlay.TutorialFullscreenOverlay
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@AndroidEntryPoint
+class ClickCountGameFragment : Fragment() {
+
+    /** ViewModel providing the state of the UI. */
+    private val viewModel: ClickCountGameViewModel by viewModels()
+    /** ViewBinding containing the views for this fragment. */
+    private lateinit var viewBinding: FragmentClickCountGameBinding
+    /** Tells if the time blinking animation is started or not. */
+    private var isTimeAnimationStarted: Boolean = false
+
+    @Inject lateinit var overlayManager: OverlayManager
+
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        viewBinding = FragmentClickCountGameBinding.inflate(inflater, container, false).apply {
+            QuickClickGameTargetType.entries.forEach { targetType ->
+                getTargetView(targetType).setOnClickListener {
+                    viewModel.onTargetHit(targetType)
+                }
+            }
+
+            buttonStartRetry.setOnClickListener { viewModel.startGame() }
+        }
+
+        return viewBinding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        viewBinding.gameArea.forceLayout()
+
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch { viewModel.uiState.collect(::updateUi) }
+                launch { viewModel.shouldDisplayStepOverlay.collect(::showHideStepOverlay) }
+                launch { viewModel.shouldDisplayFloatingUi.collect(::showHideFloatingUi) }
+                launch { viewModel.shouldDisplayCompletionDialog.collect(::showCompletionDialog) }
+                launch {
+                    viewModel.shouldStopGame.collect { shouldStop ->
+                        if (shouldStop) findNavController().navigateUp()
+                    }
+                }
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        lockMenuPosition()
+        if (viewModel.shouldDisplayFloatingUi.value && overlayManager.isOverlayStackHidden()) {
+            overlayManager.restoreVisibility()
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.stopDetection()
+
+        if (viewModel.shouldDisplayFloatingUi.value) {
+            overlayManager.hideAll()
+        }
+        overlayManager.removeTopOverlay()
+        overlayManager.unlockMenuPosition()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModel.stopTutorial()
+    }
+
+    private fun updateUi(uiState: ClickCountGameUiState?) {
+        uiState ?: return
+
+        viewBinding.apply {
+            textInstructions.text = requireContext().getString(uiState.instructionsResId)
+            textHighScore.text = requireContext()
+                .getString(R.string.message_high_score, uiState.highScore)
+            footer.textTimeLeft.text = requireContext()
+                .getString(R.string.message_time_left, uiState.timerValue)
+            textScore.text = requireContext()
+                .getString(R.string.message_score, uiState.gameScore)
+
+            if (!uiState.isGameStarted) {
+                buttonStartRetry.visibility = View.VISIBLE
+                updateTargetsState(emptyMap())
+            } else {
+                buttonStartRetry.visibility = View.GONE
+                updateTargetsState(uiState.targets)
+            }
+
+            if (uiState.isGameStarted && !isTimeAnimationStarted) {
+                isTimeAnimationStarted = true
+                footer.textTimeLeft.startAnimation(
+                    AnimationUtils.loadAnimation(requireContext(), R.anim.anim_timer_blink)
+                )
+            } else if (!uiState.isGameStarted && isTimeAnimationStarted) {
+                isTimeAnimationStarted = false
+                footer.textTimeLeft.clearAnimation()
+            }
+        }
+    }
+
+    private fun showHideStepOverlay(show: Boolean) {
+        if (overlayManager.isOverlayStackVisible()) {
+            viewBinding.spaceOverlayMenu.visibility = View.INVISIBLE
+        } else {
+            viewBinding.spaceOverlayMenu.visibility = View.VISIBLE
+        }
+
+        overlayManager.apply {
+            if (show) setTopOverlay(TutorialFullscreenOverlay())
+            else removeTopOverlay()
+        }
+    }
+
+    private fun showHideFloatingUi(show: Boolean) {
+        overlayManager.apply {
+            if (show) restoreVisibility()
+            else hideAll()
+        }
+    }
+
+    private fun showCompletionDialog(show: Boolean) {
+        if (!show) return
+
+        val dialogContext = requireContext().getDynamicColorsContext(R.style.AppTheme)
+        val dialogViewBinding = DialogTutorialSuccessBinding.inflate(LayoutInflater.from(dialogContext))
+        val dialog = MaterialAlertDialogBuilder(dialogContext)
+            .setView(dialogViewBinding.root)
+            .create()
+
+        dialogViewBinding.apply {
+            buttonKeepPlaying.setOnClickListener { dialog.dismiss() }
+            buttonClose.setOnClickListener {
+                dialog.dismiss()
+                findNavController().navigateUp()
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun lockMenuPosition() {
+        val location = IntArray(2)
+        viewBinding.spaceOverlayMenu.getLocationInWindow(location)
+
+        overlayManager.lockMenuPosition(
+            Point(
+                viewBinding.spaceOverlayMenu.marginStart + location[0],
+                viewBinding.spaceOverlayMenu.marginTop + location[1],
+            )
+        )
+    }
+
+    private fun updateTargetsState(state: Map<QuickClickGameTargetType, QuickClickGameTargetState>) {
+        val areaWidth = viewBinding.gameArea.width.toFloat()
+        val areaHeight = viewBinding.gameArea.height.toFloat()
+
+        QuickClickGameTargetType.entries.forEach { targetType ->
+            val targetView = viewBinding.getTargetView(targetType)
+            val targetState = state[targetType]
+            val position = targetState?.position
+
+            if (position == null) {
+                targetView.visibility = View.GONE
+            } else {
+                targetView.visibility = View.VISIBLE
+                targetView.doOnLayout {
+                    val margin = resources.getDimension(R.dimen.tutorial_game_target_margin)
+                    it.x = (position.x * areaWidth - it.width / 2f).coerceIn(margin, areaWidth - it.width - margin)
+                    it.y = (position.y * areaHeight - it.height / 2f).coerceIn(margin, areaHeight - it.height - margin)
+                }
+
+                if (targetState is QuickClickGameTargetState.ChangingContent && targetView is TextView) {
+                    targetView.text = targetState.content.toString()
+                }
+            }
+        }
+    }
+
+    private fun FragmentClickCountGameBinding.getTargetView(type: QuickClickGameTargetType): View =
+        when (type) {
+            QuickClickGameTargetType.IMAGE_BLUE -> blueTarget
+            QuickClickGameTargetType.IMAGE_RED -> redTarget
+            QuickClickGameTargetType.IMAGE_GREEN -> greenTarget
+            QuickClickGameTargetType.IMAGE_YELLOW -> yellowTarget
+            QuickClickGameTargetType.TEXT_DAY -> dayTarget
+            QuickClickGameTargetType.TEXT_GOODBYE -> goodbyeTarget
+            QuickClickGameTargetType.TEXT_HELLO -> helloTarget
+            QuickClickGameTargetType.TEXT_NIGHT -> nightTarget
+            QuickClickGameTargetType.NUMBER -> numberTarget
+        }
+}
+

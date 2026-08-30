@@ -41,7 +41,7 @@
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/fragment"
-        android:name="com.buzbuz.smartautoclicker.settings.SettingsFragment"
+        android:name="io.github.vibhor1102.macrion.settings.SettingsFragment"
         android:tag="Settings"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

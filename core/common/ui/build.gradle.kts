@@ -22,7 +22,7 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.core.ui"
+    namespace = "io.github.vibhor1102.macrion.core.ui"
     buildFeatures.viewBinding = true
 }
 

@@ -96,3 +96,6 @@ scripts/**/*.pyc
 /*.zip
 /*.bat
 /*.ps1
+
+# Agent guidance linked from the standalone .agents repository
+/AGENTS.md

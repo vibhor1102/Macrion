@@ -1,0 +1,98 @@
+/*
+ * Copyright (C) 2024 Kevin Buzeau
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package io.github.vibhor1102.macrion.feature.dumb.config.ui.brief
+
+import android.content.res.Configuration
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
+
+import androidx.viewbinding.ViewBinding
+
+import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
+import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBriefViewHolder
+import io.github.vibhor1102.macrion.feature.dumb.config.databinding.ItemDumbActionBriefLandBinding
+import io.github.vibhor1102.macrion.feature.dumb.config.databinding.ItemDumbActionBriefPortBinding
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActionDetails
+import com.google.android.material.card.MaterialCardView
+
+
+class DumbActionBriefViewHolder(
+    layoutInflater: LayoutInflater,
+    orientation: Int,
+    parent: ViewGroup,
+) : ItemBriefViewHolder<ItemDumbActionBriefBinding>(ItemDumbActionBriefBinding.inflate(layoutInflater, orientation, parent)) {
+
+    override fun onBind(item: ItemBrief, itemClickedListener: (Int, ItemBrief) -> Unit) {
+        viewBinding.apply {
+            card.setOnClickListener { itemClickedListener(bindingAdapterPosition, item) }
+
+            val details = item.data as DumbActionDetails
+            name.visibility = View.VISIBLE
+            icon.setImageResource(details.icon)
+            name.text = details.name
+            duration.text = details.detailsText
+
+            if (details.repeatCountText != null) {
+                repeat.text = details.repeatCountText
+                repeat.visibility = View.VISIBLE
+            } else {
+                repeat.visibility = View.GONE
+            }
+        }
+    }
+}
+
+class ItemDumbActionBriefBinding private constructor(
+    val viewRoot: View,
+    val card: MaterialCardView,
+    val name: TextView,
+    val duration: TextView,
+    val repeat: TextView,
+    val icon: ImageView,
+) : ViewBinding {
+
+    companion object {
+        fun inflate(layoutInflater: LayoutInflater, orientation: Int, parent: ViewGroup) =
+            if (orientation == Configuration.ORIENTATION_PORTRAIT)
+                ItemDumbActionBriefBinding(ItemDumbActionBriefPortBinding.inflate(layoutInflater, parent, false))
+            else
+                ItemDumbActionBriefBinding(ItemDumbActionBriefLandBinding.inflate(layoutInflater, parent, false))
+    }
+
+    constructor(binding: ItemDumbActionBriefPortBinding) : this(
+        viewRoot = binding.root,
+        card = binding.itemCard,
+        name = binding.actionName,
+        duration = binding.actionDuration,
+        repeat = binding.actionRepeat,
+        icon = binding.actionTypeIcon,
+    )
+
+    constructor(binding: ItemDumbActionBriefLandBinding) : this(
+        viewRoot = binding.root,
+        card = binding.itemCard,
+        name = binding.actionName,
+        duration = binding.actionDuration,
+        repeat = binding.actionRepeat,
+        icon = binding.actionTypeIcon,
+    )
+
+    override fun getRoot(): View = viewRoot
+}

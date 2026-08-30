@@ -1,14 +1,13 @@
 name: Bug report
 description: Create a report to help us improve
 labels: ["bug"]
-assignees:
-  - Nain57
+assignees: []
 body:
   - type: input
     id: app-version
     attributes:
-      label: Version of Smart AutoClicker
-      placeholder: "3.0.1"
+      label: Version of Macrion
+      placeholder: "0.1.0"
     validations:
       required: true
 
@@ -83,7 +82,7 @@ body:
       label: Is it a duplicate?
       description: |
         I have checked if this bug was not already requested in another ticket. \
-        [List of all opened bugs](https://github.com/Nain57/Smart-AutoClicker/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug)
+        [List of all opened bugs](https://github.com/vibhor1102/Macrion/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug)
         
       options:
         - label: There is no duplicates

@@ -21,7 +21,7 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.feature.notifications"
+    namespace = "io.github.vibhor1102.macrion.feature.notifications"
     buildFeatures.viewBinding = true
 }
 

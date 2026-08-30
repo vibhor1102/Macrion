@@ -24,7 +24,7 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.core.smart.debugging"
+    namespace = "io.github.vibhor1102.macrion.core.smart.debugging"
 }
 
 dependencies {

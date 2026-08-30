@@ -49,7 +49,7 @@
         android:textSize="@dimen/text_size_list_item_text_big"
         android:textStyle="bold"
         android:singleLine="true"
-        tools:text="Klick\'r"/>
+        tools:text="Macrion"/>
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/component_name"
@@ -64,6 +64,6 @@
         android:gravity="center_vertical"
         android:textSize="@dimen/text_size_list_item_text_small"
         android:textStyle="italic"
-        tools:text="com.buzbuz.smartautoclicker"/>
+        tools:text="io.github.vibhor1102.macrion"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

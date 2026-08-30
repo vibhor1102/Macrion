@@ -23,7 +23,7 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.core.domain"
+    namespace = "io.github.vibhor1102.macrion.core.domain"
 }
 
 dependencies {

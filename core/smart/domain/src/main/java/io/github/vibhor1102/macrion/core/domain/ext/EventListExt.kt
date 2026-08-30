@@ -1,0 +1,47 @@
+/*
+ * Copyright (C) 2026 Kevin Buzeau
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package io.github.vibhor1102.macrion.core.domain.ext
+
+import io.github.vibhor1102.macrion.code.smart.detectionmodels.text.domain.OCRAlphabet
+import io.github.vibhor1102.macrion.core.domain.model.action.ChangeCounter
+import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
+import io.github.vibhor1102.macrion.core.domain.model.condition.TriggerCondition
+import io.github.vibhor1102.macrion.core.domain.model.event.Event
+import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
+
+// TODO: irrelevant now, should use counter object
+fun List<Event>.getAllCounterNames(): Set<String> = buildSet {
+    this@getAllCounterNames.forEach { event ->
+        event.conditions.forEach { condition ->
+            if (condition is TriggerCondition.OnCounterCountReached) add(condition.counterName)
+        }
+
+        event.actions.forEach { action ->
+            if (action is ChangeCounter) add(action.counterName)
+        }
+    }
+}
+
+fun List<Event>.getAllOCRAlphabets(): Set<OCRAlphabet> =
+    buildSet {
+        this@getAllOCRAlphabets.forEach { event ->
+            (event as? ScreenEvent)?.conditions?.forEach { condition ->
+                if (condition is ScreenCondition.Text) add(condition.alphabet)
+                if (condition is ScreenCondition.Number) add(OCRAlphabet.LATIN)
+            }
+        }
+    }

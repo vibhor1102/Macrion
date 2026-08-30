@@ -26,7 +26,7 @@
     <include layout="@layout/include_dialog_navigation_top_bar"
         android:id="@+id/layout_top_bar" />
 
-    <com.buzbuz.smartautoclicker.core.ui.views.clickoffset.ClickOffsetView
+    <io.github.vibhor1102.macrion.core.ui.views.clickoffset.ClickOffsetView
         style="@style/AppTheme.Widget.ClickOffset"
         android:id="@+id/view_clickOffset"
         android:layout_width="match_parent"

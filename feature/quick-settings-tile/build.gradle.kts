@@ -21,7 +21,7 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.feature.qstile"
+    namespace = "io.github.vibhor1102.macrion.feature.qstile"
     buildFeatures.viewBinding = true
 }
 

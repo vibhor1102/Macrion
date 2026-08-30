@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <title>Macrion adaptive icon</title>
+  <desc>A white focus target and detection frame centered on a full-bleed deep petrol teal square background.</desc>
+  <rect width="512" height="512" fill="#0B5F63"/>
+  <g transform="translate(-10.25 13) scale(1.5)">
+    <g stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M114 50H92C77.6 50 66 61.6 66 76V98" stroke-width="20"/>
+      <path d="M241 50H263C277.4 50 289 61.6 289 76V98" stroke-width="20"/>
+      <path d="M114 274H92C77.6 274 66 262.4 66 248V226" stroke-width="20"/>
+      <path d="M241 274H263C277.4 274 289 262.4 289 248V226" stroke-width="20"/>
+      <circle cx="177.5" cy="162" r="62.5" stroke-width="24"/>
+    </g>
+    <circle cx="177.5" cy="162" r="22" fill="#FFFFFF"/>
+  </g>
+</svg>

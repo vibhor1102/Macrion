@@ -23,7 +23,7 @@ plugins {
 }
 
 android {
-    namespace = "com.smartautoclicker.code.smart.detectionmodels"
+    namespace = "io.github.vibhor1102.macrion.code.smart.detectionmodels"
 }
 
 dependencies {

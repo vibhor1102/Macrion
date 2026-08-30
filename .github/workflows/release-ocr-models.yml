@@ -74,7 +74,7 @@ jobs:
           tag_name: ${{ steps.tag.outputs.name }}
           name: "Text Recognition Models ${{ steps.tag.outputs.version }}"
           body: |
-            Additional text recognition models used by Klick'r 4.0.0 and above.
+            Additional text recognition models used by Macrion.
             Github/FDroid versions of the app will download the attached packages.
           make_latest: false
           prerelease: false

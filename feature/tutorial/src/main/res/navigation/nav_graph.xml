@@ -23,13 +23,13 @@
 
     <fragment
         android:id="@+id/fragment_tutorial_list"
-        android:name="com.buzbuz.smartautoclicker.feature.tutorial.ui.list.TutorialListFragment"
+        android:name="io.github.vibhor1102.macrion.feature.tutorial.ui.list.TutorialListFragment"
         android:label="fragment_two"
         tools:layout="@layout/fragment_tutorial_list">
 
         <argument
             android:name="categoryType"
-            app:argType="com.buzbuz.smartautoclicker.feature.tutorial.domain.model.TutorialCategory$Type"
+            app:argType="io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialCategory$Type"
             android:defaultValue="ROOT"/>
 
         <action
@@ -68,25 +68,25 @@
 
     <fragment
         android:id="@+id/fragment_slideshow"
-        android:name="com.buzbuz.smartautoclicker.feature.tutorial.ui.slideshow.TutorialSlideshowFragment"
+        android:name="io.github.vibhor1102.macrion.feature.tutorial.ui.slideshow.TutorialSlideshowFragment"
         android:label="fragment_slideshow"
         tools:layout="@layout/fragment_tutorial_slideshow">
 
         <argument
             android:name="slideshowType"
-            app:argType="com.buzbuz.smartautoclicker.feature.tutorial.domain.model.TutorialSlideshow$Type"/>
+            app:argType="io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialSlideshow$Type"/>
 
     </fragment>
 
     <fragment
         android:id="@+id/fragment_game"
-        android:name="com.buzbuz.smartautoclicker.feature.tutorial.ui.game.clickcount.ClickCountGameFragment"
+        android:name="io.github.vibhor1102.macrion.feature.tutorial.ui.game.clickcount.ClickCountGameFragment"
         android:label="fragment_two"
         tools:layout="@layout/fragment_click_count_game"/>
 
     <fragment
         android:id="@+id/fragment_timing_game"
-        android:name="com.buzbuz.smartautoclicker.feature.tutorial.ui.game.timing.TimingGameFragment"
+        android:name="io.github.vibhor1102.macrion.feature.tutorial.ui.game.timing.TimingGameFragment"
         android:label="fragment_timing_game"
         tools:layout="@layout/fragment_timing_game"/>
 

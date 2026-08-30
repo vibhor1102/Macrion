@@ -21,7 +21,7 @@ plugins {
 }
 
 android {
-    namespace = "com.buzbuz.smartautoclicker.core.bitmaps"
+    namespace = "io.github.vibhor1102.macrion.core.bitmaps"
 }
 
 dependencies {
