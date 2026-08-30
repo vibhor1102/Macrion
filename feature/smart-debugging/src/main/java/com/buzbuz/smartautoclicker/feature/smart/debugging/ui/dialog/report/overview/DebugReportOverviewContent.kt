@@ -91,6 +91,7 @@ class DebugReportOverviewContent(appContext: Context) : NavBarDialogContent(appC
             fieldTotalDuration.bindEntry(state.totalDuration)
             fieldImgProcCount.bindEntry(state.frameCount)
             fieldAvgImgProcDur.bindEntry(state.averageFrameProcessingDuration)
+            fieldExecutionLimiterIdleTime.bindEntry(state.executionLimiterIdleTime)
             fieldImgEvtFulfilledCount.bindEntry(state.imageEventFulfilledCount)
             fieldTriggerEvtFulfilledCount.bindEntry(state.triggerEventFulfilledCount)
             eventActivity.summaryData.apply {
@@ -127,6 +128,6 @@ class DebugReportOverviewContent(appContext: Context) : NavBarDialogContent(appC
 
     private fun IncludeFieldDataDisplayBinding.bindEntry(entry: OverviewEntry) {
         setTitle(context.getString(entry.titleRes))
-        setDescription(entry.value)
+        setDescription(entry.value ?: context.getString(requireNotNull(entry.valueRes)))
     }
 }

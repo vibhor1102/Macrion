@@ -76,6 +76,7 @@ class DebugReportOverviewViewModel @Inject constructor(
             triggerEvents = triggerEvents.toTriggerEventActivitySources(),
             occurrences = occurrences,
         )
+        val executionLimiterIdleTime = buildExecutionLimiterIdleTime(overview, occurrences)
 
         return DebugReportOverviewUiState.Available(
             scenario = OverviewEntry(
@@ -93,6 +94,11 @@ class DebugReportOverviewViewModel @Inject constructor(
             averageFrameProcessingDuration = OverviewEntry(
                 titleRes = R.string.item_title_report_avg_image_processing_duration,
                 value = overview.averageFrameProcessingDuration.toString(),
+            ),
+            executionLimiterIdleTime = OverviewEntry(
+                titleRes = R.string.item_title_report_execution_limiter_idle_time,
+                value = executionLimiterIdleTime?.formatPercentage(),
+                valueRes = if (executionLimiterIdleTime == null) R.string.item_value_report_unavailable else null,
             ),
             imageEventFulfilledCount = OverviewEntry(
                 titleRes = R.string.item_title_report_image_event_fulfilled,

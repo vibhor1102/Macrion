@@ -91,6 +91,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="1dp"/>
 
+            <!-- Execution Limiter idle time -->
+            <include layout="@layout/include_field_data_display"
+                android:id="@+id/field_execution_limiter_idle_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <com.google.android.material.divider.MaterialDivider
+                style="@style/AppTheme.Widget.Divider.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"/>
+
             <!-- Events trigger count -->
             <include layout="@layout/include_field_data_display"
                 android:id="@+id/field_img_evt_fulfilled_count"

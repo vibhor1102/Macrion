@@ -57,6 +57,11 @@ frames or scenario actions are not limiter time. A partial limiter suspension in
 Session duration minus active detection-loop time is not treated as Execution Limiter time because that difference
 also contains actions and other waits.
 
+The Debug Report Overview presents Execution Limiter idle time as a percentage of limiter waiting plus active
+non-action processing. The action phases captured for event occurrences are subtracted from active detection-loop
+time before calculating this percentage, so long clicks, gestures, and pauses do not dilute the result. Reports that
+contain limiter waiting but predate the event action boundaries do not present an estimated percentage.
+
 ## Lifecycle and compatibility
 
 Aggregates are allocated and reset when a report session starts, updated synchronously from the single processing
