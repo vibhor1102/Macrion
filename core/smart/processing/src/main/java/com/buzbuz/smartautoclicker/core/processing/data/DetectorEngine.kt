@@ -119,6 +119,8 @@ class DetectorEngine @Inject constructor(
     private var minProcessingDurationNs: Long = DEFAULT_MIN_PROCESSING_DURATION_NS
     /** Report timing receiver for the current detection session, or null when report generation is disabled. */
     private var activeDebugReportTimingListener: DebugReportTimingListener? = null
+    /** Monotonic origin shared by all timestamps in the current generated report. */
+    private var debugReportSessionStartNs: Long? = null
     /** True only for the user-configured rate limit; the unlimited-mode safety delay is not reported as limiter time. */
     private var isExecutionLimiterEnabled: Boolean = false
 
@@ -249,6 +251,9 @@ class DetectorEngine @Inject constructor(
             Log.i(TAG, "Process scenario at ${if (frameLimit == 0.0) "unlimited" else frameLimit} FPS " +
                     "(${minProcessingDurationNs}ns per loop)")
 
+            // Capture the report origin synchronously, before any processing callbacks can be queued.
+            debugReportSessionStartNs = SystemClock.elapsedRealtimeNanos().takeIf { generateReport }
+
             // Setup listeners if needed
             if (liveDebugging || generateReport) {
                 debuggingListener.onSessionStarted(
@@ -276,6 +281,7 @@ class DetectorEngine @Inject constructor(
                 onStopRequested = { stopDetection() },
                 progressListener = if (liveDebugging || generateReport) debuggingListener else null,
                 debugReportTimingListener = activeDebugReportTimingListener,
+                reportSessionStartNs = debugReportSessionStartNs,
             )
             scenarioProcessor?.onScenarioStart(context)
 
@@ -339,8 +345,14 @@ class DetectorEngine @Inject constructor(
             imageDetector = null
             scenarioProcessor?.onScenarioEnd()
             scenarioProcessor = null
+            activeDebugReportTimingListener?.onReportSessionEnded(
+                sessionDurationNs = debugReportSessionStartNs?.let { sessionStartNs ->
+                    (SystemClock.elapsedRealtimeNanos() - sessionStartNs).coerceAtLeast(0L)
+                } ?: 0L,
+            )
             debuggingListener.onSessionEnded()
             activeDebugReportTimingListener = null
+            debugReportSessionStartNs = null
 
             scalingManager.stopScaling()
             displayRecorder.resizeDisplay(displayConfigManager.displayConfig.sizePx)

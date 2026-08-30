@@ -19,4 +19,7 @@ interface DebugReportTimingListener {
 
     /** Record elapsed suspension caused specifically by the user-configured Execution Limiter. */
     fun onExecutionLimiterWaited(durationNs: Long)
+
+    /** Report the synchronously captured duration of the complete report session. */
+    fun onReportSessionEnded(sessionDurationNs: Long) = Unit
 }

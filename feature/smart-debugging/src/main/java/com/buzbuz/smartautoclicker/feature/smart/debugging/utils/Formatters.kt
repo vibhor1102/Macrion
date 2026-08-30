@@ -16,6 +16,8 @@
  */
 package com.buzbuz.smartautoclicker.feature.smart.debugging.utils
 
+import java.math.BigDecimal
+import java.math.RoundingMode
 import kotlin.time.Duration.Companion.milliseconds
 
 
@@ -55,6 +57,21 @@ internal fun Long.formatDebugTimelineTimestamp(): String {
     return value.trim()
 }
 
+/** Compact elapsed duration for Timeline phase labels. */
+internal fun Long.formatDebugTimelinePhaseDurationValue(): String {
+    if (this < NANOSECONDS_PER_MILLISECOND) return "+< 1"
+
+    val valueMs = BigDecimal.valueOf(this, 6)
+    val rounded = if (valueMs < ONE_THOUSAND) {
+        valueMs.setScale(1, RoundingMode.HALF_UP).let { oneDecimal ->
+            if (oneDecimal < ONE_THOUSAND) oneDecimal else oneDecimal.setScale(0, RoundingMode.HALF_UP)
+        }
+    } else {
+        valueMs.setScale(0, RoundingMode.HALF_UP)
+    }
+    return "+${rounded.toPlainString()}"
+}
+
 /** Compact timestamp used for manually selecting a Timeline filter range. */
 internal fun Long.formatDebugTimelineFilterTimestamp(): String {
     val duration = coerceAtLeast(0L).milliseconds
@@ -72,3 +89,6 @@ internal fun Long.formatDebugTimelineFilterTimestamp(): String {
             "${duration.inWholeHours}h ${duration.inWholeMinutes % 60}m"
     }
 }
+
+private const val NANOSECONDS_PER_MILLISECOND = 1_000_000L
+private val ONE_THOUSAND = BigDecimal.valueOf(1_000L)

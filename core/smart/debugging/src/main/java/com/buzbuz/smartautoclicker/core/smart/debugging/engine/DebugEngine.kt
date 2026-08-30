@@ -30,6 +30,7 @@ import com.buzbuz.smartautoclicker.core.domain.model.event.TriggerEvent
 import com.buzbuz.smartautoclicker.core.domain.model.scenario.Scenario
 import com.buzbuz.smartautoclicker.core.processing.domain.EventType
 import com.buzbuz.smartautoclicker.core.processing.domain.SmartProcessingListener
+import com.buzbuz.smartautoclicker.core.processing.domain.EventOccurrenceTiming
 import com.buzbuz.smartautoclicker.core.processing.domain.DebugReportTimingListener
 import com.buzbuz.smartautoclicker.core.processing.domain.model.ProcessedConditionResult
 import com.buzbuz.smartautoclicker.core.smart.debugging.data.DebugReportLocalDataSource
@@ -84,6 +85,7 @@ internal class DebugEngine @Inject constructor(
 
     private var isReportEnabled: Boolean = false
     private var shouldGenerateLiveEvents: Boolean = false
+    private var reportSessionDurationNs: Long = 0L
 
     private val shouldWriteReport: Boolean
         get() = isReportEnabled
@@ -109,6 +111,7 @@ internal class DebugEngine @Inject constructor(
             conditionProfileRecorder.reset()
         }
         processingTimingRecorder.reset()
+        reportSessionDurationNs = 0L
 
         coroutineScopeIo.launch {
             shouldGenerateLiveEvents = generateLiveEvents
@@ -136,6 +139,10 @@ internal class DebugEngine @Inject constructor(
 
     override fun onExecutionLimiterWaited(durationNs: Long) {
         if (isReportEnabled) processingTimingRecorder.recordExecutionLimiterWait(durationNs)
+    }
+
+    override fun onReportSessionEnded(sessionDurationNs: Long) {
+        if (isReportEnabled) reportSessionDurationNs = sessionDurationNs.coerceAtLeast(0L)
     }
 
     // Processing started on current frame
@@ -183,7 +190,11 @@ internal class DebugEngine @Inject constructor(
     }
 
     // Processing ended for current Event
-    override fun onEventActionsExecuted(event: Event, results: List<ProcessedConditionResult>) {
+    override fun onEventActionsExecuted(
+        event: Event,
+        results: List<ProcessedConditionResult>,
+        timing: EventOccurrenceTiming?,
+    ) {
         if (!shouldWriteReport) return
         coroutineScopeIo.launch {
             overviewRecorder.onActionsExecuted(event)
@@ -191,12 +202,12 @@ internal class DebugEngine @Inject constructor(
             @Suppress("UNCHECKED_CAST")
             when (event) {
                 is ScreenEvent -> {
-                    writeImageEventToReport(event)
+                    writeImageEventToReport(event, timing)
                     screenConditionOccurrenceRecorder.reset()
                 }
 
                 is TriggerEvent ->
-                    writeTriggerEventToReport(event, results as List<ProcessedConditionResult.Trigger>)
+                    writeTriggerEventToReport(event, results as List<ProcessedConditionResult.Trigger>, timing)
             }
         }
     }
@@ -253,6 +264,7 @@ internal class DebugEngine @Inject constructor(
         val conditionProfile = if (writeReport) conditionProfileRecorder.snapshot() else emptyList()
         val activeDetectionDurationNs = processingTimingRecorder.activeDetectionDurationNs
         val executionLimiterWaitDurationNs = processingTimingRecorder.executionLimiterWaitDurationNs
+        val sessionDurationNs = reportSessionDurationNs
         conditionProfileRecorder.reset()
         processingTimingRecorder.reset()
 
@@ -265,7 +277,7 @@ internal class DebugEngine @Inject constructor(
                 debugReportLocalDataSource.stopReportWrite(
                     overview = DebugReportOverview(
                         scenarioId = overviewRecorder.scenarioId,
-                        duration = overviewRecorder.sessionDurationMs.milliseconds,
+                        duration = sessionDurationNs.nanoseconds,
                         frameCount = overviewRecorder.frameCount,
                         averageFrameProcessingDuration = overviewRecorder.averageFrameProcessingDurationMs.milliseconds,
                         imageEventFulfilledCount = overviewRecorder.imageEventFulfilledCount,
@@ -329,12 +341,15 @@ internal class DebugEngine @Inject constructor(
         debugReportLocalDataSource.writeMessageToReport(counters.toCountersInitProtobuf())
     }
 
-    private suspend fun writeImageEventToReport(event: ScreenEvent) {
+    private suspend fun writeImageEventToReport(event: ScreenEvent, timing: EventOccurrenceTiming?) {
         debugReportLocalDataSource.writeEventOccurrenceToReport(
             occurrence = DebugReportEventOccurrence.ScreenEvent(
                 eventId = event.id.databaseId,
                 frameNumber = overviewRecorder.frameCount,
-                relativeTimestampMs = overviewRecorder.sessionDurationMs,
+                relativeTimestampMs = timing?.detectedAtNs?.div(NANOSECONDS_PER_MILLISECOND)
+                    ?: overviewRecorder.sessionDurationMs,
+                detectedAtNs = timing?.detectedAtNs,
+                actionsCompletedAtNs = timing?.actionsCompletedAtNs,
                 conditionsResults = screenConditionOccurrenceRecorder.screenConditionResults.toList(),
                 counterChanges = counterValuesRecorder.eventCounterChanges.toList(),
                 eventStateChanges = eventStateRecorder.changes.toList(),
@@ -342,11 +357,18 @@ internal class DebugEngine @Inject constructor(
         )
     }
 
-    private suspend fun writeTriggerEventToReport(event: TriggerEvent, results: List<ProcessedConditionResult.Trigger>) {
+    private suspend fun writeTriggerEventToReport(
+        event: TriggerEvent,
+        results: List<ProcessedConditionResult.Trigger>,
+        timing: EventOccurrenceTiming?,
+    ) {
         debugReportLocalDataSource.writeEventOccurrenceToReport(
             occurrence = DebugReportEventOccurrence.TriggerEvent(
                 eventId = event.id.databaseId,
-                relativeTimestampMs = overviewRecorder.sessionDurationMs,
+                relativeTimestampMs = timing?.detectedAtNs?.div(NANOSECONDS_PER_MILLISECOND)
+                    ?: overviewRecorder.sessionDurationMs,
+                detectedAtNs = timing?.detectedAtNs,
+                actionsCompletedAtNs = timing?.actionsCompletedAtNs,
                 counterChanges = counterValuesRecorder.eventCounterChanges.toList(),
                 eventStateChanges = eventStateRecorder.changes.toList(),
                 conditionsResults = results.map { result ->
@@ -358,7 +380,10 @@ internal class DebugEngine @Inject constructor(
             )
         )
     }
+
 }
+
+private const val NANOSECONDS_PER_MILLISECOND = 1_000_000L
 
 private fun ProcessedConditionResult.Screen.getDetectionArea(): Rect? {
     val pos = position ?: return null

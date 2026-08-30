@@ -18,6 +18,7 @@ package com.buzbuz.smartautoclicker.core.processing.data.processor
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.os.SystemClock
 import androidx.annotation.VisibleForTesting
 
 import com.buzbuz.smartautoclicker.core.common.actions.AndroidActionExecutor
@@ -28,6 +29,7 @@ import com.buzbuz.smartautoclicker.core.domain.model.event.TriggerEvent
 import com.buzbuz.smartautoclicker.core.processing.data.processor.state.ProcessingState
 import com.buzbuz.smartautoclicker.core.processing.data.scaling.ScalingManager
 import com.buzbuz.smartautoclicker.core.processing.domain.EventType
+import com.buzbuz.smartautoclicker.core.processing.domain.EventOccurrenceTiming
 import com.buzbuz.smartautoclicker.core.processing.domain.SmartProcessingListener
 import com.buzbuz.smartautoclicker.core.processing.domain.DebugReportTimingListener
 
@@ -58,6 +60,8 @@ internal class ScenarioProcessor(
     private val onStopRequested: () -> Unit,
     private val progressListener: SmartProcessingListener?,
     private val debugReportTimingListener: DebugReportTimingListener? = null,
+    private val reportSessionStartNs: Long? = null,
+    private val elapsedRealtimeNanos: () -> Long = SystemClock::elapsedRealtimeNanos,
 ) {
 
     /** Handle the processing state of the scenario. */
@@ -143,11 +147,16 @@ internal class ScenarioProcessor(
                 operator = triggerEvent.conditionOperator,
                 conditions = triggerEvent.conditions,
             )
+            val detectedAtNs = if (results.fulfilled == true) getReportSessionTimestampNs() else null
 
             progressListener?.onEventProcessingCompleted(triggerEvent, results.fulfilled == true, results.getAllTriggerConditionsResults())
             if (results.fulfilled  == true) {
                 actionExecutor.executeActions(triggerEvent, results)
-                progressListener?.onEventActionsExecuted(triggerEvent, results.getAllTriggerConditionsResults())
+                progressListener?.onEventActionsExecuted(
+                    event = triggerEvent,
+                    results = results.getAllTriggerConditionsResults(),
+                    timing = detectedAtNs?.let(::completeOccurrenceTiming),
+                )
             }
         }
     }
@@ -173,13 +182,17 @@ internal class ScenarioProcessor(
                     operator = screenEvent.conditionOperator,
                     conditions = screenEvent.conditions,
                 )
+                val detectedAtNs = if (results.fulfilled == true) getReportSessionTimestampNs() else null
 
                 progressListener?.onEventProcessingCompleted(screenEvent, results.fulfilled == true, results.getAllScreenConditionsResults())
                 if (results.fulfilled == true) {
                     actionExecutor.executeActions(screenEvent, results)
-                    progressListener?.onEventActionsExecuted(screenEvent, results.getAllScreenConditionsResults())
-
                     processingState.startCooldownIfNeeded(screenEvent)
+                    progressListener?.onEventActionsExecuted(
+                        event = screenEvent,
+                        results = results.getAllScreenConditionsResults(),
+                        timing = detectedAtNs?.let(::completeOccurrenceTiming),
+                    )
                     if (!screenEvent.keepDetecting) break
                 }
 
@@ -191,4 +204,15 @@ internal class ScenarioProcessor(
             imageDetector.releaseScreenBitmap(screenFrame)
         }
     }
+
+    private fun getReportSessionTimestampNs(): Long? =
+        reportSessionStartNs?.let { sessionStartNs ->
+            (elapsedRealtimeNanos() - sessionStartNs).coerceAtLeast(0L)
+        }
+
+    private fun completeOccurrenceTiming(detectedAtNs: Long): EventOccurrenceTiming =
+        EventOccurrenceTiming(
+            detectedAtNs = detectedAtNs,
+            actionsCompletedAtNs = getReportSessionTimestampNs()?.coerceAtLeast(detectedAtNs) ?: detectedAtNs,
+        )
 }
