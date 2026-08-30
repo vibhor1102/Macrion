@@ -45,6 +45,14 @@ class PerformanceTimingMappingTests {
     }
 
     @Test
+    fun `empty condition profile remains a present report message`() {
+        val message = emptyList<ConditionProfile>().toProtobuf()
+
+        assertEquals(true, message.hasConditionProfileMessage())
+        assertEquals(emptyList<ConditionProfile>(), message.conditionProfileMessage.toDomain())
+    }
+
+    @Test
     fun `overview performance durations survive protobuf mapping`() {
         val expected = DebugReportOverview(
             scenarioId = 7L,

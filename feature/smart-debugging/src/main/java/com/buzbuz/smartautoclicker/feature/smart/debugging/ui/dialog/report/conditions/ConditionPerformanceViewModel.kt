@@ -66,11 +66,11 @@ class ConditionPerformanceViewModel @Inject constructor(
             ) { screenEvents, triggerEvents, profiles, selectedSort ->
                 val screenConditions = screenEvents.toScreenConditionPerformanceSources()
                 val triggerConditions = triggerEvents.toTriggerConditionPerformanceSources(screenConditions.size)
-                val entries = buildConditionPerformanceReportOrNull(
+                val entries = buildConditionPerformanceReport(
                     conditions = screenConditions + triggerConditions,
                     profiles = profiles,
                     sort = selectedSort,
-                ) ?: return@combine ConditionPerformanceUiState.NotAvailable
+                )
                 ConditionPerformanceUiState.Available(
                     entries = entries,
                     sort = selectedSort,

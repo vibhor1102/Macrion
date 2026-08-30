@@ -202,10 +202,10 @@ internal class DebugReportLocalDataSource @Inject constructor(
             }
         }
 
-    /** Read aggregate condition timings from the last completed report, if the report contains them. */
-    suspend fun readConditionProfile(): List<ConditionProfile>? =
+    /** Read aggregate condition timings from the last completed report. */
+    suspend fun readConditionProfile(): List<ConditionProfile> =
         filesMutex.withLock {
-            if (isWritingReport) return@withLock null
+            if (isWritingReport) return@withLock emptyList()
 
             messagesFile.safeInputStream()?.use { inputStream ->
                 while (true) {
@@ -215,7 +215,7 @@ internal class DebugReportLocalDataSource @Inject constructor(
                     }
                 }
             }
-            null
+            emptyList()
         }
 
     /** Delete the current report files, if any. */

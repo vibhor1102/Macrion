@@ -126,11 +126,13 @@ class ConditionPerformanceReportTests {
     }
 
     @Test
-    fun `missing profiling record remains unavailable while present empty record is valid`() {
+    fun `empty profiling data uses zero values without hiding configured conditions`() {
         val conditions = listOf(source(1, "Condition", 0))
+        val report = buildConditionPerformanceReport(conditions, emptyList())
 
-        assertNull(buildConditionPerformanceReportOrNull(conditions, null))
-        assertEquals(1, buildConditionPerformanceReportOrNull(conditions, emptyList())?.size)
+        assertEquals(1, report.size)
+        assertEquals(0L, report.single().checkCount)
+        assertEquals(0L, report.single().totalDurationNs)
     }
 
     @Test

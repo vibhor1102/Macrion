@@ -55,5 +55,5 @@ interface DebuggingRepository {
     fun getLastReportEventsOccurrences(): Flow<List<DebugReportEventOccurrence>?>
 
     /** Read aggregate condition timings from the last detection session report. */
-    fun getLastReportConditionProfiles(): Flow<List<ConditionProfile>?>
+    fun getLastReportConditionProfiles(): Flow<List<ConditionProfile>>
 }

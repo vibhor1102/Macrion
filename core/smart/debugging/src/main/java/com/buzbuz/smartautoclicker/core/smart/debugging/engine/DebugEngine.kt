@@ -269,11 +269,8 @@ internal class DebugEngine @Inject constructor(
         processingTimingRecorder.reset()
 
         coroutineScopeIo.launch {
-            if (conditionProfile.isNotEmpty()) {
-                debugReportLocalDataSource.writeMessageToReport(conditionProfile.toProtobuf())
-            }
-
             if (writeReport) {
+                debugReportLocalDataSource.writeMessageToReport(conditionProfile.toProtobuf())
                 debugReportLocalDataSource.stopReportWrite(
                     overview = DebugReportOverview(
                         scenarioId = overviewRecorder.scenarioId,

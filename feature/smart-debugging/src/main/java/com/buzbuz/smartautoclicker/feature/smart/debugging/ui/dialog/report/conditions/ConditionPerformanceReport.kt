@@ -81,12 +81,6 @@ internal fun buildConditionPerformanceReport(
     }.sortedWith(sort.comparator())
 }
 
-internal fun buildConditionPerformanceReportOrNull(
-    conditions: List<ConditionPerformanceSource>,
-    profiles: List<ConditionProfile>?,
-    sort: ConditionPerformanceSort = ConditionPerformanceSort.TOTAL_TIME,
-): List<ConditionPerformanceEntry>? = profiles?.let { buildConditionPerformanceReport(conditions, it, sort) }
-
 internal fun List<ScreenEvent>.toScreenConditionPerformanceSources(): List<ConditionPerformanceSource> =
     sortedBy(ScreenEvent::priority).flatMap { event ->
         event.conditions.sortedBy { condition -> condition.priority }.map { condition ->

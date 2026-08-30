@@ -97,7 +97,7 @@ internal class DebuggingRepositoryImpl @Inject constructor(
             emit(debugReportDataSource.readMessages())
         }.flowOn(ioDispatcher)
 
-    override fun getLastReportConditionProfiles(): Flow<List<ConditionProfile>?> =
+    override fun getLastReportConditionProfiles(): Flow<List<ConditionProfile>> =
         flow {
             emit(debugReportDataSource.readConditionProfile())
         }.flowOn(ioDispatcher)
