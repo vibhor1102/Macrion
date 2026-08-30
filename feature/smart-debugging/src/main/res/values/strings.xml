@@ -87,7 +87,7 @@
     <string name="item_event_occurrence_trigger">Trigger</string>
     <string name="item_event_occurrence_one_condition_fulfilled">Fulfilled: %1$s</string>
     <string name="item_event_occurrence_several_condition_processed">%1$d conditions processed</string>
-    <string name="item_event_occurrence_milliseconds">ms</string>
+    <string name="item_event_occurrence_milliseconds" translatable="false">ms</string>
     <string name="item_event_occurrence_detecting_label">detecting</string>
     <string name="item_event_occurrence_actions_label">actions</string>
     <string name="item_event_occurrence_detected_at">Detected at %1$s</string>
