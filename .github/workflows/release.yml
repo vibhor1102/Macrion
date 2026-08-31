@@ -2,10 +2,19 @@ name: Release
 
 on:
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: Release tag to create (for example, v0.1.0)
+        required: true
+        type: string
+
+permissions:
+  contents: write
 
 jobs:
   build:
     name: Build application
+    environment: github-release
     runs-on: ubuntu-latest
 
     steps:
@@ -42,7 +51,9 @@ jobs:
 
     - name: Create draft release with APKs
       uses: softprops/action-gh-release@v2
-      if: startsWith(github.ref, 'refs/tags/')
       with:
+        tag_name: ${{ inputs.tag_name }}
+        name: Macrion ${{ inputs.tag_name }}
+        generate_release_notes: true
         draft: true
         files: smartautoclicker/build/outputs/apk/fDroid/release/*.apk
