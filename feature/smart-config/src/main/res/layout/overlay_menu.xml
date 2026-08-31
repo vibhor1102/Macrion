@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 * Copyright (C) 2022 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -74,6 +75,14 @@
                     style="@style/AppTheme.Overlay.FloatingMenu.Buttons"
                     android:src="@drawable/ic_settings_filled"
                     android:contentDescription="@string/content_desc_open_event_list" />
+
+                <ImageButton
+                    android:id="@+id/btn_switch_scenario"
+                    style="@style/AppTheme.Overlay.FloatingMenu.Buttons"
+                    android:src="@drawable/ic_swap_horiz"
+                    android:contentDescription="@string/content_desc_switch_scenario"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
 
                 <ImageButton
                     android:id="@+id/btn_move"

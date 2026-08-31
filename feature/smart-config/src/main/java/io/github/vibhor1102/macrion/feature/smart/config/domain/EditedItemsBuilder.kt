@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +49,7 @@ import io.github.vibhor1102.macrion.core.domain.model.counter.ComparisonOperatio
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.core.domain.model.event.TriggerEvent
 import io.github.vibhor1102.macrion.feature.smart.config.data.ScenarioEditor
+import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 
 class EditedItemsBuilder internal constructor(
     private val bitmapRepository: BitmapRepository,
@@ -379,6 +381,15 @@ class EditedItemsBuilder internal constructor(
             priority = 0,
         )
 
+    fun createNewExternalAction(context: Context): ExternalAction =
+        ExternalAction(
+            id = actionsIdCreator.generateNewIdentifier(),
+            eventId = getEditedEventIdOrThrow(),
+            name = defaultValues.externalActionName(context),
+            externalActionName = "",
+            priority = 0,
+        )
+
     fun createNewNotification(context: Context): Notification =
         Notification(
             id = actionsIdCreator.generateNewIdentifier(),
@@ -415,6 +426,7 @@ class EditedItemsBuilder internal constructor(
         is Intent -> createNewIntentFrom(from, eventId)
         is ToggleEvent -> createNewToggleEventFrom(from, eventId)
         is ChangeCounter -> createNewChangeCounterFrom(from, eventId)
+        is ExternalAction -> createNewExternalActionFrom(from, eventId)
         is Notification -> createNewNotificationFrom(from, eventId)
         is SystemAction -> createNewSystemActionFrom(from, eventId)
         is SetText -> createNewSetTextFrom(from, eventId)
@@ -500,6 +512,14 @@ class EditedItemsBuilder internal constructor(
             counterName = "" + from.counterName,
         )
     }
+
+    private fun createNewExternalActionFrom(from: ExternalAction, eventId: Identifier): ExternalAction =
+        from.copy(
+            id = actionsIdCreator.generateNewIdentifier(),
+            eventId = eventId,
+            name = "" + from.name,
+            externalActionName = "" + from.externalActionName,
+        )
 
     private fun createNewNotificationFrom(from: Notification, eventId: Identifier): Notification {
         val actionId = actionsIdCreator.generateNewIdentifier()

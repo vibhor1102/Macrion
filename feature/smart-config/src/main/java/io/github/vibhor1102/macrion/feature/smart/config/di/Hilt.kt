@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +24,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartAc
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.changecounter.ChangeCounterViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.click.offset.ClickOffsetViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.click.ClickViewModel
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.external.ExternalActionViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.intent.IntentViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.intent.activities.ActivitySelectionModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.intent.component.ComponentSelectionModel
@@ -63,6 +65,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.counter.selection.Co
 import io.github.vibhor1102.macrion.feature.smart.config.ui.event.EventDialogViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.LiveDebuggingViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.ScenarioDialogViewModel
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.switcher.ScenarioSwitchViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config.ScenarioConfigViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.imageevents.ImageEventListViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.more.MoreViewModel
@@ -95,6 +98,7 @@ interface ScenarioConfigViewModelsEntryPoint {
     fun eventCopyModel(): EventCopyViewModel
     fun eventDialogViewModel(): EventDialogViewModel
     fun eventTogglesViewModel(): EventTogglesViewModel
+    fun externalActionViewModel(): ExternalActionViewModel
     fun extraConfigViewModel(): ExtraConfigModel
     fun fixEventChildrenCopyViewModel(): FixEventChildrenCopyViewModel
     fun fixEventsCopyViewModel(): FixEventsCopyViewModel
@@ -113,6 +117,7 @@ interface ScenarioConfigViewModelsEntryPoint {
     fun pauseViewModel(): PauseViewModel
     fun scenarioConfigViewModel(): ScenarioConfigViewModel
     fun scenarioDialogViewModel(): ScenarioDialogViewModel
+    fun scenarioSwitchViewModel(): ScenarioSwitchViewModel
     fun screenConditionSelectionViewModel(): ScreenConditionSelectionViewModel
     fun screenConditionTypeSelectionViewModel(): ScreenConditionTypeSelectionViewModel
     fun setTextViewModel(): SetTextViewModel

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +49,7 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.uista
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.uistate.EventResultUiState
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.uistate.ScreenConditionResultUiState
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.uistate.mapping.toConditionUiState
+import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -130,6 +132,7 @@ private fun Event.getDebugIcon(): Int =
 private fun Action.getDebugIcon(): Int =
     when (this) {
         is ChangeCounter -> R.drawable.ic_change_counter
+        is ExternalAction -> R.drawable.ic_external_action
         is Click -> R.drawable.ic_click
         is Intent -> R.drawable.ic_intent
         is Notification -> R.drawable.ic_action_notification

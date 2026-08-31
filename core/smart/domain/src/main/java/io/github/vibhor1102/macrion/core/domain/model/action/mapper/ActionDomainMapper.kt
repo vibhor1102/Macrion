@@ -22,6 +22,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
 import io.github.vibhor1102.macrion.core.domain.model.action.intent.toDomainIntentExtra
 import io.github.vibhor1102.macrion.core.domain.model.action.toggleevent.toDomain
+import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 
 /** Convert an Action entity into a Domain Action. */
 internal fun CompleteActionEntity.toDomain(cleanIds: Boolean = false): Action = when (action.type) {
@@ -31,6 +32,7 @@ internal fun CompleteActionEntity.toDomain(cleanIds: Boolean = false): Action = 
     ActionType.INTENT -> toDomainIntent(cleanIds)
     ActionType.TOGGLE_EVENT -> toDomainToggleEvent(cleanIds)
     ActionType.CHANGE_COUNTER -> toDomainChangeCounter(cleanIds)
+    ActionType.EXTERNAL_ACTION -> toDomainExternalAction(cleanIds)
     ActionType.NOTIFICATION -> toDomainNotification(cleanIds)
     ActionType.SYSTEM -> toDomainSystem(cleanIds)
     ActionType.TEXT -> toDomainSetText(cleanIds)
@@ -103,6 +105,14 @@ private fun CompleteActionEntity.toDomainChangeCounter(cleanIds: Boolean = false
         numberValue = action.counterOperationValue,
         counterName = action.counterOperationCounterName,
     ),
+)
+
+private fun CompleteActionEntity.toDomainExternalAction(cleanIds: Boolean = false) = ExternalAction(
+    id = Identifier(id = action.id, asTemporary = cleanIds),
+    eventId = Identifier(id = action.eventId, asTemporary = cleanIds),
+    name = action.name,
+    priority = action.priority,
+    externalActionName = action.externalActionName ?: "",
 )
 
 private fun CompleteActionEntity.toDomainNotification(cleanIds: Boolean = false) = Notification(

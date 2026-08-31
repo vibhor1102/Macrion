@@ -7,6 +7,7 @@
 package io.github.vibhor1102.macrion.feature.backup.data
 
 import io.github.vibhor1102.macrion.core.database.entity.CompleteScenario
+import io.github.vibhor1102.macrion.core.database.entity.ActionType
 import io.github.vibhor1102.macrion.core.dumb.data.database.DumbScenarioWithActions
 import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
 
@@ -80,8 +81,48 @@ internal object KlickrCompatibilityProjector {
         )
     }
 
-    fun projectSmartScenario(scenario: CompleteScenario): KlickrCompatibilityProjection<CompleteScenario> =
-        KlickrCompatibilityProjection(scenario.detachedCopy())
+    fun projectSmartScenario(scenario: CompleteScenario): KlickrCompatibilityProjection<CompleteScenario> {
+        val detached = scenario.detachedCopy()
+        val losses = mutableListOf<KlickrCompatibilityLoss>()
+        val compatibleEvents = detached.events.mapNotNull { event ->
+            val compatibleActions = event.actions.filterNot { action ->
+                action.action.type == ActionType.EXTERNAL_ACTION
+            }
+            val removedActionCount = event.actions.size - compatibleActions.size
+            if (removedActionCount > 0) {
+                losses += KlickrCompatibilityLoss(
+                    reason = KlickrCompatibilityLossReason.UNSUPPORTED_COMPONENT,
+                    componentCount = removedActionCount,
+                    scenarioId = detached.scenario.id,
+                )
+            }
+
+            if (compatibleActions.isEmpty() || event.conditions.isEmpty()) {
+                losses += KlickrCompatibilityLoss(
+                    reason = KlickrCompatibilityLossReason.MEANINGLESS_EVENT,
+                    componentCount = 1,
+                    scenarioId = detached.scenario.id,
+                )
+                null
+            } else {
+                event.copy(actions = compatibleActions)
+            }
+        }
+
+        if (compatibleEvents.isEmpty()) {
+            losses += KlickrCompatibilityLoss(
+                reason = KlickrCompatibilityLossReason.MEANINGLESS_SCENARIO,
+                componentCount = 1,
+                scenarioId = detached.scenario.id,
+            )
+            return KlickrCompatibilityProjection(value = null, losses = losses)
+        }
+
+        return KlickrCompatibilityProjection(
+            value = detached.copy(events = compatibleEvents),
+            losses = losses,
+        )
+    }
 
     fun projectDumbScenario(scenario: DumbScenarioWithActions): KlickrCompatibilityProjection<DumbScenarioWithActions> =
         KlickrCompatibilityProjection(scenario.detachedCopy())

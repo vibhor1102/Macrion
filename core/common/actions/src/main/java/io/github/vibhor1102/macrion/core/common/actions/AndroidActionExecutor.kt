@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -110,6 +111,9 @@ interface AndroidActionExecutor: Dumpable {
      * due to the queuing system).
      */
     fun postNotification(notificationRequest: ActionNotificationRequest)
+
+    /** Fire a named external automation event. */
+    fun fireExternalAction(externalActionName: String)
 }
 
 /** The maximum supported duration for a gesture. This limitation comes from Android GestureStroke API.  */

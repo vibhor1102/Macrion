@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2026 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +35,7 @@ import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
 import io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.copy.model.ItemWithMissingReferences
 import io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.copy.model.MissingCopyReference
+import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 
 import javax.inject.Inject
 
@@ -65,6 +67,7 @@ class GetActionMissingReferencesUseCase @Inject constructor(
             is ToggleEvent -> action.getMissingReferences(copyResultEvents)
 
             // Nothing is referenced in those actions
+            is ExternalAction,
             is Intent,
             is Pause,
             is Swipe,

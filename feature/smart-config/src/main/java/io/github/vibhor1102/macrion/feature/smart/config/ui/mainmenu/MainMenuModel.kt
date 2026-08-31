@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +36,7 @@ import io.github.vibhor1102.macrion.feature.revenue.IRevenueRepository
 import io.github.vibhor1102.macrion.feature.revenue.UserBillingState
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
 import io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.alphabet.AreRequiredAlphabetModelsInstalledUseCase
+import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -57,6 +59,7 @@ import javax.inject.Inject
 /** View model for the [MainMenu]. */
 class MainMenuModel @Inject constructor(
     private val smartProcessingRepository: SmartProcessingRepository,
+    settingsRepository: SettingsRepository,
     private val editionRepository: EditionRepository,
     private val tutorialRepository: TutorialRepository,
     private val revenueRepository: IRevenueRepository,
@@ -96,6 +99,14 @@ class MainMenuModel @Inject constructor(
     val isMediaProjectionStarted: StateFlow<Boolean> = smartProcessingRepository.detectionState
         .map { it == DetectionState.RECORDING || it == DetectionState.DETECTING }
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val isSwitchButtonVisible: StateFlow<Boolean> = combine(
+        detectionState,
+        isMediaProjectionStarted,
+        settingsRepository.isScenarioSwitcherEnabledFlow,
+    ) { state, isProjectionStarted, isEnabled ->
+        state == UiState.Idle && isProjectionStarted && isEnabled
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     /** The condition being configured by the user. */
     @OptIn(ExperimentalCoroutinesApi::class)

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 * Copyright (C) 2023 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -36,6 +37,7 @@
     <integer name="default_condition_threshold">4</integer>
 
     <string name="default_change_counter_name">Change counter</string>
+    <string name="default_external_action_name">External Action</string>
 
     <string name="default_notification_name">Notification</string>
 

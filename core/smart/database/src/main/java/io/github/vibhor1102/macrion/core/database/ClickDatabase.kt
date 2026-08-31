@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,6 +58,7 @@ import javax.inject.Singleton
         AutoMigration (from = 18, to = 19),
         AutoMigration (from = 20, to = 21),
         AutoMigration (from = 22, to = 23),
+        AutoMigration (from = 24, to = 25),
     ]
 )
 abstract class ClickDatabase : ScenarioDatabase()

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -103,8 +104,24 @@ interface ScenarioDao {
      *
      * @return the scenario stats.
      */
-    @Query("SELECT * FROM $SCENARIO_USAGE_TABLE WHERE scenario_id=:scenarioId")
-    suspend fun getScenarioStats(scenarioId: Long): ScenarioStatsEntity?
+    @Query("SELECT * FROM $SCENARIO_USAGE_TABLE WHERE scenario_id=:scenarioId ORDER BY id ASC")
+    suspend fun getScenarioStats(scenarioId: Long): List<ScenarioStatsEntity>
+
+    /**
+     * Increment the usage statistics for a scenario without a read-modify-write race.
+     *
+     * @return the number of statistics rows updated.
+     */
+    @Query(
+        "UPDATE $SCENARIO_USAGE_TABLE " +
+            "SET last_start_timestamp_ms = :timestampMs, start_count = start_count + 1 " +
+            "WHERE scenario_id = :scenarioId"
+    )
+    suspend fun incrementScenarioStats(scenarioId: Long, timestampMs: Long): Int
+
+    /** Remove duplicate statistics rows after their totals have been merged into the first row. */
+    @Query("DELETE FROM $SCENARIO_USAGE_TABLE WHERE id IN (:ids)")
+    suspend fun deleteScenarioStats(ids: List<Long>)
 
     /**
      * Add the stats for a scenario.

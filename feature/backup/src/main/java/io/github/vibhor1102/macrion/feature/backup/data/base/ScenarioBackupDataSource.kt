@@ -51,6 +51,7 @@ internal abstract class ScenarioBackupDataSource<Backup, BackupScenario>(private
         scenario: BackupScenario,
         screenSize: Point,
         format: BackupArchiveFormat,
+        portableDatabaseVersion: Int?,
     ): Backup
     protected abstract fun verifyExtractedBackup(backup: Backup, screenSize: Point): BackupScenario?
 
@@ -73,11 +74,17 @@ internal abstract class ScenarioBackupDataSource<Backup, BackupScenario>(private
         scenario: BackupScenario,
         screenSize: Point,
         format: BackupArchiveFormat,
+        portableDatabaseVersion: Int? = null,
     ) {
         Log.d(TAG, "Backup scenario $scenario")
 
         // Create json file from the data of the scenario
-        val jsonFile = createScenarioJsonBackupFile(scenario, screenSize, format)
+        val jsonFile = createScenarioJsonBackupFile(
+            scenario,
+            screenSize,
+            format,
+            portableDatabaseVersion,
+        )
 
         // Add it to the archive and delete it.
         addScenarioFilesToZip(zipStream, scenario, jsonFile, getBackupAdditionalFilesPaths(scenario, format))
@@ -88,6 +95,7 @@ internal abstract class ScenarioBackupDataSource<Backup, BackupScenario>(private
         scenario: BackupScenario,
         screenSize: Point,
         format: BackupArchiveFormat,
+        portableDatabaseVersion: Int?,
     ): File =
         File(appDataDir, getBackupFileName(scenario, format)).apply {
             Log.d(TAG, "Creating JSON backup file")
@@ -98,7 +106,10 @@ internal abstract class ScenarioBackupDataSource<Backup, BackupScenario>(private
             }
 
             outputStream().use { jsonOutStream ->
-                serializer.serialize(createBackupFromScenario(scenario, screenSize, format), jsonOutStream)
+                serializer.serialize(
+                    createBackupFromScenario(scenario, screenSize, format, portableDatabaseVersion),
+                    jsonOutStream,
+                )
             }
         }
 

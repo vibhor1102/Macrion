@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2026 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +23,16 @@ import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbScenario
 
 interface LocalAccessibilityService {
 
-    fun startDumbScenario(dumbScenario: DumbScenario)
-    fun startSmartScenario(resultCode: Int, data: Intent, scenario: Scenario)
+    fun isScenarioRunning(): Boolean
+    fun isSmartScreenRecordActive(): Boolean
+    fun getSmartScenarioId(): Long?
+    fun getDumbScenarioId(): Long?
+    fun launchDumbScenario(dumbScenario: DumbScenario)
+    fun launchSmartScenario(resultCode: Int, data: Intent, scenario: Scenario)
+    fun replaceDumbScenario(dumbScenario: DumbScenario)
+    fun replaceSmartScenario(resultCode: Int, data: Intent, scenario: Scenario)
+    fun replaceSmartScenarioWithCurrentProjection(scenario: Scenario)
+    fun runCurrentScenario()
     fun stopScenario()
     fun release()
 

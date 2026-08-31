@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -173,6 +174,22 @@ class ActionMapperTests {
         assertEquals(
             ActionTestsData.getNewSetText(eventId = ActionTestsData.ACTION_EVENT_ID),
             ActionTestsData.getNewSetTextEntity(eventId = ActionTestsData.ACTION_EVENT_ID).toDomain(),
+        )
+    }
+
+    @Test
+    fun externalAction_toEntity() {
+        assertEquals(
+            ActionTestsData.getNewExternalActionEntity(eventId = ActionTestsData.ACTION_EVENT_ID).action,
+            ActionTestsData.getNewExternalAction(eventId = ActionTestsData.ACTION_EVENT_ID).toEntity(),
+        )
+    }
+
+    @Test
+    fun externalAction_toDomain() {
+        assertEquals(
+            ActionTestsData.getNewExternalAction(eventId = ActionTestsData.ACTION_EVENT_ID),
+            ActionTestsData.getNewExternalActionEntity(eventId = ActionTestsData.ACTION_EVENT_ID).toDomain(),
         )
     }
 }

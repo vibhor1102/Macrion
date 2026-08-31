@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -482,6 +483,7 @@ internal open class CompatDeserializer : Deserializer {
             ActionType.INTENT -> deserializeActionIntent(jsonAction)
             ActionType.TOGGLE_EVENT -> deserializeActionToggleEvent(jsonAction)
             ActionType.CHANGE_COUNTER -> deserializeActionChangeCounter(jsonAction)
+            ActionType.EXTERNAL_ACTION -> deserializeActionExternalAction(jsonAction)
             ActionType.NOTIFICATION -> deserializeActionNotification(jsonAction)
             ActionType.SYSTEM -> deserializeActionSystem(jsonAction)
             ActionType.TEXT -> deserializeActionSetText(jsonAction)
@@ -646,6 +648,24 @@ internal open class CompatDeserializer : Deserializer {
             counterOperationValueType = counterOperationValueType,
             counterOperationValue = deserializeCounterActionValue(jsonChangeCounter),
             counterOperationCounterName = counterOperationCounterName,
+        )
+    }
+
+    @VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
+    open fun deserializeActionExternalAction(jsonExternalAction: JsonObject): ActionEntity? {
+        val id = jsonExternalAction.getLong("id", true) ?: return null
+        val eventId = jsonExternalAction.getLong("eventId", true) ?: return null
+        val externalActionName = jsonExternalAction.getString("externalActionName", true)?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?: return null
+
+        return ActionEntity(
+            id = id,
+            eventId = eventId,
+            name = jsonExternalAction.getString("name") ?: "",
+            priority = jsonExternalAction.getInt("priority")?.coerceAtLeast(0) ?: 0,
+            type = ActionType.EXTERNAL_ACTION,
+            externalActionName = externalActionName,
         )
     }
 

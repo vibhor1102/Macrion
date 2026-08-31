@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2026 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +34,7 @@ import io.github.vibhor1102.macrion.core.domain.model.condition.TriggerCondition
 import io.github.vibhor1102.macrion.core.domain.model.counter.Counter
 import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
+import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 import javax.inject.Inject
 
 class ReplaceCounterUseCase @Inject constructor(
@@ -123,6 +125,7 @@ class ReplaceCounterUseCase @Inject constructor(
             }
 
             is Click,
+            is ExternalAction,
             is Intent,
             is Pause,
             is SystemAction,

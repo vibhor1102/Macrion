@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2023 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -102,6 +103,15 @@ class OverlayManagerTests {
         overlayManager.navigateTo(mockContext, mockOverlay2)
 
         Assert.assertEquals(mockOverlay2, overlayManager.getBackStackTop())
+    }
+
+    @Test
+    fun hasVisibleOverlayAboveRoot_returnsTrueOnlyForChildOverlays() {
+        overlayManager.navigateTo(mockContext, mockOverlay1)
+        Assert.assertFalse(overlayManager.hasVisibleOverlayAboveRoot())
+
+        overlayManager.navigateTo(mockContext, mockOverlay2)
+        Assert.assertTrue(overlayManager.hasVisibleOverlayAboveRoot())
     }
 
     @Test

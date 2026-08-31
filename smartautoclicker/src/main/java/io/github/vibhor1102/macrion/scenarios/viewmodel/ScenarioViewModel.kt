@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -113,7 +114,7 @@ class ScenarioViewModel @Inject constructor(
             if (foregroundPermission != PermissionChecker.PERMISSION_GRANTED) return false
         }
 
-        serviceConnection.getLocalService()?.startSmartScenario(resultCode, data, scenario)
+        serviceConnection.getLocalService()?.launchSmartScenario(resultCode, data, scenario)
         return true
     }
 
@@ -123,7 +124,7 @@ class ScenarioViewModel @Inject constructor(
             if (foregroundPermission != PermissionChecker.PERMISSION_GRANTED) return false
         }
 
-        serviceConnection.getLocalService()?.startDumbScenario(scenario)
+        serviceConnection.getLocalService()?.launchDumbScenario(scenario)
         return true
     }
 

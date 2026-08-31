@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,6 +47,7 @@ sealed class Action : Identifiable, Completable, Prioritizable {
         when (this) {
             is Click -> copy(id = id, eventId = eventId, name = name, priority = priority)
             is ChangeCounter -> copy(id = id, eventId = eventId, name = name, priority = priority)
+            is ExternalAction -> copy(id = id, eventId = eventId, name = name, priority = priority)
             is Intent -> copy(id = id, eventId = eventId, name = name, priority = priority)
             is Pause -> copy(id = id, eventId = eventId, name = name, priority = priority)
             is Swipe -> copy(id = id, eventId = eventId, name = name, priority = priority)

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +49,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.intent.putDomainExt
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
 import io.github.vibhor1102.macrion.core.processing.data.processor.state.ProcessingState
+import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -98,6 +100,7 @@ internal class ActionExecutor(
                 is Intent -> executeIntent(action)
                 is ToggleEvent -> executeToggleEvent(action)
                 is ChangeCounter -> executeChangeCounter(action)
+                is ExternalAction -> executeExternalAction(action)
                 is Notification -> executeNotification(event, action)
                 is SystemAction -> executeSystemAction(action)
                 is SetText -> executeSetText(action)
@@ -253,6 +256,10 @@ internal class ActionExecutor(
                 ChangeCounter.OperationType.SET -> operandValue
             }
         )
+    }
+
+    private fun executeExternalAction(externalAction: ExternalAction) {
+        androidExecutor.fireExternalAction(externalAction.externalActionName)
     }
 
     private fun executeNotification(event: Event, notification: Notification) {

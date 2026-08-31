@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +40,7 @@ import io.github.vibhor1102.macrion.core.processing.data.processor.ConditionsRes
 import io.github.vibhor1102.macrion.core.processing.data.processor.state.ProcessingState
 import io.github.vibhor1102.macrion.core.processing.utils.anyNotNull
 import io.github.vibhor1102.macrion.core.processing.domain.model.ProcessedConditionResult
+import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.*
@@ -89,6 +91,8 @@ class ActionExecutorTests {
             ))
         fun getNewDefaultPause(id: Long) =
             Pause(Identifier(databaseId = id), TEST_EVENT_ID, TEST_NAME, 3, TEST_DURATION)
+        fun getNewDefaultExternalAction(id: Long, externalActionName: String) =
+            ExternalAction(Identifier(databaseId = id), TEST_EVENT_ID, TEST_NAME, 4, externalActionName)
 
         fun getNewDefaultCondition(id: Long) =
             ScreenCondition.Image(Identifier(databaseId = id), TEST_EVENT_ID, TEST_NAME, 0, true, 10, "path", Rect(), EXACT, null)
@@ -237,6 +241,19 @@ class ActionExecutorTests {
         )
 
         // Only a pause, there should be no gestures
+        verify(mockAndroidExecutor, never()).dispatchGesture(anyNotNull())
+    }
+
+    @Test
+    fun execute_oneExternalAction() = runTest {
+        val externalAction = getNewDefaultExternalAction(1, "Open xyz game intent")
+
+        actionExecutor.executeActions(
+            event = getNewDefaultEvent(actions = listOf(externalAction)),
+            results = ConditionsResults(),
+        )
+
+        verify(mockAndroidExecutor).fireExternalAction("Open xyz game intent")
         verify(mockAndroidExecutor, never()).dispatchGesture(anyNotNull())
     }
 

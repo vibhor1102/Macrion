@@ -1,5 +1,6 @@
 ﻿/*
  * Copyright (C) 2026 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -101,7 +102,7 @@ internal class TutorialRepositoryImpl @Inject constructor(
             val insertedScenario = scenario.copy(id = scenarioId)
 
             // Load the scenario
-            localService.startSmartScenario(
+            localService.launchSmartScenario(
                 scenario = insertedScenario,
                 resultCode = mpResultCode,
                 data = mpData,

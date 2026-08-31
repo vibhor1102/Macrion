@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,6 +77,9 @@ internal class EditionDefaultValues {
 
     fun changeCounterName(context: Context): String =
         context.getString(R.string.default_change_counter_name)
+
+    fun externalActionName(context: Context): String =
+        context.getString(R.string.default_external_action_name)
 
     fun notificationName(context: Context): String =
         context.getString(R.string.default_notification_name)

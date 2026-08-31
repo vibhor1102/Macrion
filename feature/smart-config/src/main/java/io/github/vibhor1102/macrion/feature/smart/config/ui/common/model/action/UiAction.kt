@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +30,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
+import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 
 
 data class UiAction(
@@ -56,6 +58,7 @@ internal fun Action.getIconRes(): Int = when (this) {
     is Intent -> getIntentIconRes()
     is ToggleEvent -> getToggleEventIconRes()
     is ChangeCounter -> getChangeCounterIconRes()
+    is ExternalAction -> getExternalActionIconRes()
     is Notification -> getNotificationIconRes()
     is SystemAction -> getSystemActionIconRes()
     is SetText -> getSetTextIconRes()
@@ -68,6 +71,7 @@ internal fun Action.getActionDescription(context: Context, parent: Event?, inErr
     is Intent -> getDescription(context, inError)
     is ToggleEvent -> getDescription(context, inError)
     is ChangeCounter -> getDescription(context, inError)
+    is ExternalAction -> getDescription(context, inError)
     is Notification -> getDescription(context, inError)
     is SystemAction -> getDescription(context, inError)
     is SetText -> getDescription(context, inError)

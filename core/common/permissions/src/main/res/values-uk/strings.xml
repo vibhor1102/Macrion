@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 * Copyright (C) 2023 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -48,4 +49,6 @@
     <string name="button_request_permission">Запросити дозвіл</string>
     <string name="button_deny">Відхилити</string>
 
+    <string name="dialog_title_permission_launch_fallback_notification">Сповіщення для резервного запуску</string>
+    <string name="message_permission_desc_launch_fallback_notification">Необов\'язково: дозволяє Klick\'r показати сповіщення для завершення запуску сценарію, коли застосунок автоматизації не може відкрити його безпосередньо, наприклад коли телефон заблоковано.</string>
 </resources>

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -226,6 +227,18 @@ class OverlayManager @Inject internal constructor(
 
     fun isOverlayStackVisible(): Boolean =
         getBackStackTop()?.lifecycle?.currentState?.isAtLeast(Lifecycle.State.STARTED) ?: false
+
+    /**
+     * @return true when a visible child overlay is open above a scenario's main menu.
+     *
+     * The root overlay is the scenario menu. Any further overlay is an editor, dialog, or other
+     * foreground interaction that should not be interrupted by an external scenario replacement.
+     */
+    fun hasVisibleOverlayAboveRoot(): Boolean =
+        !isOverlayStackHidden() && overlayBackStack.size > 1
+
+    /** @return true when a child overlay is open above a scenario's main menu, even if the stack is hidden. */
+    fun hasOverlayAboveRoot(): Boolean = overlayBackStack.size > 1
 
     /**
      * Set an overlay as being shown above all overlays in the backstack.

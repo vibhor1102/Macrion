@@ -104,13 +104,14 @@ internal class SmartBackupDataSource(
         scenario: CompleteScenario,
         screenSize: Point,
         format: BackupArchiveFormat,
+        portableDatabaseVersion: Int?,
     ): ScenarioBackup =
         ScenarioBackup(
             format = if (format == BackupArchiveFormat.MACRION_NATIVE) MACRION_FORMAT_NAME else null,
             scenario = scenario.withArchivePaths(format),
             screenWidth = screenSize.x,
             screenHeight = screenSize.y,
-            version = DATABASE_VERSION,
+            version = portableDatabaseVersion ?: DATABASE_VERSION,
         )
 
     override fun verifyExtractedBackup(backup: ScenarioBackup, screenSize: Point): CompleteScenario? {

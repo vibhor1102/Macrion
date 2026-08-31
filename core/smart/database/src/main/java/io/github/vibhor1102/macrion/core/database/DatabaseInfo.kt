@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2026 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,4 +41,4 @@ internal const val COUNTERS_TABLE = "counters_table"
 internal const val END_CONDITION_TABLE = "end_condition_table"
 
 /** Current version of the database. */
-const val DATABASE_VERSION = 23
+const val DATABASE_VERSION = 25

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +32,7 @@ import io.github.vibhor1102.macrion.core.database.migrations.Migration4to5
 import io.github.vibhor1102.macrion.core.database.migrations.Migration5to6
 import io.github.vibhor1102.macrion.core.database.migrations.Migration6to7
 import io.github.vibhor1102.macrion.core.database.migrations.Migration9to10
+import io.github.vibhor1102.macrion.core.database.migrations.Migration23to24
 
 import dagger.Module
 import dagger.Provides
@@ -63,6 +65,7 @@ internal object SmartDatabaseModule {
             Migration12to13,
             Migration19to20,
             Migration21to22,
+            Migration23to24,
         ).build()
 
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -86,8 +87,16 @@ private fun Permission.toPermissionDialogUiState(): PermissionDialogUiState =
 
         is PermissionPostNotification -> PermissionDialogUiState(
             permission = this,
-            titleRes = R.string.dialog_title_permission_notification,
-            descriptionRes = R.string.message_permission_desc_notification,
+            titleRes = when (purpose) {
+                PermissionPostNotification.Purpose.GENERAL -> R.string.dialog_title_permission_notification
+                PermissionPostNotification.Purpose.EXTERNAL_LAUNCH_FALLBACK ->
+                    R.string.dialog_title_permission_launch_fallback_notification
+            },
+            descriptionRes = when (purpose) {
+                PermissionPostNotification.Purpose.GENERAL -> R.string.message_permission_desc_notification
+                PermissionPostNotification.Purpose.EXTERNAL_LAUNCH_FALLBACK ->
+                    R.string.message_permission_desc_launch_fallback_notification
+            },
         )
 
         is PermissionAccessibilityService -> PermissionDialogUiState(

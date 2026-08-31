@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +29,14 @@ import io.github.vibhor1102.macrion.core.base.data.getNotificationSettingsIntent
 @SuppressLint("InlinedApi")
 data class PermissionPostNotification(
     private val optional: Boolean = false,
+    val purpose: Purpose = Purpose.GENERAL,
 ) : Permission.Dangerous(optional), Permission.ForApiRange {
+
+    /** Explains why notifications are requested in the preparation dialog. */
+    enum class Purpose {
+        GENERAL,
+        EXTERNAL_LAUNCH_FALLBACK,
+    }
 
     override val fromApiLvl: Int
         get() = Build.VERSION_CODES.TIRAMISU

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +44,8 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.action.system.System
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.toggleevent.ToggleEventDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters.newNotificationPermissionStarterOverlay
 import io.github.vibhor1102.macrion.feature.smart.config.ui.copy.action.ActionCopyDialog
+import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
+import io.github.vibhor1102.macrion.feature.smart.config.ui.action.external.ExternalActionDialog
 
 
 internal interface ActionConfigurator {
@@ -102,6 +105,7 @@ internal fun BaseOverlay.showActionConfigDialog(configurator: ActionConfigurator
         is SystemAction -> SystemActionDialog(actionConfigDialogListener)
         is ToggleEvent -> ToggleEventDialog(actionConfigDialogListener)
         is ChangeCounter -> ChangeCounterDialog(actionConfigDialogListener)
+        is ExternalAction -> ExternalActionDialog(actionConfigDialogListener)
         is SetText -> SetTextDialog(actionConfigDialogListener)
         is Notification -> {
             if (PermissionPostNotification().checkIfGranted(context)) NotificationDialog(actionConfigDialogListener)

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -57,6 +58,12 @@ class SettingsFragment : Fragment() {
             setOnClickListener(viewModel::toggleScenarioFiltersUi)
         }
 
+        viewBinding.fieldScenarioSwitcher.apply {
+            setTitle(requireContext().getString(R.string.field_scenario_switcher_title))
+            setDescription(requireContext().getString(R.string.field_scenario_switcher_desc))
+            setOnClickListener(viewModel::toggleScenarioSwitcher)
+        }
+
         viewBinding.fieldLegacyActionsUi.apply {
             setTitle(requireContext().getString(R.string.field_legacy_action_ui_title))
             setDescription(requireContext().getString(R.string.field_legacy_action_ui_desc))
@@ -99,6 +106,7 @@ class SettingsFragment : Fragment() {
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { viewModel.isScenarioFiltersUiEnabled.collect(viewBinding.fieldShowScenarioFilters::setChecked) }
+                launch { viewModel.isScenarioSwitcherEnabled.collect(viewBinding.fieldScenarioSwitcher::setChecked) }
                 launch { viewModel.isLegacyActionUiEnabled.collect(viewBinding.fieldLegacyActionsUi::setChecked) }
                 launch { viewModel.isLegacyNotificationUiEnabled.collect(viewBinding.fieldLegacyNotificationUi::setChecked) }
                 launch { viewModel.isEntireScreenCaptureForced.collect(viewBinding.fieldForceEntireScreen::setChecked) }

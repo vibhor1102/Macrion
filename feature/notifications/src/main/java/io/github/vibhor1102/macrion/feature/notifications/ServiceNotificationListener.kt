@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +25,7 @@ interface ServiceNotificationListener {
     fun onShow(): Unit?
     fun onHide(): Unit?
     fun onStop(): Unit?
+    fun onSwitch(): Unit?
 }
 
 internal fun ServiceNotificationListener.notifyAction(action: ServiceNotificationAction) =
@@ -32,6 +34,7 @@ internal fun ServiceNotificationListener.notifyAction(action: ServiceNotificatio
         ServiceNotificationAction.Pause -> onPause()
         ServiceNotificationAction.Show -> onShow()
         ServiceNotificationAction.Hide -> onHide()
+        ServiceNotificationAction.Switch -> onSwitch()
         ServiceNotificationAction.Stop -> onStop()
         ServiceNotificationAction.Config -> Unit
     }

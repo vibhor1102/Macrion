@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +38,7 @@ import io.github.vibhor1102.macrion.core.database.SCENARIO_USAGE_TABLE
  */
 @Entity(
     tableName = SCENARIO_USAGE_TABLE,
-    indices = [Index("scenario_id")],
+    indices = [Index(value = ["scenario_id"], unique = true)],
     foreignKeys = [ForeignKey(
         entity = ScenarioEntity::class,
         parentColumns = ["id"],

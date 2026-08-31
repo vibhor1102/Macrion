@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -25,5 +26,6 @@
     <string name="notification_button_hide">Esconder</string>
     <string name="notification_button_stop">Parar</string>
     <string name="notification_button_config">Configuração</string>
+    <string name="notification_button_switch">Mudar de cenário</string>
 
 </resources>

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2026 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +35,7 @@ import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationVa
 import io.github.vibhor1102.macrion.core.domain.model.event.Event
 import io.github.vibhor1102.macrion.feature.smart.config.domain.EditionRepository
 import io.github.vibhor1102.macrion.feature.smart.config.domain.usecase.counter.model.CounterReference
+import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -112,6 +114,7 @@ class GetCounterReadReferencesUseCase @Inject constructor(
                     }
 
                     is Click,
+                    is ExternalAction,
                     is Intent,
                     is Pause,
                     is SystemAction,

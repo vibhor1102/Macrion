@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +28,7 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.getSwipeIconRes
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.getSystemActionIconRes
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.getToggleEventIconRes
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.getExternalActionIconRes
 
 
 /** Choices for the action type selection dialog. */
@@ -82,6 +84,13 @@ sealed class ActionTypeChoice(
         R.string.item_change_counter_title,
         R.string.item_change_counter_desc,
         getChangeCounterIconRes(),
+    )
+
+    /** External Action choice. */
+    data object ExternalAction : ActionTypeChoice(
+        R.string.item_external_action_title,
+        R.string.item_external_action_desc,
+        getExternalActionIconRes(),
     )
 
     /** Notification Action choice. */

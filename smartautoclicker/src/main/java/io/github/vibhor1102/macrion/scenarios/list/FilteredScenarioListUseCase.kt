@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +30,8 @@ import io.github.vibhor1102.macrion.core.settings.domain.model.ScenarioSortSetti
 import io.github.vibhor1102.macrion.core.settings.domain.model.ScenarioSortType
 import io.github.vibhor1102.macrion.core.ui.utils.formatDuration
 import io.github.vibhor1102.macrion.scenarios.list.model.ScenarioListUiState
+import io.github.vibhor1102.macrion.core.settings.domain.model.ScenarioSortItem
+import io.github.vibhor1102.macrion.core.settings.domain.model.sortedByScenarioSortSettings
 
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -151,17 +154,16 @@ private fun Collection<ScenarioListUiState.Item.ScenarioItem>.sortAndFilter(
                 (sortConfig.showDumbScenario && item.scenario is DumbScenario)
     }
 
-    return when (sortConfig.type) {
-        ScenarioSortType.NAME ->
-            if (sortConfig.inverted) filteredList.sortedByDescending { it.displayName }
-            else filteredList.sortedBy { it.displayName }
-
-        ScenarioSortType.RECENT ->
-            if (sortConfig.inverted) filteredList.sortedBy { it.lastStartTimestamp }
-            else filteredList.sortedByDescending { it.lastStartTimestamp }
-
-        ScenarioSortType.MOST_USED ->
-            if (sortConfig.inverted) filteredList.sortedBy { it.startCount }
-            else filteredList.sortedByDescending { it.startCount }
+    return filteredList.sortedByScenarioSortSettings(sortConfig) { scenario ->
+        ScenarioSortItem(
+            id = when (val sourceScenario = scenario.scenario) {
+                is Scenario -> sourceScenario.id.databaseId
+                is DumbScenario -> sourceScenario.id.databaseId
+                else -> error("Unsupported scenario type: ${sourceScenario::class}")
+            },
+            name = scenario.displayName,
+            lastStartTimestamp = scenario.lastStartTimestamp,
+            startCount = scenario.startCount,
+        )
     }
 }

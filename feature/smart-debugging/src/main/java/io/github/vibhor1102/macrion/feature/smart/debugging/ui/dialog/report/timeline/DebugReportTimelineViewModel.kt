@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +45,7 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.tim
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.filter.shouldFilter
 import io.github.vibhor1102.macrion.feature.smart.debugging.utils.findWithId
 import io.github.vibhor1102.macrion.feature.smart.debugging.utils.formatDebugTimelineTimestamp
+import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -187,6 +189,7 @@ class DebugReportTimelineViewModel @Inject constructor(
             is Intent -> R.drawable.ic_intent
             is ToggleEvent ->  R.drawable.ic_toggle_event
             is ChangeCounter -> R.drawable.ic_change_counter
+            is ExternalAction -> R.drawable.ic_external_action
             is Notification -> R.drawable.ic_action_notification
             is SetText -> R.drawable.ic_action_set_text
             is SystemAction -> R.drawable.ic_action_system

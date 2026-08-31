@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -135,6 +136,7 @@ class SmartActionsBriefViewModel @Inject constructor(
                 add(ActionTypeChoice.SetText)
                 add(ActionTypeChoice.System)
                 add(ActionTypeChoice.ChangeCounter)
+                add(ActionTypeChoice.ExternalAction)
                 add(ActionTypeChoice.ToggleEvent)
                 add(ActionTypeChoice.Notification)
                 add(ActionTypeChoice.Intent)
@@ -179,6 +181,7 @@ class SmartActionsBriefViewModel @Inject constructor(
         ActionTypeChoice.Intent -> editionRepository.editedItemsBuilder.createNewIntent(context)
         ActionTypeChoice.ToggleEvent -> editionRepository.editedItemsBuilder.createNewToggleEvent(context)
         ActionTypeChoice.ChangeCounter -> editionRepository.editedItemsBuilder.createNewChangeCounter(context)
+        ActionTypeChoice.ExternalAction -> editionRepository.editedItemsBuilder.createNewExternalAction(context)
         ActionTypeChoice.Notification -> editionRepository.editedItemsBuilder.createNewNotification(context)
         ActionTypeChoice.System -> editionRepository.editedItemsBuilder.createNewSystemAction(context)
         ActionTypeChoice.SetText -> editionRepository.editedItemsBuilder.createNewSetText(context)

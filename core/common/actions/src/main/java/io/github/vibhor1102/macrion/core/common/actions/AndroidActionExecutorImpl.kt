@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +28,7 @@ import io.github.vibhor1102.macrion.core.common.actions.gesture.GestureExecutor
 import io.github.vibhor1102.macrion.core.common.actions.model.ActionNotificationRequest
 import io.github.vibhor1102.macrion.core.common.actions.notification.NotificationRequestExecutor
 import io.github.vibhor1102.macrion.core.common.actions.text.TextExecutor
+import io.github.vibhor1102.macrion.core.common.actions.external.ExternalActionEventContract
 
 import kotlinx.coroutines.delay
 import java.io.PrintWriter
@@ -127,6 +129,16 @@ internal class AndroidActionExecutorImpl @Inject constructor(
     override fun postNotification(notificationRequest: ActionNotificationRequest) {
         accessibilityService ?: return // No need for service here, but init state is bound to it
         notificationRequestExecutor.postNotification(notificationRequest)
+    }
+
+    override fun fireExternalAction(externalActionName: String) {
+        val service = accessibilityService ?: return
+
+        try {
+            service.sendBroadcast(ExternalActionEventContract.createRequestQueryIntent(externalActionName))
+        } catch (iaex: IllegalArgumentException) {
+            Log.w(TAG, "Can't fire external action, Intent is invalid.", iaex)
+        }
     }
 
     override fun dump(writer: PrintWriter, prefix: CharSequence) {

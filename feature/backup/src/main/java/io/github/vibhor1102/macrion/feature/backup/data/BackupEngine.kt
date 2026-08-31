@@ -89,7 +89,12 @@ internal class BackupEngine(private val appDataDir: File, private val contentRes
                     plan.dumbScenarios.forEach { dumbScenario ->
                         Log.d(TAG, "Backup dumb scenario ${dumbScenario.scenario.id}")
 
-                        dumbBackupDataSource.addScenarioToZipFile(zipStream, dumbScenario, screenSize, plan.format)
+                        dumbBackupDataSource.addScenarioToZipFile(
+                            zipStream,
+                            dumbScenario,
+                            screenSize,
+                            plan.format,
+                        )
 
                         currentProgress++
                         progress.onProgressChanged(currentProgress, plan.dumbScenarios.size + plan.smartScenarios.size)
@@ -98,7 +103,13 @@ internal class BackupEngine(private val appDataDir: File, private val contentRes
                     plan.smartScenarios.forEach { completeScenario ->
                         Log.d(TAG, "Backup smart scenario ${completeScenario.scenario.id}")
 
-                        smartBackupDataSource.addScenarioToZipFile(zipStream, completeScenario, screenSize, plan.format)
+                        smartBackupDataSource.addScenarioToZipFile(
+                            zipStream,
+                            completeScenario,
+                            screenSize,
+                            plan.format,
+                            plan.profile?.portableDatabaseVersion,
+                        )
 
                         currentProgress++
                         progress.onProgressChanged(currentProgress, plan.dumbScenarios.size + plan.smartScenarios.size)

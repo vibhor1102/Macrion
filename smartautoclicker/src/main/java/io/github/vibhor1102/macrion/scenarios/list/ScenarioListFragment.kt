@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,7 +70,7 @@ import kotlinx.coroutines.launch
 class ScenarioListFragment : Fragment() {
 
     interface Listener {
-        fun startScenario(item: ScenarioListUiState.Item.ScenarioItem)
+        fun launchScenario(item: ScenarioListUiState.Item.ScenarioItem)
     }
 
     private val tutorialNavigator: TutorialNavigator by lazy {
@@ -98,7 +99,7 @@ class ScenarioListFragment : Fragment() {
 
         scenariosAdapter = ScenarioAdapter(
             bitmapProvider = scenarioListViewModel::getConditionBitmap,
-            startScenarioListener = ::onStartClicked,
+            launchScenarioListener = ::onStartClicked,
             deleteScenarioListener = ::onDeleteClicked,
             exportClickListener = ::onExportClicked,
             copyClickedListener = ::showCopyScenarioDialog,
@@ -273,7 +274,7 @@ class ScenarioListFragment : Fragment() {
      * @param scenario the scenario clicked.
      */
     private fun onStartClicked(scenario: ScenarioListUiState.Item.ScenarioItem) {
-        (requireActivity() as? Listener)?.startScenario(scenario)
+        (requireActivity() as? Listener)?.launchScenario(scenario)
     }
 
     /**

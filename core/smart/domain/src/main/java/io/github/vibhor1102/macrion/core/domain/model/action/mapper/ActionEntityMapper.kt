@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +31,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.SetText
 import io.github.vibhor1102.macrion.core.domain.model.action.Swipe
 import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
+import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 
 
 internal fun Action.toEntity(): ActionEntity {
@@ -42,6 +44,7 @@ internal fun Action.toEntity(): ActionEntity {
         is Intent -> toIntentEntity()
         is ToggleEvent -> toToggleEventEntity()
         is ChangeCounter -> toChangeCounterEntity()
+        is ExternalAction -> toExternalActionEntity()
         is Notification -> toNotificationEntity()
         is SystemAction -> toSystemActionEntity()
         is SetText -> toSetTextEntity()
@@ -129,6 +132,16 @@ private fun ChangeCounter.toChangeCounterEntity(): ActionEntity {
         counterOperationCounterName = if (isNumberValue) null else operationValue.value as String,
     )
 }
+
+private fun ExternalAction.toExternalActionEntity(): ActionEntity =
+    ActionEntity(
+        id = id.databaseId,
+        eventId = eventId.databaseId,
+        priority = priority,
+        name = name!!,
+        type = ActionType.EXTERNAL_ACTION,
+        externalActionName = externalActionName.trim(),
+    )
 
 private fun Notification.toNotificationEntity(): ActionEntity =
     ActionEntity(

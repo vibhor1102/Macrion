@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,6 +44,9 @@ class SettingsViewModel @Inject constructor(
     val isScenarioFiltersUiEnabled: Flow<Boolean> =
         settingsRepository.isFilterScenarioUiEnabledFlow
 
+    val isScenarioSwitcherEnabled: Flow<Boolean> =
+        settingsRepository.isScenarioSwitcherEnabledFlow
+
     val isLegacyActionUiEnabled: Flow<Boolean> =
         settingsRepository.isLegacyActionUiEnabledFlow
 
@@ -72,6 +76,10 @@ class SettingsViewModel @Inject constructor(
 
     fun toggleScenarioFiltersUi() {
         settingsRepository.toggleFilterScenarioUi()
+    }
+
+    fun toggleScenarioSwitcher() {
+        settingsRepository.toggleScenarioSwitcher()
     }
 
     fun toggleLegacyActionUi() {

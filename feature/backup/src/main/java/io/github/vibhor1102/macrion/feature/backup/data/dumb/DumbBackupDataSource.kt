@@ -59,6 +59,7 @@ internal class DumbBackupDataSource(
         scenario: DumbScenarioWithActions,
         screenSize: Point,
         format: BackupArchiveFormat,
+        portableDatabaseVersion: Int?,
     ): DumbScenarioBackup =
         DumbScenarioBackup(
             format = if (format == BackupArchiveFormat.MACRION_NATIVE) MACRION_FORMAT_NAME else null,

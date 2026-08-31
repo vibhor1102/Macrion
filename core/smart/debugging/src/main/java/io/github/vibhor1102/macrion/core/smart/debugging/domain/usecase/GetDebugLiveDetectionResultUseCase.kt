@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +29,7 @@ import io.github.vibhor1102.macrion.core.domain.model.action.SystemAction
 import io.github.vibhor1102.macrion.core.domain.model.action.ToggleEvent
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.DebuggingRepository
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.live.DebugLiveEventOccurrence
+import io.github.vibhor1102.macrion.core.domain.model.action.ExternalAction
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -81,6 +83,7 @@ class GetDebugLiveDetectionResultUseCase @Inject constructor(
                 is Swipe -> action.swipeDuration ?: 0
                 is Pause -> action.pauseDuration ?: 0
                 is ChangeCounter,
+                is ExternalAction,
                 is Intent,
                 is Notification,
                 is SetText,

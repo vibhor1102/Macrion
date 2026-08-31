@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2026 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +37,10 @@ interface SettingsRepository {
 
     val isFilterScenarioUiEnabledFlow: Flow<Boolean>
     fun toggleFilterScenarioUi()
+
+    val isScenarioSwitcherEnabledFlow: Flow<Boolean>
+    suspend fun isScenarioSwitcherEnabled(): Boolean
+    fun toggleScenarioSwitcher()
 
     val isInputBlockWorkaroundEnabledFlow: Flow<Boolean>
     fun isInputBlockWorkaroundEnabled(): Boolean
