@@ -28,6 +28,8 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
+internal data class BackupAdditionalFile(val sourcePath: String, val archivePath: String)
+
 internal abstract class ScenarioBackupDataSource<Backup, BackupScenario>(private val appDataDir: File) {
 
     private val loadedBackups: MutableList<Backup> = mutableListOf()
@@ -41,16 +43,23 @@ internal abstract class ScenarioBackupDataSource<Backup, BackupScenario>(private
 
     protected abstract val serializer: ScenarioBackupSerializer<Backup>
 
-    abstract fun isScenarioBackupFileZipEntry(fileName: String): Boolean
+    abstract fun isScenarioBackupFileZipEntry(fileName: String, format: BackupArchiveFormat): Boolean
 
-    abstract fun isScenarioBackupAdditionalFileZipEntry(fileName: String): Boolean
+    abstract fun isScenarioBackupAdditionalFileZipEntry(fileName: String, format: BackupArchiveFormat): Boolean
 
-    protected abstract fun createBackupFromScenario(scenario: BackupScenario, screenSize: Point): Backup
+    protected abstract fun createBackupFromScenario(
+        scenario: BackupScenario,
+        screenSize: Point,
+        format: BackupArchiveFormat,
+    ): Backup
     protected abstract fun verifyExtractedBackup(backup: Backup, screenSize: Point): BackupScenario?
 
-    protected abstract fun getBackupFileName(scenario: BackupScenario): String
+    protected abstract fun getBackupFileName(scenario: BackupScenario, format: BackupArchiveFormat): String
     protected abstract fun getBackupZipFolderName(scenario: BackupScenario): String
-    protected abstract fun getBackupAdditionalFilesPaths(scenario: BackupScenario): Set<String>
+    protected abstract fun getBackupAdditionalFilesPaths(
+        scenario: BackupScenario,
+        format: BackupArchiveFormat,
+    ): Set<BackupAdditionalFile>
 
     @CallSuper
     open fun reset() {
@@ -59,19 +68,28 @@ internal abstract class ScenarioBackupDataSource<Backup, BackupScenario>(private
         failureCount = 0
     }
 
-    fun addScenarioToZipFile(zipStream: ZipOutputStream, scenario: BackupScenario, screenSize: Point) {
+    fun addScenarioToZipFile(
+        zipStream: ZipOutputStream,
+        scenario: BackupScenario,
+        screenSize: Point,
+        format: BackupArchiveFormat,
+    ) {
         Log.d(TAG, "Backup scenario $scenario")
 
         // Create json file from the data of the scenario
-        val jsonFile = createScenarioJsonBackupFile(scenario, screenSize)
+        val jsonFile = createScenarioJsonBackupFile(scenario, screenSize, format)
 
         // Add it to the archive and delete it.
-        addScenarioFilesToZip(zipStream, scenario, jsonFile, getBackupAdditionalFilesPaths(scenario))
+        addScenarioFilesToZip(zipStream, scenario, jsonFile, getBackupAdditionalFilesPaths(scenario, format))
         jsonFile.delete()
     }
 
-    private fun createScenarioJsonBackupFile(scenario: BackupScenario, screenSize: Point): File =
-        File(appDataDir, getBackupFileName(scenario)).apply {
+    private fun createScenarioJsonBackupFile(
+        scenario: BackupScenario,
+        screenSize: Point,
+        format: BackupArchiveFormat,
+    ): File =
+        File(appDataDir, getBackupFileName(scenario, format)).apply {
             Log.d(TAG, "Creating JSON backup file")
             if (exists()) {
                 Log.w(TAG, "Backup file already exists, deleting previous one")
@@ -80,7 +98,7 @@ internal abstract class ScenarioBackupDataSource<Backup, BackupScenario>(private
             }
 
             outputStream().use { jsonOutStream ->
-                serializer.serialize(createBackupFromScenario(scenario, screenSize), jsonOutStream)
+                serializer.serialize(createBackupFromScenario(scenario, screenSize, format), jsonOutStream)
             }
         }
 
@@ -88,7 +106,7 @@ internal abstract class ScenarioBackupDataSource<Backup, BackupScenario>(private
         zipStream: ZipOutputStream,
         scenario: BackupScenario,
         scenarioJsonFile: File,
-        additionalFilesPaths: Set<String>,
+        additionalFilesPaths: Set<BackupAdditionalFile>,
     ) {
         val entryPrefix = "${getBackupZipFolderName(scenario)}/"
         Log.d(TAG, "Compress in folder $entryPrefix")
@@ -105,17 +123,21 @@ internal abstract class ScenarioBackupDataSource<Backup, BackupScenario>(private
             writeEntryFile(scenarioJsonFile)
 
             // Copy all additional files in the scenario folder of the zip archive
-            additionalFilesPaths.forEach { additionalPath ->
-                Log.d(TAG, "Add backup additional file to archive $additionalPath")
-                putNextEntry(ZipEntry("$entryPrefix$additionalPath"))
-                writeEntryFile(File(appDataDir, additionalPath))
+            additionalFilesPaths.forEach { additionalFile ->
+                Log.d(TAG, "Add backup additional file to archive ${additionalFile.archivePath}")
+                putNextEntry(ZipEntry("$entryPrefix${additionalFile.archivePath}"))
+                writeEntryFile(File(appDataDir, additionalFile.sourcePath))
             }
         }
     }
 
-    fun extractFromZip(zipStream: ZipInputStream, fileName: String): Boolean {
-        if (isScenarioBackupFileZipEntry(fileName)) {
-            val backup = serializer.deserialize(zipStream)
+    fun extractFromZip(
+        zipStream: ZipInputStream,
+        fileName: String,
+        format: BackupArchiveFormat,
+    ): Boolean {
+        if (isScenarioBackupFileZipEntry(fileName, format)) {
+            val backup = serializer.deserialize(zipStream, format)
 
             if (backup == null) {
                 Log.w(TAG, "Can't deserialize $fileName")
@@ -128,11 +150,11 @@ internal abstract class ScenarioBackupDataSource<Backup, BackupScenario>(private
             return true
         }
 
-        if (!isScenarioBackupAdditionalFileZipEntry(fileName)) {
+        if (!isScenarioBackupAdditionalFileZipEntry(fileName, format)) {
             return false
         }
 
-        return extractAdditionalFileFromZip(zipStream, fileName)
+        return extractAdditionalFileFromZip(zipStream, fileName, format)
     }
 
     /**
@@ -141,7 +163,11 @@ internal abstract class ScenarioBackupDataSource<Backup, BackupScenario>(private
      * @param zipStream the input stream the get the file from.
      * @param fileName the additional file name.
      */
-    private fun extractAdditionalFileFromZip(zipStream: ZipInputStream, fileName: String): Boolean {
+    private fun extractAdditionalFileFromZip(
+        zipStream: ZipInputStream,
+        fileName: String,
+        format: BackupArchiveFormat,
+    ): Boolean {
         val startIndex = fileName.lastIndexOf('/') + 1
         if (startIndex <= 0) {
             Log.w(TAG, "Invalid additional file path.")
@@ -150,7 +176,13 @@ internal abstract class ScenarioBackupDataSource<Backup, BackupScenario>(private
 
         val additionalFile = File(
             appDataDir,
-            fileName.substring(startIndex),
+            fileName.substring(startIndex).let { archiveName ->
+                if (format == BackupArchiveFormat.MACRION_NATIVE) {
+                    archiveName.withoutMacrionSubExtension()
+                } else {
+                    archiveName
+                }
+            },
         )
 
         if (additionalFile.exists()) {

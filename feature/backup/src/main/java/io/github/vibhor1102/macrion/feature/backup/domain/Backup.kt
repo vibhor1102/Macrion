@@ -35,8 +35,14 @@ sealed class Backup {
      * @param failureCount the number of failed import/export.
      * @param compatWarning true if the screen size of an imported scenario is different than this device screen size.
      */
-    data class Completed(val successCount: Int, val failureCount: Int, val compatWarning: Boolean) : Backup()
+    data class Completed(
+        val successCount: Int,
+        val failureCount: Int,
+        val compatWarning: Boolean,
+        val klickrCompatibleExport: Boolean = false,
+        val omittedComponentCount: Int = 0,
+    ) : Backup()
 
     /** The backup has encountered an error and has stopped. */
-    data object Error : Backup()
+    data class Error(val malformedArchive: Boolean = false) : Backup()
 }

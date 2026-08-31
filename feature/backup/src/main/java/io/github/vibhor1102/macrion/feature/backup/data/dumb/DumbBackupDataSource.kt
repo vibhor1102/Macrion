@@ -22,6 +22,10 @@ import android.util.Log
 import io.github.vibhor1102.macrion.core.dumb.data.database.DUMB_DATABASE_VERSION
 import io.github.vibhor1102.macrion.core.dumb.data.database.DumbScenarioWithActions
 import io.github.vibhor1102.macrion.feature.backup.data.base.DUMB_SCENARIO_BACKUP_MATCH_REGEX
+import io.github.vibhor1102.macrion.feature.backup.data.base.MACRION_DUMB_SCENARIO_BACKUP_MATCH_REGEX
+import io.github.vibhor1102.macrion.feature.backup.data.base.MACRION_FORMAT_NAME
+import io.github.vibhor1102.macrion.feature.backup.data.base.BackupAdditionalFile
+import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
 import io.github.vibhor1102.macrion.feature.backup.data.base.ScenarioBackupDataSource
 import io.github.vibhor1102.macrion.feature.backup.data.base.ScenarioBackupSerializer
 import io.github.vibhor1102.macrion.feature.backup.data.base.backupFolderName
@@ -35,23 +39,29 @@ internal class DumbBackupDataSource(
 
     /** Regex matching a condition file into its folder in a backup archive. */
     private val scenarioUnzipMatchRegex = DUMB_SCENARIO_BACKUP_MATCH_REGEX.toRegex()
+    private val nativeScenarioUnzipMatchRegex = MACRION_DUMB_SCENARIO_BACKUP_MATCH_REGEX.toRegex()
 
     override val serializer: ScenarioBackupSerializer<DumbScenarioBackup> = DumbScenarioSerializer()
 
-    override fun isScenarioBackupFileZipEntry(fileName: String): Boolean =
-        fileName.matches(scenarioUnzipMatchRegex)
+    override fun isScenarioBackupFileZipEntry(fileName: String, format: BackupArchiveFormat): Boolean =
+        fileName.matches(if (format == BackupArchiveFormat.MACRION_NATIVE) nativeScenarioUnzipMatchRegex else scenarioUnzipMatchRegex)
 
-    override fun isScenarioBackupAdditionalFileZipEntry(fileName: String): Boolean =
+    override fun isScenarioBackupAdditionalFileZipEntry(fileName: String, format: BackupArchiveFormat): Boolean =
         false
 
     override fun getBackupZipFolderName(scenario: DumbScenarioWithActions): String =
         scenario.backupFolderName()
 
-    override fun getBackupFileName(scenario: DumbScenarioWithActions): String =
-        scenario.scenarioBackupFileName()
+    override fun getBackupFileName(scenario: DumbScenarioWithActions, format: BackupArchiveFormat): String =
+        scenario.scenarioBackupFileName(format)
 
-    override fun createBackupFromScenario(scenario: DumbScenarioWithActions, screenSize: Point): DumbScenarioBackup =
+    override fun createBackupFromScenario(
+        scenario: DumbScenarioWithActions,
+        screenSize: Point,
+        format: BackupArchiveFormat,
+    ): DumbScenarioBackup =
         DumbScenarioBackup(
+            format = if (format == BackupArchiveFormat.MACRION_NATIVE) MACRION_FORMAT_NAME else null,
             dumbScenario = scenario,
             screenWidth = screenSize.x,
             screenHeight = screenSize.y,
@@ -69,7 +79,10 @@ internal class DumbBackupDataSource(
         return backup.dumbScenario
     }
 
-    override fun getBackupAdditionalFilesPaths(scenario: DumbScenarioWithActions): Set<String> =
+    override fun getBackupAdditionalFilesPaths(
+        scenario: DumbScenarioWithActions,
+        format: BackupArchiveFormat,
+    ): Set<BackupAdditionalFile> =
         emptySet()
 }
 

@@ -26,6 +26,8 @@ import io.github.vibhor1102.macrion.core.dumb.data.database.DumbDatabase
 import io.github.vibhor1102.macrion.core.dumb.domain.IDumbRepository
 import io.github.vibhor1102.macrion.feature.backup.data.BackupEngine
 import io.github.vibhor1102.macrion.feature.backup.data.BackupProgress
+import io.github.vibhor1102.macrion.feature.backup.data.BackupError
+import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
 import dagger.hilt.android.qualifiers.ApplicationContext
 
 import kotlinx.coroutines.flow.channelFlow
@@ -62,6 +64,7 @@ class BackupRepository @Inject constructor(
         dumbScenarios: List<Long>,
         smartScenarios: List<Long>,
         screenSize: Point,
+        klickrCompatible: Boolean,
     ) = channelFlow {
         launch {
             backupEngine.createBackup(
@@ -73,14 +76,21 @@ class BackupRepository @Inject constructor(
                     smartDatabase.scenarioDao().getCompleteScenario(it)
                 },
                 screenSize = screenSize,
+                format = if (klickrCompatible) {
+                    BackupArchiveFormat.KLICKR_COMPATIBLE
+                } else {
+                    BackupArchiveFormat.MACRION_NATIVE
+                },
                 progress = BackupProgress(
-                    onError = { send(Backup.Error) },
+                    onError = { send(Backup.Error()) },
                     onProgressChanged = { current, max -> send(Backup.Loading(current, max)) },
-                    onCompleted = { dumbs, smarts, failureCount, compatWarning ->
+                    onCompleted = { dumbs, smarts, failureCount, compatWarning, omittedComponentCount ->
                         send(Backup.Completed(
                             successCount = dumbs.size + smarts.size,
                             failureCount = failureCount,
                             compatWarning = compatWarning,
+                            klickrCompatibleExport = klickrCompatible,
+                            omittedComponentCount = omittedComponentCount,
                         ))
                     }
                 )
@@ -102,10 +112,12 @@ class BackupRepository @Inject constructor(
                 zipFileUri,
                 screenSize,
                 BackupProgress(
-                    onError = { send(Backup.Error) },
+                    onError = { error ->
+                        send(Backup.Error(malformedArchive = error == BackupError.MALFORMED_ARCHIVE))
+                    },
                     onProgressChanged = { current, max -> send(Backup.Loading(current, max)) },
                     onVerification = { send(Backup.Verification) },
-                    onCompleted = { dumbs, smarts, failureCount, compatWarning ->
+                    onCompleted = { dumbs, smarts, failureCount, compatWarning, _ ->
                         var totalFailures = failureCount
 
                         val dumbsSnapshot = dumbs.toList()

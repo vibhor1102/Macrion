@@ -166,6 +166,17 @@ class BackupDialogFragment : DialogFragment() {
 
             layoutCompatWarning.visibility = state.compatWarningVisibility
 
+            checkboxKlickrCompatible.apply {
+                visibility = state.klickrCheckboxVisibility
+                setOnCheckedChangeListener(null)
+                isChecked = state.klickrCompatibleChecked
+                setOnCheckedChangeListener { _, checked ->
+                    backupViewModel.setKlickrCompatibleExport(requireContext(), checked)
+                }
+            }
+
+            textKlickrCompatWarning.visibility = state.klickrExportWarningVisibility
+
             iconStatus.apply {
                 visibility = state.iconStatusVisibility
                 state.iconStatus?.let { setImageResource(it) }

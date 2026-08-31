@@ -37,5 +37,5 @@ internal interface ScenarioBackupSerializer<T> {
      *
      * @return the scenario backup deserialized from the json.
      */
-    fun deserialize(jsonStream: InputStream): T?
+    fun deserialize(jsonStream: InputStream, format: BackupArchiveFormat): T?
 }

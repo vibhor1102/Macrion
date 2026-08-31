@@ -49,6 +49,9 @@ class BackupViewModel @Inject constructor(
     private val displayConfigManager: DisplayConfigManager,
 ) : ViewModel() {
 
+    private var isImportMode: Boolean = false
+    private var klickrCompatibleExport: Boolean = false
+
     /** The state of the backup. Null if not started yet. */
     private val _backupState = MutableStateFlow<BackupDialogUiState?>(null)
     /** The current UI state of the backup. Null if not started yet. */
@@ -59,7 +62,14 @@ class BackupViewModel @Inject constructor(
      * @param isImport true for import, false for export.
      */
     fun initialize(context: Context, isImport: Boolean) {
+        isImportMode = isImport
         _backupState.value = getInitialState(context, isImport)
+    }
+
+    fun setKlickrCompatibleExport(context: Context, enabled: Boolean) {
+        if (isImportMode) return
+        klickrCompatibleExport = enabled
+        _backupState.value = getInitialState(context, isImport = false)
     }
 
     /** @return the intent for selecting the file for the new exported backup. */
@@ -67,7 +77,10 @@ class BackupViewModel @Inject constructor(
         Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = MIME_TYPE_ZIP
-            putExtra(Intent.EXTRA_TITLE, "Macrion-Backup.zip")
+            putExtra(
+                Intent.EXTRA_TITLE,
+                if (klickrCompatibleExport) "Klickr-Compatible-Backup.zip" else "Macrion-Backup.macrion.zip",
+            )
         }
 
     /** @return the intent for selecting the file containing the imported backup. */
@@ -98,7 +111,13 @@ class BackupViewModel @Inject constructor(
                     updateBackupState(context, backup, true)
                 }
             } else {
-                repository.createScenarioBackup(uri, dumbScenarios, smartScenarios, displayConfigManager.displayConfig.sizePx).collect { backup ->
+                repository.createScenarioBackup(
+                    uri,
+                    dumbScenarios,
+                    smartScenarios,
+                    displayConfigManager.displayConfig.sizePx,
+                    klickrCompatible = klickrCompatibleExport,
+                ).collect { backup ->
                     updateBackupState(context, backup, false)
                 }
             }
@@ -114,7 +133,7 @@ class BackupViewModel @Inject constructor(
         _backupState.value = when (backup) {
             is Backup.Loading -> getLoadingState(context, backup, isImport)
             Backup.Verification -> getVerificationState(context)
-            Backup.Error -> getErrorState(context, isImport)
+            is Backup.Error -> getErrorState(context, isImport, backup.malformedArchive)
             is Backup.Completed -> getCompletedState(context, backup, isImport)
             null -> getInitialState(context, isImport)
         }
@@ -130,6 +149,9 @@ class BackupViewModel @Inject constructor(
         loadingVisibility = View.GONE,
         textStatusVisibility = View.GONE,
         compatWarningVisibility = View.GONE,
+        klickrCheckboxVisibility = if (isImport) View.GONE else View.VISIBLE,
+        klickrExportWarningVisibility = if (!isImport && klickrCompatibleExport) View.VISIBLE else View.GONE,
+        klickrCompatibleChecked = klickrCompatibleExport,
         iconStatusVisibility = View.VISIBLE,
         dialogOkButtonEnabled = false,
         dialogCancelButtonEnabled = true,
@@ -149,6 +171,9 @@ class BackupViewModel @Inject constructor(
         loadingVisibility = View.VISIBLE,
         textStatusVisibility = View.VISIBLE,
         compatWarningVisibility = View.GONE,
+        klickrCheckboxVisibility = View.GONE,
+        klickrExportWarningVisibility = if (!isImport && klickrCompatibleExport) View.VISIBLE else View.GONE,
+        klickrCompatibleChecked = klickrCompatibleExport,
         iconStatusVisibility = View.GONE,
         dialogOkButtonEnabled = false,
         dialogCancelButtonEnabled = false,
@@ -162,6 +187,9 @@ class BackupViewModel @Inject constructor(
         loadingVisibility = View.VISIBLE,
         textStatusVisibility = View.VISIBLE,
         compatWarningVisibility = View.GONE,
+        klickrCheckboxVisibility = View.GONE,
+        klickrExportWarningVisibility = View.GONE,
+        klickrCompatibleChecked = false,
         iconStatusVisibility = View.GONE,
         dialogOkButtonEnabled = false,
         dialogCancelButtonEnabled = false,
@@ -173,15 +201,19 @@ class BackupViewModel @Inject constructor(
      * @param isImport true for an import, false for an export.
      * @return the error state.
      */
-    private fun getErrorState(context: Context, isImport: Boolean) = BackupDialogUiState(
+    private fun getErrorState(context: Context, isImport: Boolean, malformedArchive: Boolean) = BackupDialogUiState(
         fileSelectionVisibility = View.GONE,
         loadingVisibility = View.GONE,
         textStatusVisibility = View.VISIBLE,
         compatWarningVisibility = View.GONE,
+        klickrCheckboxVisibility = View.GONE,
+        klickrExportWarningVisibility = View.GONE,
+        klickrCompatibleChecked = false,
         iconStatusVisibility = View.VISIBLE,
         dialogOkButtonEnabled = false,
         dialogCancelButtonEnabled = true,
-        textStatusText = if (isImport) context.getString(R.string.message_backup_import_error)
+        textStatusText = if (isImport && malformedArchive) context.getString(R.string.message_backup_import_malformed)
+                         else if (isImport) context.getString(R.string.message_backup_import_error)
                          else context.getString(R.string.message_backup_create_error),
         iconStatus = R.drawable.img_error,
         iconTint = Color.RED,
@@ -196,6 +228,15 @@ class BackupViewModel @Inject constructor(
     private fun getCompletedState(context: Context, backup: Backup.Completed, isImport: Boolean): BackupDialogUiState {
         var iconStatus = R.drawable.img_success
         val textStatus = when {
+            !isImport && backup.klickrCompatibleExport ->
+                if (backup.omittedComponentCount == 0) {
+                    context.getString(R.string.message_backup_create_klickr_compatible_completed_without_loss)
+                } else {
+                    context.getString(
+                        R.string.message_backup_create_klickr_compatible_completed,
+                        backup.omittedComponentCount,
+                    )
+                }
             !isImport -> context.getString(R.string.message_backup_create_completed)
             backup.failureCount == 0 ->
                 context.getString(R.string.message_backup_import_completed, backup.successCount)
@@ -225,6 +266,9 @@ class BackupViewModel @Inject constructor(
             textStatusVisibility = View.VISIBLE,
             textStatusText = textStatus,
             compatWarningVisibility = compatVisibility,
+            klickrCheckboxVisibility = View.GONE,
+            klickrExportWarningVisibility = if (backup.klickrCompatibleExport) View.VISIBLE else View.GONE,
+            klickrCompatibleChecked = backup.klickrCompatibleExport,
             dialogOkButtonEnabled = true,
             dialogCancelButtonEnabled = false,
         )
@@ -237,6 +281,9 @@ data class BackupDialogUiState(
     val loadingVisibility: Int,
     val textStatusVisibility: Int,
     val compatWarningVisibility: Int,
+    val klickrCheckboxVisibility: Int,
+    val klickrExportWarningVisibility: Int,
+    val klickrCompatibleChecked: Boolean,
     val iconStatusVisibility: Int,
 
     val dialogOkButtonEnabled: Boolean,

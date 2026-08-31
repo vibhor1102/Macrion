@@ -43,8 +43,8 @@ internal fun DumbScenarioWithActions.backupFolderName(): String =
     "$DUMB_SCENARIO_BACKUP_FILE_PREFIX${scenario.id}"
 
 /** Get the name of the backup file containing the dumb scenario data. */
-internal fun DumbScenarioWithActions.scenarioBackupFileName(): String =
-    "${scenario.id}$SCENARIO_BACKUP_FILE_EXTENSION"
+internal fun DumbScenarioWithActions.scenarioBackupFileName(format: BackupArchiveFormat): String =
+    "${scenario.id}$SCENARIO_BACKUP_FILE_EXTENSION".forFormat(format)
 
 /**
  * Regex matching a condition file into its folder in a backup archive.
@@ -53,6 +53,9 @@ internal fun DumbScenarioWithActions.scenarioBackupFileName(): String =
 internal const val DUMB_SCENARIO_BACKUP_MATCH_REGEX =
     """$DUMB_SCENARIO_BACKUP_FILE_PREFIX[0-9]+/[0-9]+$SCENARIO_BACKUP_FILE_EXTENSION"""
 
+internal const val MACRION_DUMB_SCENARIO_BACKUP_MATCH_REGEX =
+    """$DUMB_SCENARIO_BACKUP_FILE_PREFIX[0-9]+/[0-9]+\.macrion$SCENARIO_BACKUP_FILE_EXTENSION"""
+
 
 
 /** Get the name of the backup folder containing all backup files for smart scenario. */
@@ -60,8 +63,8 @@ internal fun CompleteScenario.backupFolderName(): String =
     "${scenario.id}"
 
 /** Get the name of the backup file containing the smart scenario data. */
-internal fun CompleteScenario.scenarioBackupFileName(): String =
-    "${scenario.id}$SCENARIO_BACKUP_FILE_EXTENSION"
+internal fun CompleteScenario.scenarioBackupFileName(format: BackupArchiveFormat): String =
+    "${scenario.id}$SCENARIO_BACKUP_FILE_EXTENSION".forFormat(format)
 
 /**
  * Regex matching a smart scenario json file from its folder in a backup archive.
@@ -70,12 +73,18 @@ internal fun CompleteScenario.scenarioBackupFileName(): String =
 internal const val SMART_SCENARIO_BACKUP_MATCH_REGEX =
     """[0-9]+/[0-9]+$SCENARIO_BACKUP_FILE_EXTENSION"""
 
+internal const val MACRION_SMART_SCENARIO_BACKUP_MATCH_REGEX =
+    """[0-9]+/[0-9]+\.macrion$SCENARIO_BACKUP_FILE_EXTENSION"""
+
 /**
  * Regex matching a condition file into its folder in a backup archive.
  * Will match any file like "scenarioId/Condition_randomNumber.png".
  */
 internal const val CONDITION_BACKUP_MATCH_REGEX =
     """[0-9]+/$CONDITION_FILE_PREFIX-?[0-9]+$CONDITION_BACKUP_EXTENSION"""
+
+internal const val MACRION_CONDITION_BACKUP_MATCH_REGEX =
+    """[0-9]+/$CONDITION_FILE_PREFIX-?[0-9]+\.macrion$CONDITION_BACKUP_EXTENSION"""
 
 /**
  * Regex matching a legacy condition file into its folder in a backup archive.
@@ -84,3 +93,5 @@ internal const val CONDITION_BACKUP_MATCH_REGEX =
 internal const val LEGACY_CONDITION_BACKUP_MATCH_REGEX =
     """[0-9]+/$CONDITION_FILE_PREFIX-?[0-9]+"""
 
+private fun String.forFormat(format: BackupArchiveFormat): String =
+    if (format == BackupArchiveFormat.MACRION_NATIVE) withMacrionSubExtension() else this

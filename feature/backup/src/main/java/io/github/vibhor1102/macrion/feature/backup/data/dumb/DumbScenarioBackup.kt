@@ -31,6 +31,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 internal data class DumbScenarioBackup(
+    val format: String? = null,
     val version: Int,
     val screenWidth: Int,
     val screenHeight: Int,

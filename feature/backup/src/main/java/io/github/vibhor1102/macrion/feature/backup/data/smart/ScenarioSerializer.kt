@@ -20,7 +20,12 @@ import android.util.Log
 
 import io.github.vibhor1102.macrion.core.base.extensions.getInt
 import io.github.vibhor1102.macrion.core.base.extensions.getJsonObject
+import io.github.vibhor1102.macrion.core.base.extensions.getString
 import io.github.vibhor1102.macrion.core.database.serialization.DeserializerFactory
+import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
+import io.github.vibhor1102.macrion.feature.backup.data.base.withoutMacrionSubExtension
+import io.github.vibhor1102.macrion.feature.backup.data.base.MACRION_FORMAT_NAME
+import io.github.vibhor1102.macrion.feature.backup.data.base.MalformedBackupArchiveException
 import io.github.vibhor1102.macrion.feature.backup.data.base.ScenarioBackupSerializer
 
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -57,14 +62,22 @@ internal class ScenarioSerializer : ScenarioBackupSerializer<ScenarioBackup> {
      *
      * @return the scenario backup deserialized from the json.
      */
-    override fun deserialize(jsonStream: InputStream): ScenarioBackup? {
+    override fun deserialize(jsonStream: InputStream, format: BackupArchiveFormat): ScenarioBackup? {
         Log.d(TAG, "Deserializing smart scenario")
 
         val jsonBackup = json.parseToJsonElement(jsonStream.readBytes().toString(Charsets.UTF_8)).jsonObject
+        val declaredFormat = jsonBackup.getString("format")
+        if (
+            (format == BackupArchiveFormat.MACRION_NATIVE && declaredFormat != MACRION_FORMAT_NAME) ||
+            (format == BackupArchiveFormat.KLICKR_COMPATIBLE && declaredFormat == MACRION_FORMAT_NAME)
+        ) {
+            throw MalformedBackupArchiveException()
+        }
         val version = jsonBackup.getInt("version", true) ?: -1
 
         val scenario = jsonBackup.getJsonObject("scenario", true)?.let { scenario ->
             DeserializerFactory.create(version)?.deserializeCompleteScenario(scenario)
+                ?.withRestoredInternalPaths(format)
         }
         if (scenario == null) {
             Log.w(TAG, "Can't deserialize scenario.")
@@ -72,6 +85,7 @@ internal class ScenarioSerializer : ScenarioBackupSerializer<ScenarioBackup> {
         }
 
         return ScenarioBackup(
+            format = declaredFormat,
             version = version,
             screenWidth = jsonBackup.getInt("screenWidth") ?: 0,
             screenHeight = jsonBackup.getInt("screenHeight") ?: 0,
@@ -79,6 +93,19 @@ internal class ScenarioSerializer : ScenarioBackupSerializer<ScenarioBackup> {
         )
     }
 }
+
+private fun io.github.vibhor1102.macrion.core.database.entity.CompleteScenario.withRestoredInternalPaths(
+    format: BackupArchiveFormat,
+): io.github.vibhor1102.macrion.core.database.entity.CompleteScenario =
+    if (format != BackupArchiveFormat.MACRION_NATIVE) this else copy(
+        events = events.map { event ->
+            event.copy(
+                conditions = event.conditions.map { condition ->
+                    condition.copy(path = condition.path?.withoutMacrionSubExtension())
+                }
+            )
+        }
+    )
 
 /** Tag for logs. */
 private const val TAG = "ScenarioDeserializer"

@@ -34,7 +34,13 @@ class BackupProgress(
         smartScenario: List<CompleteScenario>,
         failureCount: Int,
         compatWarning: Boolean,
+        omittedComponentCount: Int,
     ) -> Unit,
-    val onError: suspend () -> Unit,
+    val onError: suspend (BackupError) -> Unit,
     val onVerification: (suspend () -> Unit)? = null,
 )
+
+enum class BackupError {
+    GENERIC,
+    MALFORMED_ARCHIVE,
+}

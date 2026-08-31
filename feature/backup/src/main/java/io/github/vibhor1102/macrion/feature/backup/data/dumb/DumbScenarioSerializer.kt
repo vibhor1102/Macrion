@@ -39,6 +39,9 @@ import io.github.vibhor1102.macrion.core.dumb.domain.model.REPEAT_COUNT_MIN_VALU
 import io.github.vibhor1102.macrion.core.dumb.domain.model.REPEAT_DELAY_MAX_MS
 import io.github.vibhor1102.macrion.core.dumb.domain.model.REPEAT_DELAY_MIN_MS
 import io.github.vibhor1102.macrion.feature.backup.data.base.ScenarioBackupSerializer
+import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
+import io.github.vibhor1102.macrion.feature.backup.data.base.MACRION_FORMAT_NAME
+import io.github.vibhor1102.macrion.feature.backup.data.base.MalformedBackupArchiveException
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -72,10 +75,17 @@ internal class DumbScenarioSerializer : ScenarioBackupSerializer<DumbScenarioBac
      *
      * @return the scenario backup deserialized from the json.
      */
-    override fun deserialize(json: InputStream): DumbScenarioBackup? {
+    override fun deserialize(json: InputStream, format: BackupArchiveFormat): DumbScenarioBackup? {
         Log.d(TAG, "Deserializing dumb scenario")
 
         val jsonBackup = Json.parseToJsonElement(json.readBytes().toString(Charsets.UTF_8)).jsonObject
+        val declaredFormat = jsonBackup.getString("format")
+        if (
+            (format == BackupArchiveFormat.MACRION_NATIVE && declaredFormat != MACRION_FORMAT_NAME) ||
+            (format == BackupArchiveFormat.KLICKR_COMPATIBLE && declaredFormat == MACRION_FORMAT_NAME)
+        ) {
+            throw MalformedBackupArchiveException()
+        }
         val version = jsonBackup.getInt("version", true) ?: -1
 
         val scenario = when {
@@ -99,6 +109,7 @@ internal class DumbScenarioSerializer : ScenarioBackupSerializer<DumbScenarioBac
         }
 
         return DumbScenarioBackup(
+            format = declaredFormat,
             version = version,
             screenWidth = jsonBackup.getInt("screenWidth") ?: 0,
             screenHeight = jsonBackup.getInt("screenHeight") ?: 0,

@@ -25,12 +25,18 @@ import io.github.vibhor1102.macrion.core.database.entity.ConditionEntity
 import io.github.vibhor1102.macrion.core.database.entity.ConditionType
 import io.github.vibhor1102.macrion.core.database.entity.EventType
 import io.github.vibhor1102.macrion.feature.backup.data.base.CONDITION_BACKUP_MATCH_REGEX
+import io.github.vibhor1102.macrion.feature.backup.data.base.MACRION_CONDITION_BACKUP_MATCH_REGEX
+import io.github.vibhor1102.macrion.feature.backup.data.base.MACRION_FORMAT_NAME
+import io.github.vibhor1102.macrion.feature.backup.data.base.MACRION_SMART_SCENARIO_BACKUP_MATCH_REGEX
 import io.github.vibhor1102.macrion.feature.backup.data.base.LEGACY_CONDITION_BACKUP_MATCH_REGEX
 import io.github.vibhor1102.macrion.feature.backup.data.base.SMART_SCENARIO_BACKUP_MATCH_REGEX
+import io.github.vibhor1102.macrion.feature.backup.data.base.BackupAdditionalFile
+import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
 import io.github.vibhor1102.macrion.feature.backup.data.base.ScenarioBackupDataSource
 import io.github.vibhor1102.macrion.feature.backup.data.base.ScenarioBackupSerializer
 import io.github.vibhor1102.macrion.feature.backup.data.base.backupFolderName
 import io.github.vibhor1102.macrion.feature.backup.data.base.scenarioBackupFileName
+import io.github.vibhor1102.macrion.feature.backup.data.base.withMacrionSubExtension
 
 import java.io.File
 
@@ -40,8 +46,10 @@ internal class SmartBackupDataSource(
 
     /** Regex matching a scenario json file into its folder in a backup archive. */
     private val scenarioUnzipMatchRegex = SMART_SCENARIO_BACKUP_MATCH_REGEX.toRegex()
+    private val nativeScenarioUnzipMatchRegex = MACRION_SMART_SCENARIO_BACKUP_MATCH_REGEX.toRegex()
     /** Regex matching a condition file (png) into its folder in a backup archive. */
     private val conditionUnzipMatchRegex = CONDITION_BACKUP_MATCH_REGEX.toRegex()
+    private val nativeConditionUnzipMatchRegex = MACRION_CONDITION_BACKUP_MATCH_REGEX.toRegex()
     /** Regex matching a legacy condition file (raw pixels) into its folder in a backup archive. */
     private val legacyConditionUnzipMatchRegex = LEGACY_CONDITION_BACKUP_MATCH_REGEX.toRegex()
 
@@ -50,18 +58,35 @@ internal class SmartBackupDataSource(
 
     override val serializer: ScenarioBackupSerializer<ScenarioBackup> = ScenarioSerializer()
 
-    override fun isScenarioBackupFileZipEntry(fileName: String): Boolean =
-        fileName.matches(scenarioUnzipMatchRegex)
+    override fun isScenarioBackupFileZipEntry(fileName: String, format: BackupArchiveFormat): Boolean =
+        fileName.matches(if (format == BackupArchiveFormat.MACRION_NATIVE) nativeScenarioUnzipMatchRegex else scenarioUnzipMatchRegex)
 
-    override fun isScenarioBackupAdditionalFileZipEntry(fileName: String): Boolean =
-        fileName.matches(conditionUnzipMatchRegex) || fileName.matches(legacyConditionUnzipMatchRegex)
+    override fun isScenarioBackupAdditionalFileZipEntry(fileName: String, format: BackupArchiveFormat): Boolean =
+        if (format == BackupArchiveFormat.MACRION_NATIVE) {
+            fileName.matches(nativeConditionUnzipMatchRegex)
+        } else {
+            fileName.matches(conditionUnzipMatchRegex) || fileName.matches(legacyConditionUnzipMatchRegex)
+        }
 
-    override fun getBackupAdditionalFilesPaths(scenario: CompleteScenario): Set<String> =
+    override fun getBackupAdditionalFilesPaths(
+        scenario: CompleteScenario,
+        format: BackupArchiveFormat,
+    ): Set<BackupAdditionalFile> =
         buildSet {
             scenario.events.forEach { completeEvent ->
                 if (completeEvent.event.type == EventType.IMAGE_EVENT) {
                     completeEvent.conditions.forEach { condition ->
-                        if (condition.type == ConditionType.ON_IMAGE_DETECTED) add(condition.path!!)
+                        if (condition.type == ConditionType.ON_IMAGE_DETECTED) {
+                            val path = condition.path!!
+                            add(BackupAdditionalFile(
+                                sourcePath = path,
+                                archivePath = if (format == BackupArchiveFormat.MACRION_NATIVE) {
+                                    path.withMacrionSubExtension()
+                                } else {
+                                    path
+                                },
+                            ))
+                        }
                     }
                 }
             }
@@ -70,12 +95,17 @@ internal class SmartBackupDataSource(
     override fun getBackupZipFolderName(scenario: CompleteScenario): String =
         scenario.backupFolderName()
 
-    override fun getBackupFileName(scenario: CompleteScenario): String =
-        scenario.scenarioBackupFileName()
+    override fun getBackupFileName(scenario: CompleteScenario, format: BackupArchiveFormat): String =
+        scenario.scenarioBackupFileName(format)
 
-    override fun createBackupFromScenario(scenario: CompleteScenario, screenSize: Point): ScenarioBackup =
+    override fun createBackupFromScenario(
+        scenario: CompleteScenario,
+        screenSize: Point,
+        format: BackupArchiveFormat,
+    ): ScenarioBackup =
         ScenarioBackup(
-            scenario = scenario,
+            format = if (format == BackupArchiveFormat.MACRION_NATIVE) MACRION_FORMAT_NAME else null,
+            scenario = scenario.withArchivePaths(format),
             screenWidth = screenSize.x,
             screenHeight = screenSize.y,
             version = DATABASE_VERSION,
@@ -160,6 +190,17 @@ internal class SmartBackupDataSource(
             ConditionType.ON_TEXT_DETECTED -> false
         }
 }
+
+private fun CompleteScenario.withArchivePaths(format: BackupArchiveFormat): CompleteScenario =
+    if (format != BackupArchiveFormat.MACRION_NATIVE) this else copy(
+        events = events.map { event ->
+            event.copy(
+                conditions = event.conditions.map { condition ->
+                    condition.copy(path = condition.path?.withMacrionSubExtension())
+                }
+            )
+        }
+    )
 
 /** Tag for logs. */
 private const val TAG = "SmartBackupEngine"

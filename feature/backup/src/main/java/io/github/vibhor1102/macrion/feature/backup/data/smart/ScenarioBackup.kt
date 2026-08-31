@@ -32,6 +32,7 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 internal data class ScenarioBackup(
+    val format: String? = null,
     val version: Int,
     val screenWidth: Int,
     val screenHeight: Int,
