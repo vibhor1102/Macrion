@@ -13,14 +13,14 @@ internal object BackupZipFixtures {
             "macrion-manifest.macrion.json" to
                 """{"format":"macrion","containerVersion":1,"databaseVersion":23}""",
             "12/12.macrion.json" to """{"format":"macrion"}""",
-            "12/Condition-34.macrion.png" to "image contents",
+            "12/Condition_-34.macrion.png" to "image contents",
             "dumb-56/56.macrion.json" to """{"format":"macrion"}""",
         )
 
     val klickrCompatible: InputStream
         get() = zip(
             "12/12.json" to "{}",
-            "12/Condition-34.png" to "image contents",
+            "12/Condition_-34.png" to "image contents",
             "dumb-56/56.json" to "{}",
         )
 

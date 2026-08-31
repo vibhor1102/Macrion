@@ -14,7 +14,7 @@ class BackupArchiveFormatTests {
         )
         assertEquals(
             BackupArchiveFormat.MACRION_NATIVE,
-            detectBackupEntryFormat("12/Condition-34.macrion.png"),
+            detectBackupEntryFormat("12/Condition_-34.macrion.png"),
         )
         assertEquals(
             BackupArchiveFormat.MACRION_NATIVE,
@@ -30,7 +30,7 @@ class BackupArchiveFormatTests {
         )
         assertEquals(
             BackupArchiveFormat.KLICKR_COMPATIBLE,
-            detectBackupEntryFormat("12/Condition-34.png"),
+            detectBackupEntryFormat("12/Condition_-34.png"),
         )
     }
 
@@ -50,8 +50,8 @@ class BackupArchiveFormatTests {
     @Test
     fun macrionSubExtensionRoundTrips() {
         assertEquals(
-            "Condition-34.png",
-            "Condition-34.png".withMacrionSubExtension().withoutMacrionSubExtension(),
+            "Condition_-34.png",
+            "Condition_-34.png".withMacrionSubExtension().withoutMacrionSubExtension(),
         )
     }
 }

@@ -37,6 +37,8 @@ import io.github.vibhor1102.macrion.feature.backup.data.base.ScenarioBackupSeria
 import io.github.vibhor1102.macrion.feature.backup.data.base.backupFolderName
 import io.github.vibhor1102.macrion.feature.backup.data.base.scenarioBackupFileName
 import io.github.vibhor1102.macrion.feature.backup.data.base.withMacrionSubExtension
+import io.github.vibhor1102.macrion.feature.backup.data.base.commitStagedFiles
+import io.github.vibhor1102.macrion.feature.backup.data.base.resolveContainedFile
 
 import java.io.File
 
@@ -141,7 +143,8 @@ internal class SmartBackupDataSource(
 
             event.conditions.forEach { condition ->
                 if (condition.type == ConditionType.ON_IMAGE_DETECTED && (
-                            condition.path == null || !File(appDataDir, condition.path!!).exists())) {
+                            condition.path == null ||
+                                !resolveContainedFile(appDataDir, condition.path!!).exists())) {
                     Log.w(TAG, "Invalid screen condition, ${condition.path} file does not exist.")
                     return null
                 }
@@ -164,6 +167,17 @@ internal class SmartBackupDataSource(
     override fun reset() {
         super.reset()
         screenCompatWarning = false
+    }
+
+    /** Move only assets referenced by scenarios which passed verification into live app storage. */
+    fun commitValidAdditionalFiles(destinationDir: File) {
+        val referencedPaths = validBackups
+            .flatMap { scenario -> scenario.events }
+            .flatMap { event -> event.conditions }
+            .filter { condition -> condition.type == ConditionType.ON_IMAGE_DETECTED }
+            .mapNotNull(ConditionEntity::path)
+            .toSet()
+        commitStagedFiles(appDataDir, destinationDir, referencedPaths)
     }
 
     private fun ConditionEntity.isScreenCondition(): Boolean =

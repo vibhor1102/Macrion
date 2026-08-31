@@ -29,14 +29,17 @@ import androidx.lifecycle.viewModelScope
 
 import io.github.vibhor1102.macrion.core.display.config.DisplayConfigManager
 import io.github.vibhor1102.macrion.feature.backup.R
+import io.github.vibhor1102.macrion.feature.backup.data.BackupExportPlan
 import io.github.vibhor1102.macrion.feature.backup.domain.Backup
 import io.github.vibhor1102.macrion.feature.backup.domain.BackupRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -51,6 +54,7 @@ class BackupViewModel @Inject constructor(
 
     private var isImportMode: Boolean = false
     private var klickrCompatibleExport: Boolean = false
+    private var preparedKlickrExport: BackupExportPlan? = null
 
     /** The state of the backup. Null if not started yet. */
     private val _backupState = MutableStateFlow<BackupDialogUiState?>(null)
@@ -69,7 +73,32 @@ class BackupViewModel @Inject constructor(
     fun setKlickrCompatibleExport(context: Context, enabled: Boolean) {
         if (isImportMode) return
         klickrCompatibleExport = enabled
+        preparedKlickrExport = null
         _backupState.value = getInitialState(context, isImport = false)
+    }
+
+    fun prepareKlickrCompatibleExport(
+        context: Context,
+        dumbScenarios: List<Long>,
+        smartScenarios: List<Long>,
+    ) {
+        if (isImportMode || !klickrCompatibleExport) return
+
+        _backupState.value = getCompatibilityAnalysisState(context)
+        viewModelScope.launch {
+            try {
+                val plan = withContext(Dispatchers.IO) {
+                    repository.prepareScenarioBackup(dumbScenarios, smartScenarios, klickrCompatible = true)
+                }
+                preparedKlickrExport = plan
+                _backupState.value = getCompatibilityReviewState(context, plan)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                preparedKlickrExport = null
+                _backupState.value = getErrorState(context, isImport = false, malformedArchive = false)
+            }
+        }
     }
 
     /** @return the intent for selecting the file for the new exported backup. */
@@ -111,13 +140,19 @@ class BackupViewModel @Inject constructor(
                     updateBackupState(context, backup, true)
                 }
             } else {
-                repository.createScenarioBackup(
+                val backupFlow = preparedKlickrExport?.let { plan ->
+                    repository.createPreparedScenarioBackup(
+                        uri,
+                        plan,
+                        displayConfigManager.displayConfig.sizePx,
+                    )
+                } ?: repository.createNativeScenarioBackup(
                     uri,
                     dumbScenarios,
                     smartScenarios,
                     displayConfigManager.displayConfig.sizePx,
-                    klickrCompatible = klickrCompatibleExport,
-                ).collect { backup ->
+                )
+                backupFlow.collect { backup ->
                     updateBackupState(context, backup, false)
                 }
             }
@@ -155,9 +190,56 @@ class BackupViewModel @Inject constructor(
         iconStatusVisibility = View.VISIBLE,
         dialogOkButtonEnabled = false,
         dialogCancelButtonEnabled = true,
+        requiresCompatibilityPreparation = !isImport && klickrCompatibleExport,
         fileSelectionText = if (isImport) context.getString(R.string.item_title_backup_import_select_file)
                             else context.getString(R.string.item_title_backup_create_select_file),
         iconStatus = if (isImport) R.drawable.img_load else R.drawable.img_save,
+    )
+
+    private fun getCompatibilityAnalysisState(context: Context) = BackupDialogUiState(
+        fileSelectionVisibility = View.GONE,
+        loadingVisibility = View.VISIBLE,
+        textStatusVisibility = View.VISIBLE,
+        compatWarningVisibility = View.GONE,
+        klickrCheckboxVisibility = View.GONE,
+        klickrExportWarningVisibility = View.VISIBLE,
+        klickrCompatibleChecked = true,
+        iconStatusVisibility = View.GONE,
+        dialogOkButtonEnabled = false,
+        dialogCancelButtonEnabled = true,
+        textStatusText = context.getString(R.string.message_backup_klickr_compatibility_analysis),
+    )
+
+    private fun getCompatibilityReviewState(
+        context: Context,
+        plan: BackupExportPlan,
+    ) = BackupDialogUiState(
+        fileSelectionVisibility = View.GONE,
+        loadingVisibility = View.GONE,
+        textStatusVisibility = View.VISIBLE,
+        compatWarningVisibility = View.GONE,
+        klickrCheckboxVisibility = View.GONE,
+        klickrExportWarningVisibility = View.VISIBLE,
+        klickrCompatibleChecked = true,
+        iconStatusVisibility = View.VISIBLE,
+        iconStatus = R.drawable.ic_warning,
+        iconTint = Color.YELLOW,
+        dialogOkButtonEnabled = true,
+        dialogCancelButtonEnabled = true,
+        compatibilityReviewReady = true,
+        textStatusText = if (plan.omittedComponentCount == 0 && plan.excludedScenarioCount == 0) {
+            context.getString(
+                R.string.message_backup_klickr_compatibility_review_without_loss,
+                plan.profile?.displayName.orEmpty(),
+            )
+        } else {
+            context.getString(
+                R.string.message_backup_klickr_compatibility_review,
+                plan.profile?.displayName.orEmpty(),
+                plan.omittedComponentCount,
+                plan.excludedScenarioCount,
+            )
+        },
     )
 
     /**
@@ -288,6 +370,8 @@ data class BackupDialogUiState(
 
     val dialogOkButtonEnabled: Boolean,
     val dialogCancelButtonEnabled: Boolean,
+    val requiresCompatibilityPreparation: Boolean = false,
+    val compatibilityReviewReady: Boolean = false,
 
     val fileSelectionText: String? = null,
     val textStatusText: String? = null,

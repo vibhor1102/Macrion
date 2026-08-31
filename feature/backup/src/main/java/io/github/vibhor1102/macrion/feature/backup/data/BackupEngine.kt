@@ -45,9 +45,10 @@ import java.io.InputStream
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 import java.util.zip.ZipEntry
+import java.util.UUID
 
 /** [BackupEngine] internal implementation. */
-internal class BackupEngine(appDataDir: File, private val contentResolver: ContentResolver) {
+internal class BackupEngine(private val appDataDir: File, private val contentResolver: ContentResolver) {
 
     private val dumbBackupDataSource: DumbBackupDataSource = DumbBackupDataSource(appDataDir)
     private val smartBackupDataSource: SmartBackupDataSource = SmartBackupDataSource(appDataDir)
@@ -56,31 +57,28 @@ internal class BackupEngine(appDataDir: File, private val contentResolver: Conte
      * Creates a new backup file.
      *
      * @param zipFileUri the uri of the file to write the backup into. Must be retrieved using the DocumentProvider.
-     * @param smartScenarios the scenarios to backup.
+     * @param plan the scenarios and compatibility decisions approved before writing.
      * @param screenSize the size of this device screen.
      * @param progress the object notified about the backup progress.
      */
     suspend fun createBackup(
         zipFileUri: Uri,
-        smartScenarios: List<CompleteScenario>,
-        dumbScenarios: List<DumbScenarioWithActions>,
+        plan: BackupExportPlan,
         screenSize: Point,
-        format: BackupArchiveFormat,
         progress: BackupProgress,
     ) {
-        Log.d(TAG, "Create backup: $zipFileUri for scenarios: $smartScenarios")
+        Log.d(TAG, "Create backup: $zipFileUri for plan: $plan")
         dumbBackupDataSource.reset()
         smartBackupDataSource.reset()
 
         var currentProgress = 0
-        progress.onProgressChanged(currentProgress, dumbScenarios.size + smartScenarios.size)
+        progress.onProgressChanged(currentProgress, plan.dumbScenarios.size + plan.smartScenarios.size)
 
         // Create the zip file containing the scenarios and their events conditions.
         withContext(Dispatchers.IO) {
             try {
-                var omittedComponentCount = 0
                 ZipOutputStream(contentResolver.openOutputStream(zipFileUri, "wt")).use { zipStream ->
-                    if (format == BackupArchiveFormat.MACRION_NATIVE) {
+                    if (plan.format == BackupArchiveFormat.MACRION_NATIVE) {
                         zipStream.putNextEntry(ZipEntry(MACRION_MANIFEST_FILE_NAME))
                         zipStream.write(
                             """{"format":"macrion","containerVersion":1,"databaseVersion":${io.github.vibhor1102.macrion.core.database.DATABASE_VERSION}}"""
@@ -88,42 +86,32 @@ internal class BackupEngine(appDataDir: File, private val contentResolver: Conte
                         )
                     }
 
-                    dumbScenarios.map { dumbScenario ->
-                        if (format == BackupArchiveFormat.KLICKR_COMPATIBLE) {
-                            KlickrCompatibilityProjector.projectDumbScenario(dumbScenario).also {
-                                omittedComponentCount += it.omittedComponentCount
-                            }.value
-                        } else {
-                            dumbScenario
-                        }
-                    }.forEach { dumbScenario ->
+                    plan.dumbScenarios.forEach { dumbScenario ->
                         Log.d(TAG, "Backup dumb scenario ${dumbScenario.scenario.id}")
 
-                        dumbBackupDataSource.addScenarioToZipFile(zipStream, dumbScenario, screenSize, format)
+                        dumbBackupDataSource.addScenarioToZipFile(zipStream, dumbScenario, screenSize, plan.format)
 
                         currentProgress++
-                        progress.onProgressChanged(currentProgress, dumbScenarios.size + smartScenarios.size)
+                        progress.onProgressChanged(currentProgress, plan.dumbScenarios.size + plan.smartScenarios.size)
                     }
 
-                    smartScenarios.map { completeScenario ->
-                        if (format == BackupArchiveFormat.KLICKR_COMPATIBLE) {
-                            KlickrCompatibilityProjector.projectSmartScenario(completeScenario).also {
-                                omittedComponentCount += it.omittedComponentCount
-                            }.value
-                        } else {
-                            completeScenario
-                        }
-                    }.forEach { completeScenario ->
+                    plan.smartScenarios.forEach { completeScenario ->
                         Log.d(TAG, "Backup smart scenario ${completeScenario.scenario.id}")
 
-                        smartBackupDataSource.addScenarioToZipFile(zipStream, completeScenario, screenSize, format)
+                        smartBackupDataSource.addScenarioToZipFile(zipStream, completeScenario, screenSize, plan.format)
 
                         currentProgress++
-                        progress.onProgressChanged(currentProgress, dumbScenarios.size + smartScenarios.size)
+                        progress.onProgressChanged(currentProgress, plan.dumbScenarios.size + plan.smartScenarios.size)
                     }
                 }
 
-                progress.onCompleted(dumbScenarios, smartScenarios, 0, false, omittedComponentCount)
+                progress.onCompleted(
+                    plan.dumbScenarios,
+                    plan.smartScenarios,
+                    0,
+                    false,
+                    plan.omittedComponentCount,
+                )
             } catch (ioEx: IOException) {
                 Log.e(TAG, "Error while creating backup archive.")
                 progress.onError(BackupError.GENERIC)
@@ -147,8 +135,13 @@ internal class BackupEngine(appDataDir: File, private val contentResolver: Conte
     suspend fun loadBackup(zipFileUri: Uri, screenSize: Point, progress: BackupProgress) {
         Log.i(TAG, "Load backup: $zipFileUri")
 
-        dumbBackupDataSource.reset()
-        smartBackupDataSource.reset()
+        val importStagingDir = File(appDataDir, "backup-import-${UUID.randomUUID()}")
+        if (!importStagingDir.mkdirs()) {
+            progress.onError(BackupError.GENERIC)
+            return
+        }
+        val importDumbDataSource = DumbBackupDataSource(importStagingDir)
+        val importSmartDataSource = SmartBackupDataSource(importStagingDir)
 
         var currentProgress = 0
         progress.onProgressChanged(currentProgress, null)
@@ -167,15 +160,15 @@ internal class BackupEngine(appDataDir: File, private val contentResolver: Conte
 
                             Log.d(TAG, "Extracting file ${zipEntry.name}")
                             when {
-                                dumbBackupDataSource.extractFromZip(zipStream, zipEntry.name, archiveFormat) -> {
+                                importDumbDataSource.extractFromZip(zipStream, zipEntry.name, archiveFormat) -> {
                                     Log.d(TAG, "Dumb scenario file ${zipEntry.name} extracted.")
 
                                     currentProgress++
                                     progress.onProgressChanged(currentProgress, null)
                                 }
 
-                                smartBackupDataSource.extractFromZip(zipStream, zipEntry.name, archiveFormat) -> {
-                                    if (smartBackupDataSource.isScenarioBackupFileZipEntry(zipEntry.name, archiveFormat)) {
+                                importSmartDataSource.extractFromZip(zipStream, zipEntry.name, archiveFormat) -> {
+                                    if (importSmartDataSource.isScenarioBackupFileZipEntry(zipEntry.name, archiveFormat)) {
                                         Log.d(TAG, "Smart scenario file ${zipEntry.name} extracted")
 
                                         currentProgress++
@@ -189,17 +182,18 @@ internal class BackupEngine(appDataDir: File, private val contentResolver: Conte
                 }
 
                 progress.onVerification?.invoke()
-                dumbBackupDataSource.verifyExtractedScenarios(screenSize)
-                smartBackupDataSource.verifyExtractedScenarios(screenSize)
+                importDumbDataSource.verifyExtractedScenarios(screenSize)
+                importSmartDataSource.verifyExtractedScenarios(screenSize)
+                importSmartDataSource.commitValidAdditionalFiles(appDataDir)
 
                 Log.i(TAG, "Backup loading completed: $zipFileUri")
                 Log.i(TAG, "Inserting extracted scenarios into database")
 
                 progress.onCompleted(
-                    dumbBackupDataSource.validBackups,
-                    smartBackupDataSource.validBackups,
-                    dumbBackupDataSource.failureCount + smartBackupDataSource.failureCount,
-                    smartBackupDataSource.screenCompatWarning,
+                    importDumbDataSource.validBackups,
+                    importSmartDataSource.validBackups,
+                    importDumbDataSource.failureCount + importSmartDataSource.failureCount,
+                    importSmartDataSource.screenCompatWarning,
                     0,
                 )
             } catch (malformed: MalformedBackupArchiveException) {
@@ -217,6 +211,8 @@ internal class BackupEngine(appDataDir: File, private val contentResolver: Conte
             } catch (npEx: NullPointerException) {
                 Log.e(TAG, "Error while loading backup archive, file path is null", npEx)
                 progress.onError(BackupError.GENERIC)
+            } finally {
+                importStagingDir.deleteRecursively()
             }
         }
     }

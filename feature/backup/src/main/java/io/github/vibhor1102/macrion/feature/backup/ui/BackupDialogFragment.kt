@@ -151,7 +151,13 @@ class BackupDialogFragment : DialogFragment() {
                 text = state.fileSelectionText
 
                 setOnClickListener {
-                    if (!launchDocumentPicker()) {
+                    if (state.requiresCompatibilityPreparation) {
+                        backupViewModel.prepareKlickrCompatibleExport(
+                            requireContext(),
+                            exportDumbScenarios,
+                            exportSmartScenarios,
+                        )
+                    } else if (!launchDocumentPicker()) {
                         Toast.makeText(context, R.string.message_backup_error_no_zip_app, Toast.LENGTH_LONG).show()
                     }
                 }
@@ -187,6 +193,15 @@ class BackupDialogFragment : DialogFragment() {
                 enabledPositive = state.dialogOkButtonEnabled,
                 enabledNegative = state.dialogCancelButtonEnabled,
             )
+            (dialog as? AlertDialog)?.getButton(AlertDialog.BUTTON_POSITIVE)?.setOnClickListener {
+                if (state.compatibilityReviewReady) {
+                    if (!launchDocumentPicker()) {
+                        Toast.makeText(context, R.string.message_backup_error_no_zip_app, Toast.LENGTH_LONG).show()
+                    }
+                } else if (state.dialogOkButtonEnabled) {
+                    dismiss()
+                }
+            }
         }
     }
 

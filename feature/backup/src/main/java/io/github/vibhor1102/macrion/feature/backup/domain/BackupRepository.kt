@@ -25,8 +25,10 @@ import io.github.vibhor1102.macrion.core.domain.IRepository
 import io.github.vibhor1102.macrion.core.dumb.data.database.DumbDatabase
 import io.github.vibhor1102.macrion.core.dumb.domain.IDumbRepository
 import io.github.vibhor1102.macrion.feature.backup.data.BackupEngine
+import io.github.vibhor1102.macrion.feature.backup.data.BackupExportPlan
 import io.github.vibhor1102.macrion.feature.backup.data.BackupProgress
 import io.github.vibhor1102.macrion.feature.backup.data.BackupError
+import io.github.vibhor1102.macrion.feature.backup.data.KlickrCompatibilityProjector
 import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
 import dagger.hilt.android.qualifiers.ApplicationContext
 
@@ -59,28 +61,18 @@ class BackupRepository @Inject constructor(
      *
      * @return a flow on the backup creation progress.
      */
-    fun createScenarioBackup(
+    fun createNativeScenarioBackup(
         zipFileUri: Uri,
         dumbScenarios: List<Long>,
         smartScenarios: List<Long>,
         screenSize: Point,
-        klickrCompatible: Boolean,
     ) = channelFlow {
         launch {
+            val plan = prepareScenarioBackup(dumbScenarios, smartScenarios, klickrCompatible = false)
             backupEngine.createBackup(
                 zipFileUri = zipFileUri,
-                dumbScenarios = dumbScenarios.mapNotNull {
-                    dumbDatabase.dumbScenarioDao().getDumbScenariosWithAction(it)
-                },
-                smartScenarios = smartScenarios.mapNotNull {
-                    smartDatabase.scenarioDao().getCompleteScenario(it)
-                },
+                plan = plan,
                 screenSize = screenSize,
-                format = if (klickrCompatible) {
-                    BackupArchiveFormat.KLICKR_COMPATIBLE
-                } else {
-                    BackupArchiveFormat.MACRION_NATIVE
-                },
                 progress = BackupProgress(
                     onError = { send(Backup.Error()) },
                     onProgressChanged = { current, max -> send(Backup.Loading(current, max)) },
@@ -89,11 +81,64 @@ class BackupRepository @Inject constructor(
                             successCount = dumbs.size + smarts.size,
                             failureCount = failureCount,
                             compatWarning = compatWarning,
-                            klickrCompatibleExport = klickrCompatible,
+                            klickrCompatibleExport = false,
                             omittedComponentCount = omittedComponentCount,
                         ))
                     }
                 )
+            )
+        }
+    }
+
+    internal suspend fun prepareScenarioBackup(
+        dumbScenarioIds: List<Long>,
+        smartScenarioIds: List<Long>,
+        klickrCompatible: Boolean,
+    ): BackupExportPlan {
+        val dumbScenarios = dumbScenarioIds.mapNotNull {
+            dumbDatabase.dumbScenarioDao().getDumbScenariosWithAction(it)
+        }
+        val smartScenarios = smartScenarioIds.mapNotNull {
+            smartDatabase.scenarioDao().getCompleteScenario(it)
+        }
+
+        return if (klickrCompatible) {
+            KlickrCompatibilityProjector.createPlan(dumbScenarios, smartScenarios)
+        } else {
+            BackupExportPlan(
+                dumbScenarios = dumbScenarios,
+                smartScenarios = smartScenarios,
+                format = BackupArchiveFormat.MACRION_NATIVE,
+            )
+        }
+    }
+
+    internal fun createPreparedScenarioBackup(
+        zipFileUri: Uri,
+        plan: BackupExportPlan,
+        screenSize: Point,
+    ) = channelFlow {
+        launch {
+            require(
+                plan.format != BackupArchiveFormat.KLICKR_COMPATIBLE || plan.profile != null
+            ) { "A Klick'r-compatible export requires an explicit compatibility profile." }
+            backupEngine.createBackup(
+                zipFileUri = zipFileUri,
+                plan = plan,
+                screenSize = screenSize,
+                progress = BackupProgress(
+                    onError = { send(Backup.Error()) },
+                    onProgressChanged = { current, max -> send(Backup.Loading(current, max)) },
+                    onCompleted = { dumbs, smarts, failureCount, compatWarning, omittedComponentCount ->
+                        send(Backup.Completed(
+                            successCount = dumbs.size + smarts.size,
+                            failureCount = failureCount,
+                            compatWarning = compatWarning,
+                            klickrCompatibleExport = plan.format == BackupArchiveFormat.KLICKR_COMPATIBLE,
+                            omittedComponentCount = omittedComponentCount,
+                        ))
+                    },
+                ),
             )
         }
     }
