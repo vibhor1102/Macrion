@@ -16,21 +16,21 @@
  */
 package com.buzbuz.gradle.convention.model
 
-/** Gradle build types for Klick'r */
+/** Gradle build types for Macrion */
 enum class KlickrBuildType(val buildTypeName: String) {
     DEBUG("debug"),
     RELEASE("release");
 }
 
-/** Gradle flavour dimension for Klick'r versions */
+/** Gradle flavour dimension for Macrion versions */
 enum class KlickrDimension(val flavourDimensionName: String) {
     VERSION("version");
 }
 
-/** Gradle flavours for Klick'r. */
+/** Gradle flavours for Macrion. */
 enum class KlickrFlavour(val flavourName: String, val dimension: KlickrDimension) {
-    /** Gradle flavour for FOSS fDroid Klick'r. */
+    /** Gradle flavour for FOSS fDroid Macrion. */
     F_DROID("fDroid", KlickrDimension.VERSION),
-    /** Gradle flavour for PlayStore Klick'r (with in app purchase, ads and crashlytics). */
+    /** Gradle flavour for PlayStore Macrion (with in app purchase, ads and crashlytics). */
     PLAY_STORE("playStore", KlickrDimension.VERSION);
 }
