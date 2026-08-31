@@ -72,7 +72,7 @@ android {
         applicationId = getExtraActualApplicationId()
 
         versionCode = 1
-        versionName = "0.0.0"
+        versionName = "0.1.0"
     }
 
     if (project.isBuildForVariant(MacrionFlavour.F_DROID, MacrionBuildType.DEBUG)) {
