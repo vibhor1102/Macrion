@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2026 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +21,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import io.github.vibhor1102.macrion.feature.smart.debugging.utils.formatDebugTimelineTimestamp
+import io.github.vibhor1102.macrion.feature.smart.debugging.utils.formatDebugTimelineFilterTimestamp
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -67,7 +69,7 @@ class DebugReportTimelineFiltersViewModel @Inject constructor() : ViewModel() {
         _timeUiState.update { previous ->
             previous?.copy(
                 lowerValueMs = value,
-                lowerValueText = value.formatDebugTimelineTimestamp(),
+                lowerValueText = value.formatDebugTimelineFilterTimestamp(),
             )
         }
     }
@@ -80,7 +82,7 @@ class DebugReportTimelineFiltersViewModel @Inject constructor() : ViewModel() {
         _timeUiState.update { previous ->
             previous?.copy(
                 upperValueMs = value,
-                upperValueText = value.formatDebugTimelineTimestamp(),
+                upperValueText = value.formatDebugTimelineFilterTimestamp(),
             )
         }
     }
@@ -173,8 +175,8 @@ class DebugReportTimelineFiltersViewModel @Inject constructor() : ViewModel() {
             upperBoundMs = durationMs,
             lowerValueMs = lowerValue,
             upperValueMs = upperValue,
-            lowerValueText = lowerValue.formatDebugTimelineTimestamp(),
-            upperValueText = upperValue.formatDebugTimelineTimestamp(),
+            lowerValueText = lowerValue.formatDebugTimelineFilterTimestamp(),
+            upperValueText = upperValue.formatDebugTimelineFilterTimestamp(),
         )
     }
 

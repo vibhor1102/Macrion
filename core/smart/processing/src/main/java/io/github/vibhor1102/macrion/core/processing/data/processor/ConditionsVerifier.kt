@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2026 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +18,7 @@
 package io.github.vibhor1102.macrion.core.processing.data.processor
 
 import android.graphics.Bitmap
+import android.os.SystemClock
 
 import io.github.vibhor1102.macrion.core.detection.ImageDetector
 import io.github.vibhor1102.macrion.core.detection.NumberFormatType as DetectionNumberFormatType
@@ -34,6 +36,7 @@ import io.github.vibhor1102.macrion.core.processing.data.scaling.ScalingManager
 import io.github.vibhor1102.macrion.core.processing.data.scaling.ScreenConditionScalingInfo
 import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingListener
 import io.github.vibhor1102.macrion.core.processing.domain.model.ProcessedConditionResult
+import io.github.vibhor1102.macrion.core.processing.domain.DebugReportTimingListener
 
 import kotlinx.coroutines.yield
 
@@ -47,6 +50,7 @@ internal class ConditionsVerifier(
     private val scalingManager: ScalingManager,
     private val bitmapSupplier: suspend (String, Int, Int) -> Bitmap?,
     private val progressListener: SmartProcessingListener? = null,
+    private val debugReportTimingListener: DebugReportTimingListener? = null,
 ) {
 
     /** List of results for the last call to verifyConditions. */
@@ -64,7 +68,16 @@ internal class ConditionsVerifier(
 
         var verificationResult: ProcessedConditionResult
         for (condition in conditions) {
-            verificationResult = verifyCondition(condition)
+            verificationResult = debugReportTimingListener?.let { timingListener ->
+                val startTimestampNs = SystemClock.elapsedRealtimeNanos()
+                val result = verifyCondition(condition)
+                timingListener.onConditionChecked(
+                    conditionId = condition.getValidId(),
+                    durationNs = SystemClock.elapsedRealtimeNanos() - startTimestampNs,
+                    fulfilled = result.isFulfilled,
+                )
+                result
+            } ?: verifyCondition(condition)
             verificationResults.addResult(condition.getValidId(), verificationResult)
 
             if (operator == OR && verificationResult.isFulfilled) {

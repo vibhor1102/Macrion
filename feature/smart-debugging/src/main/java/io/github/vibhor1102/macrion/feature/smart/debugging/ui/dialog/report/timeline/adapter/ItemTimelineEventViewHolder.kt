@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +19,7 @@ package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ti
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ItemTimelineEventOccurrenceBinding
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.DebugReportTimelineEventOccurrenceItem
@@ -37,6 +39,7 @@ class ItemTimelineEventViewHolder private constructor(
 
     init {
         viewBinding.actions.adapter = actionsAdapter
+        viewBinding.actions.itemAnimator = null
     }
 
     fun bind(
@@ -46,11 +49,16 @@ class ItemTimelineEventViewHolder private constructor(
         viewBinding.apply {
             root.setOnClickListener { onItemClicked(item) }
             eventNameText.text = item.eventName
-            timeText.text = item.timeText
+            legacyTimeText.isVisible = item.legacyTimeText != null
+            legacyTimeText.text = item.legacyTimeText
+            timingTable.isVisible = item.detectingDurationValue != null
+            detectingTimingValue.text = item.detectingDurationValue
+            actionsTimingRow.isVisible = item.actionsDurationValue != null
+            actionsTimingValue.text = item.actionsDurationValue
             occurrenceText.text = item.occurrenceText
             conditionsText.text = item.conditionsText
         }
 
-        actionsAdapter.submitList(item.actions)
+        actionsAdapter.setItems(item.actions)
     }
 }

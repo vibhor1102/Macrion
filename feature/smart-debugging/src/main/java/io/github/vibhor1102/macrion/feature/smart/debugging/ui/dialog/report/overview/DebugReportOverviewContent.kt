@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +32,8 @@ import io.github.vibhor1102.macrion.core.ui.bindings.fields.setTitle
 import io.github.vibhor1102.macrion.core.ui.databinding.IncludeFieldDataDisplayBinding
 import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ContentDebugReportOverviewBinding
 import io.github.vibhor1102.macrion.feature.smart.debugging.di.DebuggingViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.smart.debugging.R
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.activity.EventActivityDialog
 
 import kotlinx.coroutines.launch
 import kotlin.getValue
@@ -47,7 +50,9 @@ class DebugReportOverviewContent(appContext: Context) : NavBarDialogContent(appC
     private lateinit var viewBinding: ContentDebugReportOverviewBinding
 
     override fun onCreateView(container: ViewGroup): ViewGroup {
-        viewBinding = ContentDebugReportOverviewBinding.inflate(LayoutInflater.from(context), container, false)
+        viewBinding = ContentDebugReportOverviewBinding.inflate(LayoutInflater.from(context), container, false).apply {
+            eventActivity.root.setOnClickListener { openEventActivity() }
+        }
         return viewBinding.root
     }
 
@@ -87,13 +92,43 @@ class DebugReportOverviewContent(appContext: Context) : NavBarDialogContent(appC
             fieldTotalDuration.bindEntry(state.totalDuration)
             fieldImgProcCount.bindEntry(state.frameCount)
             fieldAvgImgProcDur.bindEntry(state.averageFrameProcessingDuration)
+            fieldExecutionLimiterIdleTime.bindEntry(state.executionLimiterIdleTime)
             fieldImgEvtFulfilledCount.bindEntry(state.imageEventFulfilledCount)
             fieldTriggerEvtFulfilledCount.bindEntry(state.triggerEventFulfilledCount)
+            eventActivity.summaryData.apply {
+                setTitle(context.getString(R.string.item_title_report_event_activity))
+                setDescription(state.eventActivity.formatDescription())
+            }
         }
+    }
+
+    private fun EventActivitySummary.formatDescription(): String {
+        if (reachedEventCount == 0) return context.getString(R.string.item_desc_report_event_activity_empty)
+
+        val counts = context.resources.getQuantityString(
+            R.plurals.item_desc_report_event_activity_reached,
+            reachedEventCount,
+            reachedEventCount,
+            totalOccurrenceCount,
+        )
+        val mostFrequent = context.getString(
+            R.string.item_desc_report_event_activity_most_frequent,
+            mostFrequentEventName,
+            mostFrequentEventCount,
+        )
+        return "$counts\n$mostFrequent"
+    }
+
+    private fun openEventActivity() {
+        dialogController.overlayManager.navigateTo(
+            context = context,
+            newOverlay = EventActivityDialog(),
+            hideCurrent = false,
+        )
     }
 
     private fun IncludeFieldDataDisplayBinding.bindEntry(entry: OverviewEntry) {
         setTitle(context.getString(entry.titleRes))
-        setDescription(entry.value)
+        setDescription(entry.value ?: context.getString(requireNotNull(entry.valueRes)))
     }
 }

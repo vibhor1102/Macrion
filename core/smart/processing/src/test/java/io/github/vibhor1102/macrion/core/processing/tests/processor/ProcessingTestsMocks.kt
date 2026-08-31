@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +30,7 @@ import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingListen
 import org.mockito.Mockito.times
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.never
@@ -96,7 +98,7 @@ internal fun SmartProcessingListener.monitorImageEventProcessing(
     val results = mutableMapOf<Long, Boolean>()
     events.forEach { event ->
         results.put(event.id.databaseId, false)
-        `when`(onEventActionsExecuted(eq(event), anyNotNull())).doAnswer { invocationOnMock ->
+        `when`(onEventActionsExecuted(eq(event), anyNotNull(), anyOrNull())).doAnswer {
             results.put(event.id.databaseId, true)
             Unit
         }

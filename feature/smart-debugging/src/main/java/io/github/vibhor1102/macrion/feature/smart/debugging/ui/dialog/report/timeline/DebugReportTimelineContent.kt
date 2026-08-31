@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -58,6 +59,8 @@ class DebugReportTimelineContent(appContext: Context) : NavBarDialogContent(appC
     override fun onCreateView(container: ViewGroup): ViewGroup {
         viewBinding = ContentDebugReportTimelineBinding.inflate(LayoutInflater.from(context), container, false).apply {
             list.adapter = timelineAdapter
+            fastScroller.attachToRecyclerView(list)
+            buttonClearFilters.setOnClickListener { viewModel.clearFilters() }
         }
 
         return viewBinding.root
@@ -71,9 +74,18 @@ class DebugReportTimelineContent(appContext: Context) : NavBarDialogContent(appC
         }
     }
 
+    override fun onStart() {
+        updateFiltersBadge(viewModel.uiState.value.activeFilterCount())
+    }
+
+    override fun onStop() {
+        dialogController.floatingActionButtons.primaryBadge.visibility = View.GONE
+    }
+
     private fun updateUiState(uiState: DebugReportTimelineUiState) {
         when (uiState) {
             DebugReportTimelineUiState.Empty -> toEmptyState()
+            is DebugReportTimelineUiState.FilteredEmpty -> toFilteredEmptyState(uiState)
             DebugReportTimelineUiState.Loading -> toLoadingState()
             DebugReportTimelineUiState.NotAvailable -> toNotAvailableState()
             is DebugReportTimelineUiState.Available -> toAvailableState(uiState)
@@ -84,14 +96,35 @@ class DebugReportTimelineContent(appContext: Context) : NavBarDialogContent(appC
         viewBinding.apply {
             loading.visibility = View.GONE
             list.visibility = View.GONE
+            fastScroller.visibility = View.GONE
             empty.visibility = View.VISIBLE
+            emptyTitle.setText(R.string.title_event_occurrence_empty)
+            emptySecondary.visibility = View.GONE
+            buttonClearFilters.visibility = View.GONE
         }
+        updateFiltersBadge(0)
+    }
+
+    private fun toFilteredEmptyState(uiState: DebugReportTimelineUiState.FilteredEmpty) {
+        viewBinding.apply {
+            loading.visibility = View.GONE
+            list.visibility = View.GONE
+            fastScroller.visibility = View.GONE
+            empty.visibility = View.VISIBLE
+            emptyTitle.setText(R.string.title_event_occurrence_filtered_empty)
+            emptySecondary.visibility = View.VISIBLE
+            emptySecondaryText.setText(R.string.desc_event_occurrence_filtered_empty)
+            buttonClearFilters.visibility = View.VISIBLE
+        }
+        timelineAdapter.submitList(emptyList())
+        updateFiltersBadge(uiState.activeFilterCount)
     }
 
     private fun toLoadingState() {
         viewBinding.apply {
             loading.visibility = View.VISIBLE
             list.visibility = View.GONE
+            fastScroller.visibility = View.GONE
             empty.visibility = View.GONE
         }
     }
@@ -104,9 +137,30 @@ class DebugReportTimelineContent(appContext: Context) : NavBarDialogContent(appC
         viewBinding.apply {
             loading.visibility = View.GONE
             list.visibility = View.VISIBLE
+            fastScroller.visibility = View.VISIBLE
             empty.visibility = View.GONE
         }
-        timelineAdapter.submitList(uiState.eventsOccurrences)
+        timelineAdapter.submitList(uiState.eventsOccurrences) {
+            viewBinding.fastScroller.refresh()
+        }
+        updateFiltersBadge(uiState.activeFilterCount)
+    }
+
+    private fun updateFiltersBadge(activeFilterCount: Int) {
+        dialogController.floatingActionButtons.primaryBadge.apply {
+            visibility = if (activeFilterCount > 0) View.VISIBLE else View.GONE
+            text = activeFilterCount.toString()
+            contentDescription = context.getString(
+                R.string.content_desc_timeline_filters_active,
+                activeFilterCount,
+            )
+        }
+    }
+
+    private fun DebugReportTimelineUiState.activeFilterCount(): Int = when (this) {
+        is DebugReportTimelineUiState.Available -> activeFilterCount
+        is DebugReportTimelineUiState.FilteredEmpty -> activeFilterCount
+        else -> 0
     }
 
     private fun onEventOccurrenceClicked(occurrence: DebugReportTimelineEventOccurrenceItem) {
@@ -125,7 +179,11 @@ class DebugReportTimelineContent(appContext: Context) : NavBarDialogContent(appC
             context = context,
             newOverlay = DebugReportTimelineFiltersDialog(
                 reportDurationMs = viewModel.uiState.value.let { uiState ->
-                    if (uiState is DebugReportTimelineUiState.Available) uiState.durationMs else 0L
+                    when (uiState) {
+                        is DebugReportTimelineUiState.Available -> uiState.durationMs
+                        is DebugReportTimelineUiState.FilteredEmpty -> uiState.durationMs
+                        else -> 0L
+                    }
                 },
                 currentFilters = viewModel.getFilters(),
                 onFiltersApplied = viewModel::setFilters,

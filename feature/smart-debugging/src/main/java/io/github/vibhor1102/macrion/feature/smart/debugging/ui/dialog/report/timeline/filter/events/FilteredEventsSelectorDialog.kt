@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2026 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,6 +70,7 @@ class FilteredEventsSelectorDialog(
                 }
             )
             itemList.adapter = adapter
+            fastScroller.attachToRecyclerView(itemList)
         }
 
         viewModel.setEventFilter(eventsFilter)
@@ -84,6 +86,9 @@ class FilteredEventsSelectorDialog(
     }
 
     private fun updateItems(items: List<FilteredEventsSelectorItem>) {
-        adapter.submitList(items)
+        viewBinding.fastScroller.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
+        adapter.submitList(items) {
+            viewBinding.fastScroller.refresh()
+        }
     }
 }

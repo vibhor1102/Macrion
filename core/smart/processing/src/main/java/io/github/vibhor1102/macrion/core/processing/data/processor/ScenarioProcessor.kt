@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +19,7 @@ package io.github.vibhor1102.macrion.core.processing.data.processor
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.os.SystemClock
 import androidx.annotation.VisibleForTesting
 
 import io.github.vibhor1102.macrion.core.common.actions.AndroidActionExecutor
@@ -29,6 +31,8 @@ import io.github.vibhor1102.macrion.core.processing.data.processor.state.Process
 import io.github.vibhor1102.macrion.core.processing.data.scaling.ScalingManager
 import io.github.vibhor1102.macrion.core.processing.domain.EventType
 import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingListener
+import io.github.vibhor1102.macrion.core.processing.domain.EventOccurrenceTiming
+import io.github.vibhor1102.macrion.core.processing.domain.DebugReportTimingListener
 
 import kotlinx.coroutines.yield
 
@@ -56,6 +60,9 @@ internal class ScenarioProcessor(
     unblockWorkaroundEnabled: Boolean = false,
     private val onStopRequested: () -> Unit,
     private val progressListener: SmartProcessingListener?,
+    private val debugReportTimingListener: DebugReportTimingListener? = null,
+    private val reportSessionStartNs: Long? = null,
+    private val elapsedRealtimeNanos: () -> Long = SystemClock::elapsedRealtimeNanos,
 ) {
 
     /** Handle the processing state of the scenario. */
@@ -72,6 +79,7 @@ internal class ScenarioProcessor(
         scalingManager = scalingManager,
         bitmapSupplier = bitmapSupplier,
         progressListener = progressListener,
+        debugReportTimingListener = debugReportTimingListener,
     )
     /** Execute the detected event actions. */
     private val actionExecutor = ActionExecutor(
@@ -140,11 +148,16 @@ internal class ScenarioProcessor(
                 operator = triggerEvent.conditionOperator,
                 conditions = triggerEvent.conditions,
             )
+            val detectedAtNs = if (results.fulfilled == true) getReportSessionTimestampNs() else null
 
             progressListener?.onEventProcessingCompleted(triggerEvent, results.fulfilled == true, results.getAllTriggerConditionsResults())
             if (results.fulfilled  == true) {
                 actionExecutor.executeActions(triggerEvent, results)
-                progressListener?.onEventActionsExecuted(triggerEvent, results.getAllTriggerConditionsResults())
+                progressListener?.onEventActionsExecuted(
+                    event = triggerEvent,
+                    results = results.getAllTriggerConditionsResults(),
+                    timing = detectedAtNs?.let(::completeOccurrenceTiming),
+                )
             }
         }
     }
@@ -170,13 +183,17 @@ internal class ScenarioProcessor(
                     operator = screenEvent.conditionOperator,
                     conditions = screenEvent.conditions,
                 )
+                val detectedAtNs = if (results.fulfilled == true) getReportSessionTimestampNs() else null
 
                 progressListener?.onEventProcessingCompleted(screenEvent, results.fulfilled == true, results.getAllScreenConditionsResults())
                 if (results.fulfilled == true) {
                     actionExecutor.executeActions(screenEvent, results)
-                    progressListener?.onEventActionsExecuted(screenEvent, results.getAllScreenConditionsResults())
-
                     processingState.startCooldownIfNeeded(screenEvent)
+                    progressListener?.onEventActionsExecuted(
+                        event = screenEvent,
+                        results = results.getAllScreenConditionsResults(),
+                        timing = detectedAtNs?.let(::completeOccurrenceTiming),
+                    )
                     if (!screenEvent.keepDetecting) break
                 }
 
@@ -188,4 +205,15 @@ internal class ScenarioProcessor(
             imageDetector.releaseScreenBitmap(screenFrame)
         }
     }
+
+    private fun getReportSessionTimestampNs(): Long? =
+        reportSessionStartNs?.let { sessionStartNs ->
+            (elapsedRealtimeNanos() - sessionStartNs).coerceAtLeast(0L)
+        }
+
+    private fun completeOccurrenceTiming(detectedAtNs: Long): EventOccurrenceTiming =
+        EventOccurrenceTiming(
+            detectedAtNs = detectedAtNs,
+            actionsCompletedAtNs = getReportSessionTimestampNs()?.coerceAtLeast(detectedAtNs) ?: detectedAtNs,
+        )
 }

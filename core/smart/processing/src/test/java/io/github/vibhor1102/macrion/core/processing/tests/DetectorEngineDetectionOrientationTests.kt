@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +41,7 @@ import io.github.vibhor1102.macrion.core.processing.data.DetectorState
 import io.github.vibhor1102.macrion.core.processing.data.scaling.ScalingManager
 import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingListener
 import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
+import io.github.vibhor1102.macrion.core.processing.domain.DebugReportTimingListener
 
 import io.mockk.MockKAnnotations
 import io.mockk.clearAllMocks
@@ -107,6 +109,7 @@ class DetectorEngineDetectionOrientationTests {
     @RelaxedMockK private lateinit var mockSettingsRepository: SettingsRepository
     @RelaxedMockK private lateinit var mockAppComponentsProvider: AppComponentsProvider
     @RelaxedMockK private lateinit var mockDebuggingListener: SmartProcessingListener
+    @RelaxedMockK private lateinit var mockDebugReportTimingListener: DebugReportTimingListener
     @RelaxedMockK private lateinit var mockOcrModelsRepository: OCRModelsRepository
     @RelaxedMockK private lateinit var mockImageDetector: ImageDetector
     @RelaxedMockK private lateinit var mockContext: Context
@@ -245,6 +248,7 @@ class DetectorEngineDetectionOrientationTests {
             settingsRepository = mockSettingsRepository,
             appComponentsProvider = mockAppComponentsProvider,
             debuggingListener = mockDebuggingListener,
+            debugReportTimingListener = mockDebugReportTimingListener,
             ocrModelsRepository = mockOcrModelsRepository,
         )
 

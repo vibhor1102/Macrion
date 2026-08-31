@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +21,7 @@ import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingListen
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.DebuggingRepository
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.DebuggingRepositoryImpl
 import io.github.vibhor1102.macrion.core.smart.debugging.engine.DebugEngine
+import io.github.vibhor1102.macrion.core.processing.domain.DebugReportTimingListener
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,5 +41,10 @@ object SmartDebuggingModule {
     @Provides
     @Singleton
     internal fun providesDebuggingListener(debugEngine: DebugEngine): SmartProcessingListener =
+        debugEngine
+
+    @Provides
+    @Singleton
+    internal fun providesDebugReportTimingListener(debugEngine: DebugEngine): DebugReportTimingListener =
         debugEngine
 }

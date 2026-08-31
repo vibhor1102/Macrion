@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +29,8 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.det
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.event.DebugEventsStateContentViewModel
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.filter.DebugReportTimelineFiltersViewModel
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.filter.events.FilteredEventsSelectorViewModel
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.activity.EventActivityViewModel
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.ConditionPerformanceViewModel
 
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -35,6 +38,8 @@ import dagger.hilt.InstallIn
 @EntryPoint
 @InstallIn(OverlayComponent::class)
 interface DebuggingViewModelsEntryPoint {
+    fun eventActivityViewModel(): EventActivityViewModel
+    fun conditionPerformanceViewModel(): ConditionPerformanceViewModel
     fun debugConditionContentViewModel(): DebugConditionContentViewModel
     fun debugCounterStateContentViewModel(): DebugCounterStateContentViewModel
     fun debugEventStateContentViewModel(): DebugEventsStateContentViewModel

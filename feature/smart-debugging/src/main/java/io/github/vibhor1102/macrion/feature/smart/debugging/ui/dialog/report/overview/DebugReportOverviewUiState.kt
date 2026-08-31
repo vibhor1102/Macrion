@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,12 +29,22 @@ sealed interface DebugReportOverviewUiState {
         val totalDuration: OverviewEntry,
         val frameCount: OverviewEntry,
         val averageFrameProcessingDuration: OverviewEntry,
+        val executionLimiterIdleTime: OverviewEntry,
         val imageEventFulfilledCount: OverviewEntry,
         val triggerEventFulfilledCount: OverviewEntry,
+        val eventActivity: EventActivitySummary,
     ) : DebugReportOverviewUiState
 }
 
 data class OverviewEntry(
     @field:StringRes val titleRes: Int,
-    val value: String,
+    val value: String? = null,
+    @field:StringRes val valueRes: Int? = null,
+)
+
+data class EventActivitySummary(
+    val reachedEventCount: Int,
+    val totalOccurrenceCount: Int,
+    val mostFrequentEventName: String?,
+    val mostFrequentEventCount: Int?,
 )

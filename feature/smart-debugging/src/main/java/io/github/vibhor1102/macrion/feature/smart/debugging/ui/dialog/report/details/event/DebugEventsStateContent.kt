@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +31,8 @@ import io.github.vibhor1102.macrion.core.ui.bindings.lists.updateState
 import io.github.vibhor1102.macrion.core.ui.databinding.IncludeLoadableListBinding
 import io.github.vibhor1102.macrion.feature.smart.debugging.di.DebuggingViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.event.adapter.EventStateAdapter
+import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ContentDebugReportLoadableListBinding
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.updateState
 
 import kotlinx.coroutines.launch
 import kotlin.getValue
@@ -46,11 +49,13 @@ class DebugEventsStateContent(
     )
 
     private val eventsStateAdapter: EventStateAdapter = EventStateAdapter()
-    private lateinit var viewBinding: IncludeLoadableListBinding
+    private lateinit var viewBinding: ContentDebugReportLoadableListBinding
 
     override fun onCreateView(container: ViewGroup): ViewGroup {
-        viewBinding = IncludeLoadableListBinding.inflate(LayoutInflater.from(context), container, false)
-        viewBinding.list.adapter = eventsStateAdapter
+        viewBinding = ContentDebugReportLoadableListBinding.inflate(LayoutInflater.from(context), container, false).apply {
+            list.adapter = eventsStateAdapter
+            fastScroller.attachToRecyclerView(list)
+        }
 
         viewModel.setOccurrence(scenarioId, eventOccurrence)
 
@@ -71,7 +76,9 @@ class DebugEventsStateContent(
             DebugEventsStateContentUiState.Empty -> viewBinding.updateState(emptyList())
             is DebugEventsStateContentUiState.Available -> {
                 viewBinding.updateState(state.eventsState)
-                eventsStateAdapter.submitList(state.eventsState)
+                eventsStateAdapter.submitList(state.eventsState) {
+                    viewBinding.fastScroller.refresh()
+                }
             }
         }
     }

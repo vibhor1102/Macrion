@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +32,7 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import io.github.vibhor1102.macrion.feature.smart.debugging.di.DebuggingViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.overview.DebugReportOverviewContent
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.DebugReportTimelineContent
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.ConditionPerformanceContent
 
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.navigation.NavigationBarView
@@ -62,6 +64,7 @@ class DebugReportDialog : NavBarDialog(R.style.AppTheme) {
 
     override fun onCreateContent(navItemId: Int): NavBarDialogContent = when (navItemId) {
         R.id.page_overview -> DebugReportOverviewContent(context.applicationContext)
+        R.id.page_conditions -> ConditionPerformanceContent(context.applicationContext)
         R.id.page_timeline -> DebugReportTimelineContent(context.applicationContext)
         else -> throw IllegalArgumentException("Unknown menu id $navItemId")
     }

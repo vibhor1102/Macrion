@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2026 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -145,6 +146,15 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
 
     protected fun setMissingInputBadge(navItemId: Int, haveMissingInput: Boolean) {
         navBarView.getOrCreateBadge(navItemId).isVisible = haveMissingInput
+    }
+
+    /** Adds content that remains visible above every navigation page. */
+    protected fun setPersistentHeader(view: View) {
+        baseViewBinding.dialogPersistentHeader.apply {
+            removeAllViews()
+            addView(view)
+            visibility = View.VISIBLE
+        }
     }
 
     private fun setupPortraitViews() {

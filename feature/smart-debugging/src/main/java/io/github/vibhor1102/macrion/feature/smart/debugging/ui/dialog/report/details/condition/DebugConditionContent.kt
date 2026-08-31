@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +31,8 @@ import io.github.vibhor1102.macrion.core.ui.bindings.lists.updateState
 import io.github.vibhor1102.macrion.core.ui.databinding.IncludeLoadableListBinding
 import io.github.vibhor1102.macrion.feature.smart.debugging.di.DebuggingViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.condition.adapter.EventOccurrenceItemAdapter
+import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ContentDebugReportLoadableListBinding
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.updateState
 
 import kotlinx.coroutines.launch
 import kotlin.getValue
@@ -46,14 +49,16 @@ class DebugConditionContent(
     )
 
     private lateinit var conditionsAdapter: EventOccurrenceItemAdapter
-    private lateinit var viewBinding: IncludeLoadableListBinding
+    private lateinit var viewBinding: ContentDebugReportLoadableListBinding
 
 
     override fun onCreateView(container: ViewGroup): ViewGroup {
         conditionsAdapter = EventOccurrenceItemAdapter(viewModel::getConditionBitmap)
 
-        viewBinding = IncludeLoadableListBinding.inflate(LayoutInflater.from(context), container, false)
-        viewBinding.list.adapter = conditionsAdapter
+        viewBinding = ContentDebugReportLoadableListBinding.inflate(LayoutInflater.from(context), container, false).apply {
+            list.adapter = conditionsAdapter
+            fastScroller.attachToRecyclerView(list)
+        }
 
         viewModel.setOccurrence(scenarioId, eventOccurrence)
 
@@ -73,7 +78,9 @@ class DebugConditionContent(
             DebugConditionContentUiState.Loading -> viewBinding.updateState(null)
             is DebugConditionContentUiState.Available -> {
                 viewBinding.updateState(uiState.items)
-                conditionsAdapter.submitList(uiState.items)
+                conditionsAdapter.submitList(uiState.items) {
+                    viewBinding.fastScroller.refresh()
+                }
             }
         }
     }

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +21,7 @@ import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.live.Debug
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.report.DebugReportCounterInitialValue
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.report.DebugReportEventOccurrence
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.report.DebugReportOverview
+import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.report.ConditionProfile
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -52,4 +54,7 @@ interface DebuggingRepository {
 
     /** Read the last detection session events occurrences. List will be empty no rapport is available. */
     fun getLastReportEventsOccurrences(): Flow<List<DebugReportEventOccurrence>?>
+
+    /** Read aggregate condition timings from the last detection session report. */
+    fun getLastReportConditionProfiles(): Flow<List<ConditionProfile>>
 }

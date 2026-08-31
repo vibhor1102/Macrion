@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,27 +21,25 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.DebugReportTimelineEventActionItem
+import androidx.recyclerview.widget.RecyclerView
 
 
-class DebugReportTimelineEventActionsAdapter()
-    : ListAdapter<DebugReportTimelineEventActionItem, ItemTimelineEventActionsViewHolder>(EventActionsItemDiffUtilCallback) {
+class DebugReportTimelineEventActionsAdapter
+    : RecyclerView.Adapter<ItemTimelineEventActionsViewHolder>() {
+
+    private var items: List<DebugReportTimelineEventActionItem> = emptyList()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemTimelineEventActionsViewHolder =
         ItemTimelineEventActionsViewHolder(parent)
 
     override fun onBindViewHolder(holder: ItemTimelineEventActionsViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(items[position])
     }
-}
 
-private object EventActionsItemDiffUtilCallback: DiffUtil.ItemCallback<DebugReportTimelineEventActionItem>() {
-    override fun areItemsTheSame(
-        oldItem: DebugReportTimelineEventActionItem,
-        newItem: DebugReportTimelineEventActionItem,
-    ): Boolean = oldItem.id == newItem.id
+    override fun getItemCount(): Int = items.size
 
-    override fun areContentsTheSame(
-        oldItem: DebugReportTimelineEventActionItem,
-        newItem: DebugReportTimelineEventActionItem,
-    ): Boolean = oldItem == newItem
+    fun setItems(newItems: List<DebugReportTimelineEventActionItem>) {
+        items = newItems
+        notifyDataSetChanged()
+    }
 }

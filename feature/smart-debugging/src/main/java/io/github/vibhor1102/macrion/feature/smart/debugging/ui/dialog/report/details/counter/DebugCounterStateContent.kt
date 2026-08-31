@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +33,9 @@ import io.github.vibhor1102.macrion.core.ui.databinding.IncludeLoadableListBindi
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import io.github.vibhor1102.macrion.feature.smart.debugging.di.DebuggingViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.counter.adapter.CounterStateAdapter
+import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ContentDebugReportLoadableListBinding
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.setEmptyText
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.updateState
 
 import kotlinx.coroutines.launch
 import kotlin.getValue
@@ -49,13 +53,14 @@ class DebugCounterStateContent(
     )
 
     private val countersStateAdapter: CounterStateAdapter = CounterStateAdapter()
-    private lateinit var viewBinding: IncludeLoadableListBinding
+    private lateinit var viewBinding: ContentDebugReportLoadableListBinding
 
 
     override fun onCreateView(container: ViewGroup): ViewGroup {
-        viewBinding = IncludeLoadableListBinding.inflate(LayoutInflater.from(context), container, false)
+        viewBinding = ContentDebugReportLoadableListBinding.inflate(LayoutInflater.from(context), container, false)
             .apply {
                 list.adapter = countersStateAdapter
+                fastScroller.attachToRecyclerView(list)
                 setEmptyText(
                     id = R.string.title_event_occurrence_counters_empty,
                     secondaryId = R.string.desc_event_occurrence_counters_empty,
@@ -81,7 +86,9 @@ class DebugCounterStateContent(
             DebugCounterStateContentUiState.Empty -> viewBinding.updateState(emptyList())
             is DebugCounterStateContentUiState.Available -> {
                 viewBinding.updateState(uiState.countersState)
-                countersStateAdapter.submitList(uiState.countersState)
+                countersStateAdapter.submitList(uiState.countersState) {
+                    viewBinding.fastScroller.refresh()
+                }
             }
         }
     }

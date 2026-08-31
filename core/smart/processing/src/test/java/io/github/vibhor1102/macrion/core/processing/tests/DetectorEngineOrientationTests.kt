@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +35,7 @@ import io.github.vibhor1102.macrion.core.processing.data.DetectorEngine
 import io.github.vibhor1102.macrion.core.processing.data.scaling.ScalingManager
 import io.github.vibhor1102.macrion.core.processing.domain.SmartProcessingListener
 import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
+import io.github.vibhor1102.macrion.core.processing.domain.DebugReportTimingListener
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -82,6 +84,7 @@ class DetectorEngineOrientationTests {
     @Mock private lateinit var mockSettingsRepository: SettingsRepository
     @Mock private lateinit var mockAppComponentsProvider: AppComponentsProvider
     @Mock private lateinit var mockDebuggingListener: SmartProcessingListener
+    @Mock private lateinit var mockDebugReportTimingListener: DebugReportTimingListener
     @Mock private lateinit var mockOcrModelsRepository: OCRModelsRepository
 
     private val mockContext: Context = mock(Context::class.java)
@@ -161,6 +164,7 @@ class DetectorEngineOrientationTests {
             settingsRepository = mockSettingsRepository,
             appComponentsProvider = mockAppComponentsProvider,
             debuggingListener = mockDebuggingListener,
+            debugReportTimingListener = mockDebugReportTimingListener,
             ocrModelsRepository = mockOcrModelsRepository,
         )
 

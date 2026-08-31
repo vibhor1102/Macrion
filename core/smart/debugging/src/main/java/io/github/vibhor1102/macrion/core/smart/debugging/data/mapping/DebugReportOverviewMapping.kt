@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +20,7 @@ package io.github.vibhor1102.macrion.core.smart.debugging.data.mapping
 import io.github.vibhor1102.macrion.core.smart.debugging.debugReportOverview
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.report.DebugReportOverview
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.nanoseconds
 
 import io.github.vibhor1102.macrion.core.smart.debugging.DebugReportOverview as ProtoDebugReportOverview
 
@@ -32,6 +34,8 @@ internal fun DebugReportOverview.toProtobuf(): ProtoDebugReportOverview =
         imageEventFulfilledCount = this@toProtobuf.imageEventFulfilledCount
         triggerEventFulfilledCount = this@toProtobuf.triggerEventFulfilledCount
         countersName.addAll(this@toProtobuf.counterNames)
+        activeDetectionDurationNs = this@toProtobuf.activeDetectionDuration.inWholeNanoseconds
+        executionLimiterWaitDurationNs = this@toProtobuf.executionLimiterWaitDuration.inWholeNanoseconds
     }
 
 internal fun ProtoDebugReportOverview.toDomain(): DebugReportOverview =
@@ -43,4 +47,6 @@ internal fun ProtoDebugReportOverview.toDomain(): DebugReportOverview =
         imageEventFulfilledCount = imageEventFulfilledCount,
         triggerEventFulfilledCount = triggerEventFulfilledCount,
         counterNames = countersNameList.toSet(),
+        activeDetectionDuration = activeDetectionDurationNs.nanoseconds,
+        executionLimiterWaitDuration = executionLimiterWaitDurationNs.nanoseconds,
     )

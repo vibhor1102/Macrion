@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +26,7 @@ import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.report.Deb
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.report.DebugReportEventOccurrence
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.report.DebugReportOverview
 import io.github.vibhor1102.macrion.core.smart.debugging.engine.DebugEngine
+import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.report.ConditionProfile
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -94,5 +96,10 @@ internal class DebuggingRepositoryImpl @Inject constructor(
     override fun getLastReportEventsOccurrences(): Flow<List<DebugReportEventOccurrence>?> =
         flow {
             emit(debugReportDataSource.readMessages())
+        }.flowOn(ioDispatcher)
+
+    override fun getLastReportConditionProfiles(): Flow<List<ConditionProfile>> =
+        flow {
+            emit(debugReportDataSource.readConditionProfile())
         }.flowOn(ioDispatcher)
 }

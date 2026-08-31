@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,9 +26,14 @@ sealed interface DebugReportTimelineUiState {
     data object Loading : DebugReportTimelineUiState
     data object NotAvailable : DebugReportTimelineUiState
     data object Empty: DebugReportTimelineUiState
+    data class FilteredEmpty(
+        val durationMs: Long,
+        val activeFilterCount: Int,
+    ) : DebugReportTimelineUiState
     data class Available(
         val eventsOccurrences: List<DebugReportTimelineEventOccurrenceItem>,
         val durationMs: Long,
+        val activeFilterCount: Int,
     ) : DebugReportTimelineUiState
 
 }
@@ -36,7 +42,9 @@ data class DebugReportTimelineEventOccurrenceItem(
     val id: Int,
     val scenarioId: Long,
     val eventName: String,
-    val timeText: String,
+    val legacyTimeText: String?,
+    val detectingDurationValue: String?,
+    val actionsDurationValue: String?,
     val occurrenceText: String,
     val conditionsText: String,
     val actions: List<DebugReportTimelineEventActionItem>,

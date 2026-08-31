@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2025 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +28,8 @@ import kotlin.time.Duration
  * @param imageEventFulfilledCount The number of image events that have been triggered during the session.
  * @param triggerEventFulfilledCount The number of image events that have been triggered during the session.
  * @param counterNames The names of all counters available in the scenario that was ran to made this report.
+ * @param activeDetectionDuration Time spent actively processing scenario loops.
+ * @param executionLimiterWaitDuration Time spent suspended by the user-configured Execution Limiter.
  */
 data class DebugReportOverview(
     val scenarioId: Long,
@@ -36,4 +39,6 @@ data class DebugReportOverview(
     val imageEventFulfilledCount: Int,
     val triggerEventFulfilledCount: Int,
     val counterNames: Set<String>,
+    val activeDetectionDuration: Duration = Duration.ZERO,
+    val executionLimiterWaitDuration: Duration = Duration.ZERO,
 )
