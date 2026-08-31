@@ -57,7 +57,7 @@ android {
     defaultConfig {
         applicationId = getExtraActualApplicationId()
 
-        versionCode = 0
+        versionCode = 1
         versionName = "0.0.0"
     }
 
