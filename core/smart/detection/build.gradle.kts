@@ -2,6 +2,7 @@
 
 /*
 * Copyright (C) 2024 Kevin Buzeau
+* Copyright (C) 2026 Vibhor Goel
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -18,12 +19,27 @@
 */
 
 import com.buzbuz.gradle.convention.extensions.fDroid
+import org.gradle.api.GradleException
 
 plugins {
     alias(libs.plugins.buzbuz.androidLibrary)
     alias(libs.plugins.buzbuz.androidLocalTest)
     alias(libs.plugins.buzbuz.flavour)
     alias(libs.plugins.buzbuz.sourceDownload)
+}
+
+val supportedDebugAbis = listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+val isReleaseBuild = gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }
+val macrionDebugAbiProperty = providers.gradleProperty("macrionDebugAbi").orNull?.trim()
+val debugAbiFilter = when {
+    isReleaseBuild -> emptyList()
+    macrionDebugAbiProperty == null -> listOf("arm64-v8a")
+    macrionDebugAbiProperty.equals("all", ignoreCase = true) -> emptyList()
+    macrionDebugAbiProperty in supportedDebugAbis -> listOf(macrionDebugAbiProperty)
+    else -> throw GradleException(
+        "Unsupported macrionDebugAbi '$macrionDebugAbiProperty'. " +
+                "Use one of ${supportedDebugAbis.joinToString()}, or 'all'.",
+    )
 }
 
 sourceDownload {
@@ -56,9 +72,17 @@ android {
     }
 
     defaultConfig {
+        if (debugAbiFilter.isNotEmpty()) {
+            ndk {
+                abiFilters.addAll(debugAbiFilter)
+            }
+        }
+
         externalNativeBuild {
             cmake {
-
+                if (debugAbiFilter.isNotEmpty()) {
+                    abiFilters.addAll(debugAbiFilter)
+                }
             }
         }
     }

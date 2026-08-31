@@ -20,6 +20,7 @@ import com.buzbuz.gradle.convention.model.KlickrBuildType
 import com.buzbuz.gradle.convention.model.KlickrFlavour
 import com.buzbuz.gradle.convention.extensions.isBuildForVariant
 import com.buzbuz.gradle.obfuscation.getExtraActualApplicationId
+import org.gradle.api.GradleException
 
 plugins {
     alias(libs.plugins.buzbuz.androidApplication)
@@ -28,6 +29,18 @@ plugins {
     alias(libs.plugins.buzbuz.obfuscation)
     alias(libs.plugins.buzbuz.buildParameters)
     alias(libs.plugins.buzbuz.hilt)
+}
+
+val supportedDebugAbis = listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+val macrionDebugAbiProperty = providers.gradleProperty("macrionDebugAbi").orNull?.trim()
+val debugAbiFilter = when {
+    macrionDebugAbiProperty == null -> listOf("arm64-v8a")
+    macrionDebugAbiProperty.equals("all", ignoreCase = true) -> supportedDebugAbis
+    macrionDebugAbiProperty in supportedDebugAbis -> listOf(macrionDebugAbiProperty)
+    else -> throw GradleException(
+        "Unsupported macrionDebugAbi '$macrionDebugAbiProperty'. " +
+                "Use one of ${supportedDebugAbis.joinToString()}, or 'all'.",
+    )
 }
 
 obfuscationConfig {
@@ -76,8 +89,15 @@ android {
             abi {
                 isEnable = true
                 reset()
-                include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-                isUniversalApk = true
+
+                val isRelease = project.isBuildForVariant(KlickrFlavour.F_DROID, KlickrBuildType.RELEASE)
+                if (isRelease || macrionDebugAbiProperty?.equals("all", ignoreCase = true) == true) {
+                    include(*supportedDebugAbis.toTypedArray())
+                    isUniversalApk = true
+                } else {
+                    include(*debugAbiFilter.toTypedArray())
+                    isUniversalApk = false
+                }
             }
         }
     }
