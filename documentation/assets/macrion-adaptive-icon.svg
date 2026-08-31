@@ -2,6 +2,7 @@
   <title>Macrion adaptive icon</title>
   <desc>A white focus target and detection frame centered on a full-bleed deep petrol teal square background.</desc>
   <rect width="512" height="512" fill="#0B5F63"/>
+  <g transform="translate(102.4 102.4) scale(0.6)">
   <g transform="translate(-10.25 13) scale(1.5)">
     <g stroke="#FFFFFF" stroke-linecap="round" stroke-linejoin="round">
       <path d="M114 50H92C77.6 50 66 61.6 66 76V98" stroke-width="20"/>
@@ -11,5 +12,6 @@
       <circle cx="177.5" cy="162" r="62.5" stroke-width="24"/>
     </g>
     <circle cx="177.5" cy="162" r="22" fill="#FFFFFF"/>
+  </g>
   </g>
 </svg>
