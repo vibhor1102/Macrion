@@ -65,7 +65,7 @@ class TutorialListViewModel @Inject constructor(
             permissions = listOf(
                 PermissionOverlay(),
                 PermissionAccessibilityService(
-                    componentName = appComponentsProvider.klickrServiceComponentName,
+                    componentName = appComponentsProvider.macrionServiceComponentName,
                     isServiceRunning = { accessibilityServiceConnection.isServiceStarted() },
                 ),
                 PermissionPostNotification(optional = true),

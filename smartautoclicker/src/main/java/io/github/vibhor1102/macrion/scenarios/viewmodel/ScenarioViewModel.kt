@@ -80,7 +80,7 @@ class ScenarioViewModel @Inject constructor(
             permissions = listOf(
                 PermissionOverlay(),
                 PermissionAccessibilityService(
-                    componentName = appComponentsProvider.klickrServiceComponentName,
+                    componentName = appComponentsProvider.macrionServiceComponentName,
                     isServiceRunning = { serviceConnection.isServiceStarted() },
                 ),
                 PermissionPostNotification(optional = true),

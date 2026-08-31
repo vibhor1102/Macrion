@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KLICK_R_DETECTOR_HPP
-#define KLICK_R_DETECTOR_HPP
+#ifndef MACRION_DETECTOR_HPP
+#define MACRION_DETECTOR_HPP
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <map>
@@ -71,4 +71,4 @@ namespace smartautoclicker {
     };
 }
 
-#endif //KLICK_R_DETECTOR_HPP
+#endif //MACRION_DETECTOR_HPP

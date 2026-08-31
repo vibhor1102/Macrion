@@ -18,8 +18,8 @@ package com.buzbuz.gradle.convention.plugins
 
 import com.buzbuz.gradle.convention.extensions.androidApp
 import com.buzbuz.gradle.convention.extensions.androidLib
-import com.buzbuz.gradle.convention.model.KlickrDimension
-import com.buzbuz.gradle.convention.model.KlickrFlavour
+import com.buzbuz.gradle.convention.model.MacrionDimension
+import com.buzbuz.gradle.convention.model.MacrionFlavour
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -30,11 +30,11 @@ class FlavourConventionPlugin : Plugin<Project> {
     override fun apply(target: Project): Unit = with(target) {
         androidApp {
             flavorDimensions.clear()
-            flavorDimensions.addAll(KlickrDimension.entries.map { it.flavourDimensionName })
+            flavorDimensions.addAll(MacrionDimension.entries.map { it.flavourDimensionName })
 
 
             productFlavors {
-                KlickrFlavour.entries.forEach { flavour ->
+                MacrionFlavour.entries.forEach { flavour ->
                     create(flavour.flavourName) {
                         dimension = flavour.dimension.flavourDimensionName
                     }
@@ -44,10 +44,10 @@ class FlavourConventionPlugin : Plugin<Project> {
 
         androidLib {
             flavorDimensions.clear()
-            flavorDimensions.addAll(KlickrDimension.entries.map { it.flavourDimensionName })
+            flavorDimensions.addAll(MacrionDimension.entries.map { it.flavourDimensionName })
 
             productFlavors {
-                KlickrFlavour.entries.forEach { flavour ->
+                MacrionFlavour.entries.forEach { flavour ->
                     create(flavour.flavourName) {
                         dimension = flavour.dimension.flavourDimensionName
                     }

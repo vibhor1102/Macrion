@@ -15,8 +15,8 @@
  * along with this program.  See <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KLICK_R_ALPHABET_RECOGNIZER_HPP
-#define KLICK_R_ALPHABET_RECOGNIZER_HPP
+#ifndef MACRION_ALPHABET_RECOGNIZER_HPP
+#define MACRION_ALPHABET_RECOGNIZER_HPP
 
 #include <memory>
 #include <net.h>
@@ -52,4 +52,4 @@ namespace smartautoclicker {
 }
 
 
-#endif //KLICK_R_ALPHABET_RECOGNIZER_HPP
+#endif //MACRION_ALPHABET_RECOGNIZER_HPP

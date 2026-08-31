@@ -54,7 +54,7 @@ internal class LocalePluginExecutionViewModel @Inject constructor(
             permissions = listOf(
                 PermissionOverlay(),
                 PermissionAccessibilityService(
-                    componentName = appComponentsProvider.klickrServiceComponentName,
+                    componentName = appComponentsProvider.macrionServiceComponentName,
                     isServiceRunning = { externalLaunchRepository.isAccessibilityServiceStarted() },
                 ),
             ),

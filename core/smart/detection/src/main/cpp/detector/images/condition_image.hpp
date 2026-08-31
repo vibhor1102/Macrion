@@ -16,8 +16,8 @@
  */
 
 
-#ifndef KLICK_R_CONDITION_IMAGE_HPP
-#define KLICK_R_CONDITION_IMAGE_HPP
+#ifndef MACRION_CONDITION_IMAGE_HPP
+#define MACRION_CONDITION_IMAGE_HPP
 
 #include "detection_image.hpp"
 
@@ -30,4 +30,4 @@ namespace smartautoclicker {
     };
 }
 
-#endif //KLICK_R_CONDITION_IMAGE_HPP
+#endif //MACRION_CONDITION_IMAGE_HPP

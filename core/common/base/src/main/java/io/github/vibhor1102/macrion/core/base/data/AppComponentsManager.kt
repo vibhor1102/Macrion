@@ -24,7 +24,7 @@ import javax.inject.Singleton
 interface AppComponentsProvider {
     val originalAppId: String
 
-    val klickrServiceComponentName: ComponentName
+    val macrionServiceComponentName: ComponentName
     val scenarioActivityComponentName: ComponentName
     val tutorialActivityComponentName: ComponentName
 }
@@ -37,9 +37,9 @@ class AppComponentsManager @Inject constructor() : AppComponentsProvider {
     override val originalAppId: String
         get() = _originalAppId
 
-    private lateinit var _klickrServiceComponentName: ComponentName
-    override val klickrServiceComponentName: ComponentName
-        get() = _klickrServiceComponentName
+    private lateinit var _macrionServiceComponentName: ComponentName
+    override val macrionServiceComponentName: ComponentName
+        get() = _macrionServiceComponentName
 
     private lateinit var _scenarioActivityComponentName: ComponentName
     override val scenarioActivityComponentName: ComponentName
@@ -60,6 +60,6 @@ class AppComponentsManager @Inject constructor() : AppComponentsProvider {
     }
 
     fun registerSmartAutoClickerService(componentName: ComponentName) {
-        _klickrServiceComponentName = componentName
+        _macrionServiceComponentName = componentName
     }
 }

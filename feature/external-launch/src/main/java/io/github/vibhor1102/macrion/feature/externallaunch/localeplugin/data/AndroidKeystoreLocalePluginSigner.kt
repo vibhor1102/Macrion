@@ -60,4 +60,4 @@ private fun String.hexToByteArrayOrNull(): ByteArray? {
 
 private const val KEYSTORE_PROVIDER = "AndroidKeyStore"
 private const val HMAC_ALGORITHM = "HmacSHA256"
-private const val KEY_ALIAS = "klickr_locale_plugin_hmac_v1"
+private const val KEY_ALIAS = "macrion_locale_plugin_hmac_v1"

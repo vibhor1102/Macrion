@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KLICK_R_COLOR_MATCHING_RESULT_HPP
-#define KLICK_R_COLOR_MATCHING_RESULT_HPP
+#ifndef MACRION_COLOR_MATCHING_RESULT_HPP
+#define MACRION_COLOR_MATCHING_RESULT_HPP
 
 #include <opencv2/core/types.hpp>
 #include "../../detection_result.hpp"
@@ -46,4 +46,4 @@ namespace smartautoclicker {
     };
 } // smartautoclicker
 
-#endif //KLICK_R_COLOR_MATCHING_RESULT_HPP
+#endif //MACRION_COLOR_MATCHING_RESULT_HPP

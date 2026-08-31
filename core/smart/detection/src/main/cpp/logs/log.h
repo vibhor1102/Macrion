@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KLICK_R_LOG_H
-#define KLICK_R_LOG_H
+#ifndef MACRION_LOG_H
+#define MACRION_LOG_H
 
 #include <android/log.h>
 
@@ -35,4 +35,4 @@
 
 void logMessage(int priority, const char* tag, const char* fmt, ...);
 
-#endif // KLICK_R_LOG_H
+#endif // MACRION_LOG_H

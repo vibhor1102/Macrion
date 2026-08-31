@@ -31,7 +31,7 @@ import io.github.vibhor1102.macrion.core.settings.domain.SettingsRepository
 import io.github.vibhor1102.macrion.core.base.notifications.NotificationIds
 import io.github.vibhor1102.macrion.feature.notifications.model.SERVICE_CHANNEL_ID
 import io.github.vibhor1102.macrion.feature.notifications.model.ServiceNotificationState
-import io.github.vibhor1102.macrion.feature.notifications.model.createKlickrServiceNotificationChannel
+import io.github.vibhor1102.macrion.feature.notifications.model.createMacrionServiceNotificationChannel
 import io.github.vibhor1102.macrion.feature.notifications.receivers.NightModeReceiver
 import io.github.vibhor1102.macrion.feature.notifications.receivers.NotificationActionsReceiver
 import io.github.vibhor1102.macrion.feature.notifications.ui.ServiceNotificationBuilder
@@ -63,7 +63,7 @@ class ServiceNotificationController(
         notificationActionReceiver.register(context)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            notificationManager.createNotificationChannel(createKlickrServiceNotificationChannel(context))
+            notificationManager.createNotificationChannel(createMacrionServiceNotificationChannel(context))
         }
 
         notificationState = ServiceNotificationState(

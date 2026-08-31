@@ -24,7 +24,7 @@ import androidx.annotation.RequiresApi
 import io.github.vibhor1102.macrion.feature.notifications.R
 
 @RequiresApi(Build.VERSION_CODES.O)
-internal fun createKlickrServiceNotificationChannel(context: Context): NotificationChannel =
+internal fun createMacrionServiceNotificationChannel(context: Context): NotificationChannel =
     NotificationChannel(
         SERVICE_CHANNEL_ID,
         context.getString(R.string.notification_service_channel_name),

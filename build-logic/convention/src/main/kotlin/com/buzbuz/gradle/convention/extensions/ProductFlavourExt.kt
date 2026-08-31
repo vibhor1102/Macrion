@@ -17,8 +17,8 @@
 package com.buzbuz.gradle.convention.extensions
 
 import com.android.build.api.dsl.ProductFlavor
-import com.buzbuz.gradle.convention.model.KlickrBuildType
-import com.buzbuz.gradle.convention.model.KlickrFlavour
+import com.buzbuz.gradle.convention.model.MacrionBuildType
+import com.buzbuz.gradle.convention.model.MacrionFlavour
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 
@@ -27,7 +27,7 @@ import org.gradle.kotlin.dsl.support.uppercaseFirstChar
  * Usage: android.productFlavors.fDroid { ... }
  */
 fun <T : ProductFlavor> NamedDomainObjectContainer<T>.fDroid(configureAction: T.() -> Unit) {
-    getByName(KlickrFlavour.F_DROID.flavourName, configureAction)
+    getByName(MacrionFlavour.F_DROID.flavourName, configureAction)
 }
 
 /**
@@ -35,10 +35,10 @@ fun <T : ProductFlavor> NamedDomainObjectContainer<T>.fDroid(configureAction: T.
  * Usage: android.productFlavors.playStore { ... }
  */
 fun <T : ProductFlavor> NamedDomainObjectContainer<T>.playStore(configureAction: T.() -> Unit) {
-    getByName(KlickrFlavour.PLAY_STORE.flavourName, configureAction)
+    getByName(MacrionFlavour.PLAY_STORE.flavourName, configureAction)
 }
 
-internal fun getVariantName(flavour: KlickrFlavour?, buildType: KlickrBuildType?): String? =
+internal fun getVariantName(flavour: MacrionFlavour?, buildType: MacrionBuildType?): String? =
     when {
         flavour != null && buildType != null ->
             "${flavour.flavourName}${buildType.buildTypeName.uppercaseFirstChar()}"

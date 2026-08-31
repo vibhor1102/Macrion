@@ -113,7 +113,7 @@ abstract class BuildParameters {
             rootProject = rootProject.get(),
             name = "adsUnitId",
             defaultValue =
-                if (rootProject.get().isBuildForVariant(buildType = KlickrBuildType.RELEASE)) ""
+                if (rootProject.get().isBuildForVariant(buildType = MacrionBuildType.RELEASE)) ""
                 else "ca-app-pub-3940256099942544/8691691433",
         )
     }

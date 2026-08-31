@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KLICK_R_TEXT_RECOGNIZER_RESULT_HPP
-#define KLICK_R_TEXT_RECOGNIZER_RESULT_HPP
+#ifndef MACRION_TEXT_RECOGNIZER_RESULT_HPP
+#define MACRION_TEXT_RECOGNIZER_RESULT_HPP
 
 #include <opencv2/core.hpp>
 
@@ -41,4 +41,4 @@ namespace smartautoclicker {
 
 }
 
-#endif //KLICK_R_TEXT_RECOGNIZER_RESULT_HPP
+#endif //MACRION_TEXT_RECOGNIZER_RESULT_HPP

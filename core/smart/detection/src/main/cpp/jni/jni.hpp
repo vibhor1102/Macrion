@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KLICK_R_JNI_HPP
-#define KLICK_R_JNI_HPP
+#ifndef MACRION_JNI_HPP
+#define MACRION_JNI_HPP
 
 #include <android/bitmap.h>
 #include <jni.h>
@@ -42,4 +42,4 @@ jdoubleArray toJniResult(JNIEnv *env, DetectionResult* result);
 
 void throwRuntimeException(JNIEnv *env, const char *message);
 
-#endif //KLICK_R_JNI_HPP
+#endif //MACRION_JNI_HPP

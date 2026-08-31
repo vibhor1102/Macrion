@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KLICK_R_TEMPLATE_MATCHER_HPP
-#define KLICK_R_TEMPLATE_MATCHER_HPP
+#ifndef MACRION_TEMPLATE_MATCHER_HPP
+#define MACRION_TEMPLATE_MATCHER_HPP
 
 #include <opencv2/core/types.hpp>
 
@@ -58,4 +58,4 @@ namespace smartautoclicker {
     };
 }
 
-#endif //KLICK_R_TEMPLATE_MATCHER_HPP
+#endif //MACRION_TEMPLATE_MATCHER_HPP

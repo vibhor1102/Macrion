@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KLICK_R_TEXT_MATCHER_DEBUGGER_HPP
-#define KLICK_R_TEXT_MATCHER_DEBUGGER_HPP
+#ifndef MACRION_TEXT_MATCHER_DEBUGGER_HPP
+#define MACRION_TEXT_MATCHER_DEBUGGER_HPP
 
 #include <opencv2/core.hpp>
 #include "detection/text_detector_result.hpp"
@@ -75,4 +75,4 @@ inline void saveCrops(const std::vector<smartautoclicker::TextDetectorResult>& r
 }
 #endif // NDEBUG
 
-#endif //KLICK_R_TEXT_MATCHER_DEBUGGER_HPP
+#endif //MACRION_TEXT_MATCHER_DEBUGGER_HPP

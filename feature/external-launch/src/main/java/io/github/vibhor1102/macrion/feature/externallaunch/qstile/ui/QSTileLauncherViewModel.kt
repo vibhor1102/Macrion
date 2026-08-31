@@ -58,7 +58,7 @@ class QSTileLauncherViewModel @Inject constructor(
             permissions = listOf(
                 PermissionOverlay(),
                 PermissionAccessibilityService(
-                    componentName = appComponentsProvider.klickrServiceComponentName,
+                    componentName = appComponentsProvider.macrionServiceComponentName,
                     isServiceRunning = { qsTileRepository.isAccessibilityServiceStarted() },
                 ),
                 PermissionPostNotification(optional = true),

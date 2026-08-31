@@ -17,20 +17,20 @@
 package com.buzbuz.gradle.convention.model
 
 /** Gradle build types for Macrion */
-enum class KlickrBuildType(val buildTypeName: String) {
+enum class MacrionBuildType(val buildTypeName: String) {
     DEBUG("debug"),
     RELEASE("release");
 }
 
 /** Gradle flavour dimension for Macrion versions */
-enum class KlickrDimension(val flavourDimensionName: String) {
+enum class MacrionDimension(val flavourDimensionName: String) {
     VERSION("version");
 }
 
 /** Gradle flavours for Macrion. */
-enum class KlickrFlavour(val flavourName: String, val dimension: KlickrDimension) {
+enum class MacrionFlavour(val flavourName: String, val dimension: MacrionDimension) {
     /** Gradle flavour for FOSS fDroid Macrion. */
-    F_DROID("fDroid", KlickrDimension.VERSION),
+    F_DROID("fDroid", MacrionDimension.VERSION),
     /** Gradle flavour for PlayStore Macrion (with in app purchase, ads and crashlytics). */
-    PLAY_STORE("playStore", KlickrDimension.VERSION);
+    PLAY_STORE("playStore", MacrionDimension.VERSION);
 }

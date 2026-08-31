@@ -2,8 +2,8 @@
 // Created by kevin on 28/06/2025.
 //
 
-#ifndef KLICK_R_ROI_H
-#define KLICK_R_ROI_H
+#ifndef MACRION_ROI_H
+#define MACRION_ROI_H
 
 #include <opencv2/core/types.hpp>
 
@@ -26,4 +26,4 @@ namespace smartautoclicker {
     }
 }
 
-#endif //KLICK_R_ROI_H
+#endif //MACRION_ROI_H

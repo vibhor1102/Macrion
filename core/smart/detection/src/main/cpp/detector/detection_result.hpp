@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef KLICK_R_DETECTION_RESULT_HPP
-#define KLICK_R_DETECTION_RESULT_HPP
+#ifndef MACRION_DETECTION_RESULT_HPP
+#define MACRION_DETECTION_RESULT_HPP
 
 #include <opencv2/core/types.hpp>
 
@@ -32,4 +32,4 @@ namespace smartautoclicker {
          [[nodiscard]] virtual int getResultAreaHeight() const = 0;
      };
 }
-#endif //KLICK_R_DETECTION_RESULT_HPP
+#endif //MACRION_DETECTION_RESULT_HPP

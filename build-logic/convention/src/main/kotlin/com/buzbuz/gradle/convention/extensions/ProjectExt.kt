@@ -26,8 +26,8 @@ import com.android.build.api.dsl.Installation
 import com.android.build.api.dsl.LibraryExtension
 import com.android.build.api.dsl.ProductFlavor
 import com.buzbuz.gradle.convention.libs.VersionCatalogWrapper
-import com.buzbuz.gradle.convention.model.KlickrBuildType
-import com.buzbuz.gradle.convention.model.KlickrFlavour
+import com.buzbuz.gradle.convention.model.MacrionBuildType
+import com.buzbuz.gradle.convention.model.MacrionFlavour
 import com.google.protobuf.gradle.ProtobufExtension
 
 import org.gradle.api.Project
@@ -52,7 +52,7 @@ fun Project.isBuildForVariant(variantName: String?): Boolean {
     } != null
 }
 
-fun Project.isBuildForVariant(flavour: KlickrFlavour? = null, buildType: KlickrBuildType? = null): Boolean =
+fun Project.isBuildForVariant(flavour: MacrionFlavour? = null, buildType: MacrionBuildType? = null): Boolean =
     isBuildForVariant(getVariantName(flavour, buildType))
 
 

@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import com.buzbuz.gradle.convention.model.KlickrBuildType
-import com.buzbuz.gradle.convention.model.KlickrFlavour
+import com.buzbuz.gradle.convention.model.MacrionBuildType
+import com.buzbuz.gradle.convention.model.MacrionFlavour
 import com.buzbuz.gradle.convention.extensions.isBuildForVariant
 import com.buzbuz.gradle.obfuscation.getExtraActualApplicationId
 import org.gradle.api.GradleException
@@ -56,7 +56,7 @@ obfuscationConfig {
         applicationId = "io.github.vibhor1102.macrion",
         appNameResId = "@string/app_name",
         shouldRandomize = buildParameters.randomizeAppId.typedValue &&
-                project.isBuildForVariant(KlickrFlavour.F_DROID),
+                project.isBuildForVariant(MacrionFlavour.F_DROID),
     )
 }
 
@@ -75,7 +75,7 @@ android {
         versionName = "0.0.0"
     }
 
-    if (project.isBuildForVariant(KlickrFlavour.F_DROID, KlickrBuildType.DEBUG)) {
+    if (project.isBuildForVariant(MacrionFlavour.F_DROID, MacrionBuildType.DEBUG)) {
         buildTypes {
             debug {
                 applicationIdSuffix = ".debug"
@@ -84,13 +84,13 @@ android {
     }
 
     // Generate per-ABI APKs for fDroid (reduces download size; full APK also produced)
-    if (project.isBuildForVariant(KlickrFlavour.F_DROID)) {
+    if (project.isBuildForVariant(MacrionFlavour.F_DROID)) {
         splits {
             abi {
                 isEnable = true
                 reset()
 
-                val isRelease = project.isBuildForVariant(KlickrFlavour.F_DROID, KlickrBuildType.RELEASE)
+                val isRelease = project.isBuildForVariant(MacrionFlavour.F_DROID, MacrionBuildType.RELEASE)
                 if (isRelease || macrionDebugAbiProperty?.equals("all", ignoreCase = true) == true) {
                     include(*supportedDebugAbis.toTypedArray())
                     isUniversalApk = true
@@ -103,7 +103,7 @@ android {
     }
 
     signingConfigs {
-        create(KlickrBuildType.RELEASE.buildTypeName) {
+        create(MacrionBuildType.RELEASE.buildTypeName) {
             storeFile = file("./smartautoclicker.jks")
             storePassword = buildParameters.signingStorePassword.typedValue
             keyAlias = buildParameters.signingKeyAlias.typedValue
@@ -112,7 +112,7 @@ android {
     }
 
     // Text recognition alphabet models downloaded with PlayAssetDelivery
-    if (project.isBuildForVariant(KlickrFlavour.PLAY_STORE)) {
+    if (project.isBuildForVariant(MacrionFlavour.PLAY_STORE)) {
         assetPacks.addAll(
             listOf(
                 ":core:smart:detection-models:models:text:arabic",
@@ -131,7 +131,7 @@ android {
 }
 
 // Assign unique versionCodes per ABI for fDroid multi-APK publishing
-if (project.isBuildForVariant(KlickrFlavour.F_DROID)) {
+if (project.isBuildForVariant(MacrionFlavour.F_DROID)) {
     androidComponents.onVariants { variant ->
         variant.outputs.forEach { output ->
             val abiFilter = output.filters
@@ -154,7 +154,7 @@ if (project.isBuildForVariant(KlickrFlavour.F_DROID)) {
 apply(plugin = libs.plugins.buzbuz.androidSigning.get().pluginId)
 
 // Only apply gms/firebase plugins if we are building for the play store
-if (project.isBuildForVariant(KlickrFlavour.PLAY_STORE, KlickrBuildType.RELEASE)) {
+if (project.isBuildForVariant(MacrionFlavour.PLAY_STORE, MacrionBuildType.RELEASE)) {
     apply(plugin = libs.plugins.buzbuz.crashlytics.get().pluginId)
 }
 

@@ -18,8 +18,8 @@ class ScenarioStateTest {
     @Test
     fun `public contract exposes only scenario name and state`() {
         assertEquals(2, ScenarioStatePluginContract.relevantVariables.size)
-        assertTrue(ScenarioStatePluginContract.relevantVariables[0].startsWith("%klickr_scenario_name\n"))
-        assertTrue(ScenarioStatePluginContract.relevantVariables[1].startsWith("%klickr_scenario_state\n"))
+        assertTrue(ScenarioStatePluginContract.relevantVariables[0].startsWith("%macrion_scenario_name\n"))
+        assertTrue(ScenarioStatePluginContract.relevantVariables[1].startsWith("%macrion_scenario_state\n"))
     }
 
     @Test

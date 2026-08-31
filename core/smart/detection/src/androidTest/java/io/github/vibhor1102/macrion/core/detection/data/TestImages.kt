@@ -26,7 +26,7 @@ import io.github.vibhor1102.macrion.core.detection.test.R
 /**
  * Describe the images used for the tests.
  *
- * @param fileRes the resource of the raw image file. Must be generated using the Klickr screen capture.
+ * @param fileRes the resource of the raw image file. Must be generated using the Macrion screen capture.
  * @param size the size of the image, in pixels.
  */
 internal sealed class TestImage(@field:RawRes val fileRes: Int, val size: Point) {

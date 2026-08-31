@@ -16,8 +16,8 @@
  */
 
 
-#ifndef KLICK_R_SCREEN_IMAGE_HPP
-#define KLICK_R_SCREEN_IMAGE_HPP
+#ifndef MACRION_SCREEN_IMAGE_HPP
+#define MACRION_SCREEN_IMAGE_HPP
 
 #include "detection_image.hpp"
 
@@ -37,4 +37,4 @@ namespace smartautoclicker {
     };
 }
 
-#endif //KLICK_R_SCREEN_IMAGE_HPP
+#endif //MACRION_SCREEN_IMAGE_HPP

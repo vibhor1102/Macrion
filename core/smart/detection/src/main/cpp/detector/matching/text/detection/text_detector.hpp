@@ -14,8 +14,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef KLICK_R_TEXT_DETECTOR_HPP
-#define KLICK_R_TEXT_DETECTOR_HPP
+#ifndef MACRION_TEXT_DETECTOR_HPP
+#define MACRION_TEXT_DETECTOR_HPP
 
 #include <opencv2/core/types.hpp>
 #include <utility>
@@ -160,4 +160,4 @@ namespace smartautoclicker {
 }
 
 
-#endif //KLICK_R_TEXT_DETECTOR_HPP
+#endif //MACRION_TEXT_DETECTOR_HPP

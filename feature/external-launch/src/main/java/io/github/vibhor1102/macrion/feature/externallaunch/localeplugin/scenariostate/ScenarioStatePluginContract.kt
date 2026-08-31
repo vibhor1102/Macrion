@@ -15,8 +15,8 @@ internal object ScenarioStatePluginContract {
     const val CONFIGURATION_ACTIVITY_CLASS_NAME =
         "io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.ui.ScenarioStateConditionConfigurationActivity"
 
-    const val VARIABLE_SCENARIO_NAME = "%klickr_scenario_name"
-    const val VARIABLE_SCENARIO_STATE = "%klickr_scenario_state"
+    const val VARIABLE_SCENARIO_NAME = "%macrion_scenario_name"
+    const val VARIABLE_SCENARIO_STATE = "%macrion_scenario_state"
 
     val relevantVariables: Array<String> = arrayOf(
         "$VARIABLE_SCENARIO_NAME\nScenario name\nName of the scenario currently open in Macrion.",

@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef KLICK_R_COLOR_MATCHER_HPP
-#define KLICK_R_COLOR_MATCHER_HPP
+#ifndef MACRION_COLOR_MATCHER_HPP
+#define MACRION_COLOR_MATCHER_HPP
 
 #include "color_matching_result.hpp"
 #include "../../images/condition_image.hpp"
@@ -43,4 +43,4 @@ namespace smartautoclicker {
     };
 }
 
-#endif //KLICK_R_COLOR_MATCHER_HPP
+#endif //MACRION_COLOR_MATCHER_HPP
