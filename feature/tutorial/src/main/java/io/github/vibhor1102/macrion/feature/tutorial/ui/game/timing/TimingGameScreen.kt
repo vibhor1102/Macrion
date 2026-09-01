@@ -9,7 +9,6 @@
 package io.github.vibhor1102.macrion.feature.tutorial.ui.game.timing
 
 import android.content.res.Configuration
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedIconButton
@@ -147,10 +147,10 @@ private fun GameButtons(
 ) {
     Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(32.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
         OutlinedIconButton(onClick = onTimingClick, enabled = enabled, modifier = Modifier.size(64.dp)) {
-            Image(painterResource(R.drawable.ic_tutorial_timer), contentDescription = null)
+            Icon(painterResource(R.drawable.ic_tutorial_timer), contentDescription = null)
         }
         FilledIconButton(onClick = onRetryClick, modifier = Modifier.size(64.dp)) {
-            Image(painterResource(R.drawable.ic_tutorial_retry), contentDescription = null)
+            Icon(painterResource(R.drawable.ic_tutorial_retry), contentDescription = null)
         }
     }
 }
