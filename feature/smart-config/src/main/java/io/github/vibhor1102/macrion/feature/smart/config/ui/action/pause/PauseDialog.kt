@@ -32,7 +32,7 @@ class PauseDialog(private val listener: OnActionConfigCompleteListener) : Overla
 
     override fun onCreateView(): ViewGroup = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        setContent { MacrionTheme { Content() } }
+        setContent { MacrionTheme { this@PauseDialog.Content() } }
     }
 
     override fun onDialogCreated(dialog: BottomSheetDialog) {
