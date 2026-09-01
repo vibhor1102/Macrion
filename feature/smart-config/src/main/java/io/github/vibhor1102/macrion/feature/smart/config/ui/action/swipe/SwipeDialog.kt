@@ -1,58 +1,31 @@
-/*
- * Copyright (C) 2024 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.swipe
 
-import android.text.InputFilter
-import android.text.InputType
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.graphics.toPoint
 import androidx.core.graphics.toPointF
-
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-
-import io.github.vibhor1102.macrion.core.common.actions.GESTURE_DURATION_MAX_VALUE
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonEnabledState
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setLabel
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnTextChangedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setText
-import io.github.vibhor1102.macrion.core.ui.utils.MinMaxInputFilter
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setError
-import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.DialogConfigActionSwipeBinding
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.PositionSelectorMenu
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setDescription
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnClickListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setTitle
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionPositionGestureEditor
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.SwipeDescription
+import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.OnActionConfigCompleteListener
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
-import com.google.android.material.bottomsheet.BottomSheetDialog
-
 import kotlinx.coroutines.launch
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 
 class SwipeDialog(
     private val listener: OnActionConfigCompleteListener,
@@ -60,69 +33,48 @@ class SwipeDialog(
 
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.SWIPE.name
 
-    /** The view model for this dialog. */
     private val viewModel: SwipeViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { swipeViewModel() },
     )
 
-    /** ViewBinding containing the views for this dialog. */
-    private lateinit var viewBinding: DialogConfigActionSwipeBinding
-
-    override fun onCreateView(): ViewGroup {
-        viewBinding = DialogConfigActionSwipeBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(R.string.dialog_title_swipe)
-
-                buttonDismiss.setDebouncedOnClickListener { back() }
-                buttonSave.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener { onSaveButtonClicked() }
-                }
-                buttonDelete.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener { onDeleteButtonClicked() }
-                }
-            }
-
-            fieldName.apply {
-                setLabel(R.string.generic_name)
-                setOnTextChangedListener { viewModel.setName(it.toString()) }
-                textField.filters = arrayOf<InputFilter>(
-                    InputFilter.LengthFilter(context.resources.getInteger(R.integer.name_max_length))
-                )
-            }
-            hideSoftInputOnFocusLoss(fieldName.textField)
-
-            fieldSwipeDuration.apply {
-                textField.filters = arrayOf(MinMaxInputFilter(1, GESTURE_DURATION_MAX_VALUE.toInt()))
-                setLabel(R.string.input_field_label_swipe_duration)
-                setOnTextChangedListener {
-                    viewModel.setSwipeDuration(if (it.isNotEmpty()) it.toString().toLong() else null)
-                }
-            }
-            hideSoftInputOnFocusLoss(fieldSwipeDuration.textField)
-
-            fieldSelectionSwipePosition.apply {
-                setTitle(context.getString(R.string.field_swipe_positions_title))
-                setOnClickListener { debounceUserInteraction { showPositionSelector() } }
-            }
-        }
-
-        return viewBinding.root
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@SwipeDialog.Content() } }
     }
 
     override fun onDialogCreated(dialog: BottomSheetDialog) {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
-                launch { viewModel.isEditingAction.collect(::onActionEditingStateChanged) }
+                viewModel.isEditingAction.collect(::onActionEditingStateChanged)
             }
         }
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.uiState.collect(::updateUi) }
-            }
-        }
+    }
+
+    @Composable
+    private fun Content() {
+        val state by viewModel.uiState.collectAsStateWithLifecycle()
+        val ui = state ?: return
+        MacrionPositionGestureEditor(
+            title = context.getString(R.string.dialog_title_swipe),
+            name = ui.name.orEmpty(),
+            duration = ui.swipeDuration.orEmpty(),
+            positionTitle = context.getString(R.string.field_swipe_positions_title),
+            positionDescription = ui.positionsDescription,
+            nameLabel = context.getString(R.string.generic_name),
+            durationLabel = context.getString(R.string.input_field_label_swipe_duration),
+            nameError = ui.nameError,
+            durationError = ui.swipeDurationError,
+            positionError = ui.positionsError,
+            saveEnabled = ui.canBeSaved,
+            maxNameLength = context.resources.getInteger(R.integer.name_max_length),
+            onNameChanged = viewModel::setName,
+            onDurationChanged = { viewModel.setSwipeDuration(it.toLongOrNull()) },
+            onPositionClicked = ::showPositionSelector,
+            onDismiss = ::back,
+            onDelete = ::onDeleteButtonClicked,
+            onSave = ::onSaveButtonClicked,
+        )
     }
 
     override fun back() {
@@ -133,7 +85,6 @@ class SwipeDialog(
             }
             return
         }
-
         listener.onDismissClicked()
         super.back()
     }
@@ -149,20 +100,6 @@ class SwipeDialog(
         super.back()
     }
 
-    private fun updateUi(state: SwipeUiState?) {
-        state ?: return
-
-        viewBinding.apply {
-            layoutTopBar.setButtonEnabledState(DialogNavigationButton.SAVE, state.canBeSaved)
-            fieldName.setText(state.name)
-            fieldName.setError(state.nameError)
-            fieldSwipeDuration.setText(state.swipeDuration, InputType.TYPE_CLASS_NUMBER)
-            fieldSwipeDuration.setError(state.swipeDurationError)
-            fieldSelectionSwipePosition.setDescription(state.positionsDescription)
-            fieldSelectionSwipePosition.setError(state.positionsError)
-        }
-    }
-
     private fun showPositionSelector() {
         viewModel.getEditedSwipe()?.let { swipe ->
             overlayManager.navigateTo(
@@ -175,8 +112,8 @@ class SwipeDialog(
                         swipeDurationMs = swipe.swipeDuration ?: 250L,
                     ),
                     onConfirm = { description ->
-                        (description as SwipeDescription).let { swipeDesc ->
-                            viewModel.setPositions(swipeDesc.from!!.toPoint(), swipeDesc.to!!.toPoint())
+                        (description as SwipeDescription).let {
+                            viewModel.setPositions(it.from!!.toPoint(), it.to!!.toPoint())
                         }
                     },
                 ),
@@ -187,7 +124,7 @@ class SwipeDialog(
 
     private fun onActionEditingStateChanged(isEditingAction: Boolean) {
         if (!isEditingAction) {
-            Log.e(TAG, "Closing ClickDialog because there is no action edited")
+            Log.e(TAG, "Closing SwipeDialog because there is no action edited")
             finish()
         }
     }
