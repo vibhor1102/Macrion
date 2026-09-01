@@ -69,8 +69,7 @@
     <fragment
         android:id="@+id/fragment_slideshow"
         android:name="io.github.vibhor1102.macrion.feature.tutorial.ui.slideshow.TutorialSlideshowFragment"
-        android:label="fragment_slideshow"
-        tools:layout="@layout/fragment_tutorial_slideshow">
+        android:label="fragment_slideshow">
 
         <argument
             android:name="slideshowType"
