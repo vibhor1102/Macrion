@@ -27,6 +27,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.github.vibhor1102.macrion.R
 import io.github.vibhor1102.macrion.core.ui.bindings.buttons.LoadableButtonState
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionLoadableButton
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 
 @AndroidEntryPoint
@@ -49,9 +50,11 @@ class ConditionsMigrationFragment : DialogFragment() {
             .setView(ComposeView(requireContext()).apply {
                 setContent {
                     MacrionTheme {
-                        ConditionsMigrationContent(viewModel) {
-                            setFragmentResult(FRAGMENT_RESULT_KEY_COMPLETED, Bundle.EMPTY)
-                            dismiss()
+                        MacrionDialogSurface {
+                            ConditionsMigrationContent(viewModel) {
+                                setFragmentResult(FRAGMENT_RESULT_KEY_COMPLETED, Bundle.EMPTY)
+                                dismiss()
+                            }
                         }
                     }
                 }

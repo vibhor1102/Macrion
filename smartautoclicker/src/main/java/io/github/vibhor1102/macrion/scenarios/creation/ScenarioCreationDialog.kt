@@ -34,6 +34,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.vibhor1102.macrion.R
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 
 @AndroidEntryPoint
@@ -45,7 +46,11 @@ class ScenarioCreationDialog : DialogFragment() {
         BottomSheetDialog(requireContext()).apply {
             setCancelable(false)
             setContentView(ComposeView(context).apply {
-                setContent { MacrionTheme { ScenarioCreationContent(viewModel, ::dismiss) } }
+                setContent {
+                    MacrionTheme {
+                        MacrionDialogSurface { ScenarioCreationContent(viewModel, ::dismiss) }
+                    }
+                }
             })
             setOnKeyListener { _, keyCode, event ->
                 if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {

@@ -9,10 +9,10 @@
 package io.github.vibhor1102.macrion.core.ui.compose
 
 import android.os.Build
-import android.util.TypedValue
 import androidx.annotation.ColorRes
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -26,19 +26,7 @@ import io.github.vibhor1102.macrion.core.ui.R
 @Composable
 fun MacrionTheme(content: @Composable () -> Unit) {
     val context = LocalContext.current
-    val systemDarkTheme = isSystemInDarkTheme()
-    val lightThemeAttribute = TypedValue()
-    val darkTheme = if (
-        context.theme.resolveAttribute(
-            android.R.attr.isLightTheme,
-            lightThemeAttribute,
-            true,
-        )
-    ) {
-        lightThemeAttribute.data == 0
-    } else {
-        systemDarkTheme
-    }
+    val darkTheme = isSystemInDarkTheme()
     val colorScheme = when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && darkTheme -> dynamicDarkColorScheme(context)
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> dynamicLightColorScheme(context)
@@ -46,6 +34,16 @@ fun MacrionTheme(content: @Composable () -> Unit) {
         else -> macrionLightColorScheme()
     }
     MaterialTheme(colorScheme = colorScheme, content = content)
+}
+
+/** Provides the Material content color expected by Compose content hosted in a legacy dialog surface. */
+@Composable
+fun MacrionDialogSurface(content: @Composable () -> Unit) {
+    Surface(
+        color = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+        content = content,
+    )
 }
 
 @Composable

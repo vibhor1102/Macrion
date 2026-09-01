@@ -25,6 +25,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.vibhor1102.macrion.R
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 
 @AndroidEntryPoint
@@ -59,7 +60,11 @@ class ScenarioCopyDialog : DialogFragment() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.dialog_title_copy_scenario)
             .setView(ComposeView(requireContext()).apply {
-                setContent { MacrionTheme { CopyNameField(viewModel, defaultName) } }
+                setContent {
+                    MacrionTheme {
+                        MacrionDialogSurface { CopyNameField(viewModel, defaultName) }
+                    }
+                }
             })
             .setCancelable(false)
             .setPositiveButton(android.R.string.ok, null)

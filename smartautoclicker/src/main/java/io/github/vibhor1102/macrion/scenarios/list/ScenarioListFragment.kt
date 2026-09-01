@@ -59,6 +59,7 @@ import io.github.vibhor1102.macrion.core.base.extensions.applySafeContentInsets
 import io.github.vibhor1102.macrion.core.common.navigation.TutorialNavigator
 import io.github.vibhor1102.macrion.core.common.navigation.getTutorialNavigator
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.databinding.FragmentScenariosBinding
 import io.github.vibhor1102.macrion.feature.backup.ui.BackupDialogFragment
 import io.github.vibhor1102.macrion.feature.backup.ui.BackupDialogFragment.Companion.FRAGMENT_TAG_BACKUP_DIALOG
@@ -337,16 +338,18 @@ class ScenarioListFragment : Fragment() {
 
         composeView.setContent {
             MacrionTheme {
-                ImportExportContent(
-                    onImport = {
-                        dialog.dismiss()
-                        showBackupDialog(isImport = true)
-                    },
-                    onExport = {
-                        dialog.dismiss()
-                        scenarioListViewModel.setUiState(ScenarioListUiState.Type.EXPORT)
-                    },
-                )
+                MacrionDialogSurface {
+                    ImportExportContent(
+                        onImport = {
+                            dialog.dismiss()
+                            showBackupDialog(isImport = true)
+                        },
+                        onExport = {
+                            dialog.dismiss()
+                            scenarioListViewModel.setUiState(ScenarioListUiState.Type.EXPORT)
+                        },
+                    )
+                }
             }
         }
         dialog.show()
