@@ -10,16 +10,18 @@ package io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.ui
 
 import android.app.Activity
 import android.os.Bundle
-import android.view.View
-import android.widget.ArrayAdapter
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import io.github.vibhor1102.macrion.core.common.actions.external.ExternalActionEventContract
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.externallaunch.R
-import io.github.vibhor1102.macrion.feature.externallaunch.databinding.ActivityExternalActionEventConfigurationBinding
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.externalaction.ExternalActionEventConfigurationViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -28,10 +30,9 @@ import kotlinx.coroutines.launch
 class ExternalActionEventConfigurationActivity : AppCompatActivity() {
 
     private val viewModel: ExternalActionEventConfigurationViewModel by viewModels()
-    private lateinit var binding: ActivityExternalActionEventConfigurationBinding
-    private lateinit var namesAdapter: ArrayAdapter<String>
+    private var names by mutableStateOf(emptyList<String>())
     private var restoredName: String? = null
-    private var selectedName: String? = null
+    private var selectedName by mutableStateOf<String?>(null)
     private var hasAppliedRestore = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,24 +42,26 @@ class ExternalActionEventConfigurationActivity : AppCompatActivity() {
             return
         }
 
-        binding = ActivityExternalActionEventConfigurationBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        namesAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, mutableListOf())
-        binding.externalActionName.setAdapter(namesAdapter)
         restoredName = viewModel
             .decodeConfiguration(ExternalActionEventContract.readConfigurationJson(intent))
             ?.externalActionName
 
-        binding.externalActionName.setOnItemClickListener { _, _, position, _ ->
-            selectedName = namesAdapter.getItem(position)
-            render()
+        setContent {
+            MacrionTheme {
+                ExternalActionEventConfigurationScreen(
+                    names = names,
+                    selectedName = selectedName,
+                    restoredNameIsMissing = selectedName == restoredName &&
+                        restoredName != null && restoredName !in viewModel.knownExternalActionNames.value,
+                    onNameSelected = { selectedName = it },
+                    onCancel = {
+                        setResult(Activity.RESULT_CANCELED)
+                        finish()
+                    },
+                    onSave = ::saveConfiguration,
+                )
+            }
         }
-        binding.cancel.setOnClickListener {
-            setResult(Activity.RESULT_CANCELED)
-            finish()
-        }
-        binding.save.setOnClickListener { saveConfiguration() }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -82,24 +85,7 @@ class ExternalActionEventConfigurationActivity : AppCompatActivity() {
             addAll(knownNames)
         }
 
-        namesAdapter.clear()
-        namesAdapter.addAll(namesForDisplay)
-        binding.externalActionName.setText(selectedName.orEmpty(), false)
-        render()
-    }
-
-    private fun render() {
-        val name = selectedName
-        val isMissingRestoredName = name != null && name == restoredName && namesAdapter.getPosition(name) == 0 &&
-            viewModel.knownExternalActionNames.value.none { it == name }
-
-        binding.save.isEnabled = !name.isNullOrBlank()
-        binding.message.text = when {
-            namesAdapter.isEmpty -> getString(R.string.external_action_event_empty)
-            isMissingRestoredName -> getString(R.string.external_action_event_missing_name)
-            else -> getString(R.string.external_action_event_description)
-        }
-        binding.message.visibility = View.VISIBLE
+        names = namesForDisplay
     }
 
     private fun saveConfiguration() {
