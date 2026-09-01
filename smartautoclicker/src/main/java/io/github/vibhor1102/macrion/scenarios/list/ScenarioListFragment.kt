@@ -58,7 +58,6 @@ import io.github.vibhor1102.macrion.R
 import io.github.vibhor1102.macrion.core.base.extensions.applySafeContentInsets
 import io.github.vibhor1102.macrion.core.common.navigation.TutorialNavigator
 import io.github.vibhor1102.macrion.core.common.navigation.getTutorialNavigator
-import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.databinding.FragmentScenariosBinding
 import io.github.vibhor1102.macrion.feature.backup.ui.BackupDialogFragment
@@ -330,7 +329,7 @@ class ScenarioListFragment : Fragment() {
     }
 
     private fun showImportExportDialog() {
-        val dialogContext = requireContext().getDynamicColorsContext(R.style.AppTheme)
+        val dialogContext = requireContext()
         val composeView = ComposeView(dialogContext)
         val dialog = MaterialAlertDialogBuilder(dialogContext)
             .setView(composeView)
