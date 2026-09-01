@@ -84,10 +84,15 @@ class SetTextViewModel @Inject constructor(
         }
     }
 
-    fun appendCounterReferenceToTextToWrite(counterName: String) {
+    fun appendCounterReferenceToTextToWrite(counterName: String, atIndex: Int) {
         editionRepository.editionState.getEditedAction<SetText>()?.let { setTextAction ->
             editionRepository.updateEditedAction(
-                setTextAction.copy(text = "" + setTextAction.text.appendCounterReference(counterName))
+                setTextAction.copy(
+                    text = "" + setTextAction.text.appendCounterReference(
+                        counterName = counterName,
+                        atIndex = atIndex.coerceIn(0, setTextAction.text.length),
+                    ),
+                )
             )
         }
     }
