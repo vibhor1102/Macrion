@@ -18,6 +18,8 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu
 
 import android.content.DialogInterface
+import android.graphics.Region
+import android.os.Build
 import android.util.Size
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -105,6 +107,30 @@ class MainMenu(
     private var debugObservableJob: Job? = null
 
     /**
+     * Reused state for defining the tools-only touchable region on Android 13 and newer.
+     * Older Android versions retain the original whole-window touch behavior.
+     */
+    private val menuItemsLocationInWindow = IntArray(2)
+    private val toolsTouchableRegion = Region()
+    private val updateTouchableRegion = Runnable {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return@Runnable
+
+        viewBinding.menuItems.getLocationInWindow(menuItemsLocationInWindow)
+        val left = menuItemsLocationInWindow[0]
+        val top = menuItemsLocationInWindow[1]
+        toolsTouchableRegion.set(
+            left,
+            top,
+            left + viewBinding.menuItems.width,
+            top + viewBinding.menuItems.height,
+        )
+        viewBinding.root.rootSurfaceControl?.setTouchableRegion(toolsTouchableRegion)
+    }
+    private val updateTouchableRegionOnLayout = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+        updateTouchableRegion.run()
+    }
+
+    /**
      * Tells if this service has handled onKeyEvent with ACTION_DOWN for a key in order to return
      * the correct value when ACTION_UP is received.
      */
@@ -127,6 +153,10 @@ class MainMenu(
 
     override fun onCreate() {
         super.onCreate()
+
+        // On supported Android versions, keep one visual window while passing Debug-area touches through it.
+        viewBinding.root.addOnLayoutChangeListener(updateTouchableRegionOnLayout)
+        viewBinding.root.post(updateTouchableRegion)
 
         // Ensure the debug view state is correct
         viewBinding.layoutDebug.visibility = View.GONE
@@ -173,6 +203,8 @@ class MainMenu(
     }
 
     override fun onDestroy() {
+        viewBinding.root.removeCallbacks(updateTouchableRegion)
+        viewBinding.root.removeOnLayoutChangeListener(updateTouchableRegionOnLayout)
         super.onDestroy()
         playPauseButtonController.detachView()
     }
