@@ -10,10 +10,12 @@ package io.github.vibhor1102.macrion.core.common.quality.ui
 
 import android.app.Dialog
 import android.os.Bundle
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.DialogFragment
-import io.github.vibhor1102.macrion.core.base.extensions.safeStartWebBrowserActivity
-import io.github.vibhor1102.macrion.core.common.quality.databinding.DialogAccessibilityTroubleshootingBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.vibhor1102.macrion.core.base.extensions.safeStartWebBrowserActivity
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 
 /** A generic, Don’t Kill My App-style explanation for an Android background-launch failure. */
 class BackgroundLaunchTroubleshootingDialog : DialogFragment() {
@@ -37,17 +39,25 @@ class BackgroundLaunchTroubleshootingDialog : DialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val args = requireArguments()
-        val binding = DialogAccessibilityTroubleshootingBinding.inflate(layoutInflater).apply {
-            titlePermission.text = args.getString(ARG_TITLE)
-            descPermission.text = args.getString(ARG_MESSAGE)
-            buttonOpenWebsite.setOnClickListener {
-                context?.safeStartWebBrowserActivity(args.getString(ARG_HELP_URL).orEmpty())
+        val content = ComposeView(requireContext()).apply {
+            setContent {
+                MacrionTheme {
+                    MacrionDialogSurface {
+                        TroubleshootingContent(
+                            title = args.getString(ARG_TITLE).orEmpty(),
+                            message = args.getString(ARG_MESSAGE).orEmpty(),
+                            onOpenWebsite = {
+                                context?.safeStartWebBrowserActivity(args.getString(ARG_HELP_URL).orEmpty())
+                            },
+                            onDismiss = ::dismiss,
+                        )
+                    }
+                }
             }
-            buttonUnderstood.setOnClickListener { dismiss() }
         }
 
         return MaterialAlertDialogBuilder(requireContext())
-            .setView(binding.root)
+            .setView(content)
             .create()
     }
 }

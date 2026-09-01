@@ -19,6 +19,7 @@ plugins {
     alias(libs.plugins.buzbuz.androidLibrary)
     alias(libs.plugins.buzbuz.flavour)
     alias(libs.plugins.buzbuz.hilt)
+    alias(libs.plugins.jetbrainsKotlinCompose)
 }
 
 android {
@@ -26,15 +27,20 @@ android {
 
     buildFeatures {
         buildConfig = true
-        viewBinding = true
+        compose = true
     }
 }
 
 dependencies {
+    val composeBom = platform(libs.androidx.compose.bom)
+
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.androidx.datastore)
 
     implementation(libs.androidx.fragment.ktx)
+    implementation(composeBom)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui)
     implementation(libs.google.material)
 
     implementation(project(":core:common:base"))
