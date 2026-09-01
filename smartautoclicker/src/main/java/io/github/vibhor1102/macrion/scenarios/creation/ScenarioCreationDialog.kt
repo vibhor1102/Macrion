@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -180,52 +179,55 @@ private fun ScenarioCreationTopBar(
 
 @Composable
 private fun ScenarioTypeCard(item: ScenarioTypeItem, selected: Boolean, showWarning: Boolean, onClick: () -> Unit) {
-    val containerColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+    val containerColor = if (selected) {
+        MaterialTheme.colorScheme.surfaceContainerHighest
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant
+    }
+    val contentColor = MaterialTheme.colorScheme.onSurface
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         colors = CardDefaults.cardColors(containerColor = containerColor, contentColor = contentColor),
     ) {
-        Row(
-            Modifier.padding(horizontal = 16.dp, vertical = 12.dp).defaultMinSize(minHeight = 80.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            Icon(
-                painterResource(item.iconRes),
-                contentDescription = null,
-                modifier = Modifier.padding(top = 3.dp).size(24.dp),
-                tint = contentColor,
-            )
-            Column(Modifier.weight(1f).padding(start = 8.dp, end = 8.dp)) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painterResource(item.iconRes),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = contentColor,
+                )
                 Text(
                     stringResource(item.titleRes),
-                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.weight(1f).padding(start = 8.dp, end = 8.dp),
+                    style = MaterialTheme.typography.titleLarge,
                     color = contentColor,
                 )
-                Text(
-                    stringResource(item.descriptionText),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = contentColor,
-                )
-                if (showWarning && item is ScenarioTypeItem.Smart) {
-                    Text(
-                        stringResource(R.string.item_desc_smart_scenario_pro_mode),
-                        color = if (selected) contentColor else MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-            if (selected) {
-                Surface(
-                    modifier = Modifier.size(22.dp),
-                    shape = CircleShape,
-                    color = contentColor,
-                    contentColor = containerColor,
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text("✓", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                if (selected) {
+                    Surface(
+                        modifier = Modifier.size(22.dp),
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text("✓", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
+            }
+            Text(
+                stringResource(item.descriptionText),
+                modifier = Modifier.padding(top = 4.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                color = contentColor,
+            )
+            if (showWarning && item is ScenarioTypeItem.Smart) {
+                Text(
+                    stringResource(R.string.item_desc_smart_scenario_pro_mode),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
             }
         }
     }
