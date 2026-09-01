@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.MaterialTheme
@@ -103,11 +104,11 @@ private fun TimingGameLandscape(
             InstructionsCard(state.instructionsResId)
             GameButtons(state.isWon == null, onTimingClick, onRetryClick, Modifier.weight(1f))
         }
-        Column(Modifier.size(width = 175.dp, height = dimensionResource(R.dimen.tutorial_overlay_menu_height)), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            StatCard(stringResource(R.string.message_target_diff, state.targetTotalDiffMs), Modifier.weight(1f))
-            StatCard(stringResource(R.string.message_total_diff, state.cumulativeTimeDiffMs.toSignedString()), Modifier.weight(1f))
-            StatCard(stringResource(R.string.message_click_count, state.clickCount, state.targetClickCount), Modifier.weight(1f))
-            StatCard(stringResource(R.string.message_last_diff, state.lastTimeDiffMs.toSignedString()), Modifier.weight(1f))
+        Column(Modifier.width(175.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            StatCard(stringResource(R.string.message_target_diff, state.targetTotalDiffMs))
+            StatCard(stringResource(R.string.message_total_diff, state.cumulativeTimeDiffMs.toSignedString()))
+            StatCard(stringResource(R.string.message_click_count, state.clickCount, state.targetClickCount))
+            StatCard(stringResource(R.string.message_last_diff, state.lastTimeDiffMs.toSignedString()))
         }
     }
 }
@@ -131,7 +132,7 @@ private fun OverlayMenuPlaceholder(show: Boolean, onPositioned: (IntOffset) -> U
 @Composable
 private fun StatCard(text: String, modifier: Modifier = Modifier) {
     Card(modifier) {
-        Box(Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 8.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 16.dp), contentAlignment = Alignment.Center) {
             Text(text, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center, maxLines = 2)
         }
     }
