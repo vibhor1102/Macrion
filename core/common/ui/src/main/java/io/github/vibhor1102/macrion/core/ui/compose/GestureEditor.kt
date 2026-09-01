@@ -1,0 +1,90 @@
+/* Copyright (C) 2026 Vibhor Goel */
+package io.github.vibhor1102.macrion.core.ui.compose
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import io.github.vibhor1102.macrion.core.ui.R
+
+@Composable
+fun MacrionGestureEditor(
+    title: String, name: String, duration: String, repeatCount: String, repeatDelay: String,
+    positionTitle: String, positionDescription: String, nameLabel: String, durationLabel: String,
+    repeatCountLabel: String, repeatDelayLabel: String, nameError: Boolean, durationError: Boolean,
+    repeatCountError: Boolean, repeatDelayError: Boolean, infiniteRepeat: Boolean,
+    saveEnabled: Boolean, maxNameLength: Int, onNameChanged: (String) -> Unit,
+    onDurationChanged: (String) -> Unit, onRepeatCountChanged: (String) -> Unit,
+    onRepeatDelayChanged: (String) -> Unit, onInfiniteRepeatChanged: () -> Unit,
+    onPositionClicked: () -> Unit, onDismiss: () -> Unit, onDelete: () -> Unit, onSave: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().heightIn(max = 640.dp),
+        color = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
+    ) {
+        Column(Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onClick = onDismiss) { Icon(painterResource(R.drawable.ic_cancel), null) }
+                Text(title, Modifier.weight(1f).padding(horizontal = 8.dp), style = MaterialTheme.typography.titleLarge)
+                FilledTonalIconButton(onClick = onDelete) { Icon(painterResource(R.drawable.ic_delete), null) }
+                Spacer(Modifier.width(8.dp))
+                FilledIconButton(onClick = onSave, enabled = saveEnabled) {
+                    Icon(painterResource(R.drawable.ic_save_filled), null)
+                }
+            }
+            Column(
+                modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                MacrionTextField(name, onNameChanged, nameLabel, isError = nameError, maxLength = maxNameLength)
+                NumericField(duration, durationLabel, durationError, onDurationChanged)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    NumericField(repeatCount, repeatCountLabel, repeatCountError, onRepeatCountChanged,
+                        Modifier.weight(1f), enabled = !infiniteRepeat)
+                    Checkbox(checked = infiniteRepeat, onCheckedChange = { onInfiniteRepeatChanged() })
+                    Text("∞", style = MaterialTheme.typography.titleLarge)
+                }
+                NumericField(repeatDelay, repeatDelayLabel, repeatDelayError, onRepeatDelayChanged)
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                        .clickable(role = Role.Button, onClick = onPositionClicked),
+                ) {
+                    Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+                        Text(positionTitle, style = MaterialTheme.typography.bodyLarge)
+                        Spacer(Modifier.height(4.dp))
+                        Text(positionDescription, style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun NumericField(
+    value: String, label: String, isError: Boolean, onValueChanged: (String) -> Unit,
+    modifier: Modifier = Modifier, enabled: Boolean = true,
+) {
+    OutlinedTextField(
+        value = value, onValueChange = { onValueChanged(it.filter(Char::isDigit)) },
+        label = { Text(label) }, modifier = modifier.fillMaxWidth(), isError = isError,
+        enabled = enabled, singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+    )
+}

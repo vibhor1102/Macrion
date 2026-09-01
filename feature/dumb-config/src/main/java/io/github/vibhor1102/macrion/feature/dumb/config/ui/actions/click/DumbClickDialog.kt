@@ -1,66 +1,25 @@
-/*
- * Copyright (C) 2023 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2023 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.click
 
 import android.graphics.Point
 import android.graphics.PointF
-import android.text.InputFilter
-import android.text.InputType
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.*
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.graphics.toPoint
 import androidx.core.graphics.toPointF
-
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-
-import io.github.vibhor1102.macrion.core.common.actions.GESTURE_DURATION_MAX_VALUE
-import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
-import io.github.vibhor1102.macrion.core.dumb.domain.model.REPEAT_COUNT_MAX_VALUE
-import io.github.vibhor1102.macrion.core.dumb.domain.model.REPEAT_COUNT_MIN_VALUE
-import io.github.vibhor1102.macrion.core.dumb.domain.model.REPEAT_DELAY_MAX_MS
-import io.github.vibhor1102.macrion.core.dumb.domain.model.REPEAT_DELAY_MIN_MS
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonEnabledState
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setChecked
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setError
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setLabel
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setNumericValue
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnCheckboxClickedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnTextChangedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setText
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setup
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.PositionSelectorMenu
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setDescription
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnClickListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setTitle
-import io.github.vibhor1102.macrion.core.ui.utils.MinMaxInputFilter
+import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionGestureEditor
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescription
 import io.github.vibhor1102.macrion.feature.dumb.config.R
-import io.github.vibhor1102.macrion.feature.dumb.config.databinding.DialogConfigDumbActionClickBinding
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
-
-import com.google.android.material.bottomsheet.BottomSheetDialog
-
-import kotlinx.coroutines.launch
 
 class DumbClickDialog(
     private val dumbClick: DumbAction.DumbClick,
@@ -68,159 +27,73 @@ class DumbClickDialog(
     private val onDeleteClicked: (DumbAction.DumbClick) -> Unit,
     private val onDismissClicked: () -> Unit,
 ) : OverlayDialog(R.style.AppTheme) {
-
-    /** The view model for this dialog. */
     private val viewModel: DumbClickViewModel by viewModels(
         entryPoint = DumbConfigViewModelsEntryPoint::class.java,
         creator = { dumbClickViewModel() },
     )
-    /** ViewBinding containing the views for this dialog. */
-    private lateinit var viewBinding: DialogConfigDumbActionClickBinding
 
     override fun onCreateView(): ViewGroup {
         viewModel.setEditedDumbClick(dumbClick)
-
-        viewBinding = DialogConfigDumbActionClickBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(R.string.item_title_dumb_click)
-
-                buttonDismiss.setDebouncedOnClickListener { onDismissButtonClicked()}
-                buttonSave.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener { onSaveButtonClicked() }
-                }
-                buttonDelete.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener { onDeleteButtonClicked() }
-                }
-            }
-
-            fieldName.apply {
-                setLabel(R.string.input_field_label_name)
-                setOnTextChangedListener { viewModel.setName(it.toString()) }
-                textField.filters = arrayOf<InputFilter>(
-                    InputFilter.LengthFilter(context.resources.getInteger(R.integer.name_max_length))
-                )
-            }
-            hideSoftInputOnFocusLoss(fieldName.textField)
-
-            fieldDuration.apply {
-                textField.filters = arrayOf(MinMaxInputFilter(1, GESTURE_DURATION_MAX_VALUE.toInt()))
-                setLabel(R.string.input_field_label_click_press_duration)
-                setOnTextChangedListener {
-                    viewModel.setPressDurationMs(if (it.isNotEmpty()) it.toString().toLong() else 0)
-                }
-            }
-            hideSoftInputOnFocusLoss(fieldDuration.textField)
-
-            fieldRepeat.apply {
-                textField.filters = arrayOf(MinMaxInputFilter(
-                    REPEAT_COUNT_MIN_VALUE,
-                    REPEAT_COUNT_MAX_VALUE
-                ))
-                setup(R.string.input_field_label_repeat_count, R.drawable.ic_infinite, disableInputWithCheckbox = true)
-                setOnTextChangedListener {
-                    viewModel.setRepeatCount(if (it.isNotEmpty()) it.toString().toInt() else 0)
-                }
-                setOnCheckboxClickedListener(viewModel::toggleInfiniteRepeat)
-            }
-            hideSoftInputOnFocusLoss(fieldRepeat.textField)
-
-            fieldRepeatDelay.apply {
-                textField.filters = arrayOf(MinMaxInputFilter(
-                    REPEAT_DELAY_MIN_MS.toInt(),
-                    REPEAT_DELAY_MAX_MS.toInt(),
-                ))
-                setLabel(R.string.input_field_label_repeat_delay)
-                setOnTextChangedListener {
-                    viewModel.setRepeatDelay(if (it.isNotEmpty()) it.toString().toLong() else 0)
-                }
-            }
-            hideSoftInputOnFocusLoss(fieldRepeatDelay.textField)
-
-            fieldSelectionPosition.apply {
-                setTitle(context.getString(R.string.field_click_position_title))
-                setOnClickListener { debounceUserInteraction { onPositionCardClicked() } }
-            }
-        }
-
-        return viewBinding.root
-    }
-
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.isValidDumbClick.collect(::updateSaveButton) }
-                launch { viewModel.name.collect(viewBinding.fieldName::setText) }
-                launch { viewModel.nameError.collect(viewBinding.fieldName::setError)}
-                launch { viewModel.pressDuration.collect(::updateDumbClickPressDuration) }
-                launch { viewModel.pressDurationError.collect(viewBinding.fieldDuration::setError)}
-                launch { viewModel.repeatCount.collect(viewBinding.fieldRepeat::setNumericValue) }
-                launch { viewModel.repeatCountError.collect(viewBinding.fieldRepeat::setError) }
-                launch { viewModel.repeatInfiniteState.collect(viewBinding.fieldRepeat::setChecked) }
-                launch { viewModel.repeatDelay.collect(::updateDumbClickRepeatDelay) }
-                launch { viewModel.repeatDelayError.collect(viewBinding.fieldRepeatDelay::setError)}
-                launch { viewModel.clickPositionText.collect(::updateFieldPosition) }
-            }
+        return ComposeView(context).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent { MacrionTheme { this@DumbClickDialog.Content() } }
         }
     }
 
-    private fun onSaveButtonClicked() {
-        viewModel.getEditedDumbClick()?.let { editedDumbClick ->
-            viewModel.saveLastConfig(context)
-            onConfirmClicked(editedDumbClick)
-            back()
-        }
-    }
+    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
 
-    private fun onDeleteButtonClicked() {
-        viewModel.getEditedDumbClick()?.let { editedAction ->
-            onDeleteClicked(editedAction)
-            back()
-        }
-    }
-
-    private fun onDismissButtonClicked() {
-        onDismissClicked()
-        back()
-    }
-
-    private fun updateDumbClickPressDuration(duration: String) {
-        viewBinding.fieldDuration.setText(duration, InputType.TYPE_CLASS_NUMBER)
-    }
-
-    private fun updateDumbClickRepeatDelay(delay: String) {
-        viewBinding.fieldRepeatDelay.setText(delay, InputType.TYPE_CLASS_NUMBER)
-    }
-
-    private fun updateSaveButton(isValidCondition: Boolean) {
-        viewBinding.layoutTopBar.setButtonEnabledState(DialogNavigationButton.SAVE, isValidCondition)
-    }
-
-    private fun updateFieldPosition(positionText: String) {
-        viewBinding.fieldSelectionPosition.setDescription(positionText)
+    @Composable private fun Content() {
+        val initialName by viewModel.name.collectAsStateWithLifecycle(initialValue = null)
+        val initialDuration by viewModel.pressDuration.collectAsStateWithLifecycle(initialValue = null)
+        val initialCount by viewModel.repeatCount.collectAsStateWithLifecycle(initialValue = null)
+        val initialDelay by viewModel.repeatDelay.collectAsStateWithLifecycle(initialValue = null)
+        var name by remember { mutableStateOf("") }
+        var duration by remember { mutableStateOf("") }
+        var count by remember { mutableStateOf("") }
+        var delay by remember { mutableStateOf("") }
+        LaunchedEffect(initialName) { initialName?.let { name = it } }
+        LaunchedEffect(initialDuration) { initialDuration?.let { duration = it } }
+        LaunchedEffect(initialCount) { initialCount?.let { count = it } }
+        LaunchedEffect(initialDelay) { initialDelay?.let { delay = it } }
+        MacrionGestureEditor(
+            title = context.getString(R.string.item_title_dumb_click), name = name, duration = duration,
+            repeatCount = count, repeatDelay = delay,
+            positionTitle = context.getString(R.string.field_click_position_title),
+            positionDescription = viewModel.clickPositionText.collectAsStateWithLifecycle("").value,
+            nameLabel = context.getString(R.string.input_field_label_name),
+            durationLabel = context.getString(R.string.input_field_label_click_press_duration),
+            repeatCountLabel = context.getString(R.string.input_field_label_repeat_count),
+            repeatDelayLabel = context.getString(R.string.input_field_label_repeat_delay),
+            nameError = viewModel.nameError.collectAsStateWithLifecycle(false).value,
+            durationError = viewModel.pressDurationError.collectAsStateWithLifecycle(false).value,
+            repeatCountError = viewModel.repeatCountError.collectAsStateWithLifecycle(false).value,
+            repeatDelayError = viewModel.repeatDelayError.collectAsStateWithLifecycle(false).value,
+            infiniteRepeat = viewModel.repeatInfiniteState.collectAsStateWithLifecycle(false).value,
+            saveEnabled = viewModel.isValidDumbClick.collectAsStateWithLifecycle(false).value,
+            maxNameLength = context.resources.getInteger(R.integer.name_max_length),
+            onNameChanged = { name = it; viewModel.setName(it) },
+            onDurationChanged = { duration = it; viewModel.setPressDurationMs(it.toLongOrNull() ?: 0) },
+            onRepeatCountChanged = { count = it; viewModel.setRepeatCount(it.toIntOrNull() ?: 0) },
+            onRepeatDelayChanged = { delay = it; viewModel.setRepeatDelay(it.toLongOrNull() ?: 0) },
+            onInfiniteRepeatChanged = viewModel::toggleInfiniteRepeat,
+            onPositionClicked = ::onPositionCardClicked,
+            onDismiss = { onDismissClicked(); back() },
+            onDelete = { viewModel.getEditedDumbClick()?.let(onDeleteClicked); back() },
+            onSave = { viewModel.getEditedDumbClick()?.let { viewModel.saveLastConfig(context); onConfirmClicked(it); back() } },
+        )
     }
 
     private fun onPositionCardClicked() {
-        viewModel.getEditedDumbClick()?.let { dumbClick ->
-            overlayManager.navigateTo(
-                context = context,
-                newOverlay = PositionSelectorMenu(
-                    itemBriefDescription = ClickDescription(
-                        position = dumbClick.position.toEditionPosition(),
-                        pressDurationMs = dumbClick.pressDurationMs,
-                    ),
-                    onConfirm = { description ->
-                        viewModel.setPosition((description as? ClickDescription)?.position?.toPoint())
-                    }
+        viewModel.getEditedDumbClick()?.let { click ->
+            overlayManager.navigateTo(context, PositionSelectorMenu(
+                itemBriefDescription = ClickDescription(
+                    pressDurationMs = click.pressDurationMs,
+                    position = click.position.toEditionPosition(),
                 ),
-                hideCurrent = true,
-            )
+                onConfirm = { viewModel.setPosition((it as? ClickDescription)?.position?.toPoint()) },
+            ), hideCurrent = true)
         }
     }
 
-    private fun Point.toEditionPosition(): PointF? =
-        if (x == 0 && y == 0) null
-        else toPointF()
-
+    private fun Point.toEditionPosition(): PointF? = if (x == 0 && y == 0) null else toPointF()
 }
