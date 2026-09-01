@@ -15,6 +15,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,6 +37,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -187,7 +189,11 @@ private fun GameArea(
                 }
             } else {
                 Button(onClick = onStartGame, modifier = Modifier.align(Alignment.Center)) {
-                    Icon(painterResource(R.drawable.ic_play_arrow), contentDescription = null)
+                    Icon(
+                        painter = painterResource(R.drawable.ic_play_arrow),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
                     Text(stringResource(R.string.button_text_tutorial_start_game), Modifier.padding(start = 8.dp))
                 }
             }
@@ -212,10 +218,15 @@ private fun GameTarget(
     val modifier = Modifier.offset(x, y).size(width, height)
 
     if (imageTarget) {
+        val interactionSource = remember { MutableInteractionSource() }
         Image(
             painter = painterResource(type.drawableRes()),
             contentDescription = null,
-            modifier = modifier.clickable(onClick = onClick),
+            modifier = modifier.clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+            ),
         )
     } else {
         OutlinedButton(onClick = onClick, modifier = modifier) {
