@@ -4,7 +4,6 @@ package io.github.vibhor1102.macrion.scenarios.creation
 import android.app.Dialog
 import android.os.Bundle
 import android.view.KeyEvent
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -180,13 +179,15 @@ private fun ScenarioCreationTopBar(
 @Composable
 private fun ScenarioTypeCard(item: ScenarioTypeItem, selected: Boolean, showWarning: Boolean, onClick: () -> Unit) {
     val containerColor = if (selected) {
-        MaterialTheme.colorScheme.surfaceContainerHighest
-    } else {
         MaterialTheme.colorScheme.surfaceVariant
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHighest
     }
     val contentColor = MaterialTheme.colorScheme.onSurface
     Card(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(containerColor = containerColor, contentColor = contentColor),
     ) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
