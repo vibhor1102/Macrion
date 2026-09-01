@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.unit.IntOffset
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -52,6 +53,7 @@ class TimingGameFragment : Fragment() {
     private val viewModel: TimingGameViewModel by viewModels()
     private var showOverlayMenuPlaceholder by mutableStateOf(true)
     private var overlayMenuPosition: IntOffset? = null
+    private var completionDialog: AlertDialog? = null
 
     @Inject lateinit var overlayManager: OverlayManager
 
@@ -116,6 +118,12 @@ class TimingGameFragment : Fragment() {
         viewModel.stopTutorial()
     }
 
+    override fun onDestroyView() {
+        completionDialog?.dismiss()
+        completionDialog = null
+        super.onDestroyView()
+    }
+
     private fun showHideStepOverlay(show: Boolean) {
         showOverlayMenuPlaceholder = !overlayManager.isOverlayStackVisible()
 
@@ -133,11 +141,16 @@ class TimingGameFragment : Fragment() {
     }
 
     private fun showCompletionDialog(show: Boolean) {
-        if (!show) return
+        if (!show || completionDialog?.isShowing == true) return
 
-        requireContext().createTutorialSuccessDialog {
-            findNavController().navigateUp()
-        }.show()
+        completionDialog = requireContext().createTutorialSuccessDialog {
+            if (isAdded) findNavController().navigateUp()
+        }.also { dialog ->
+            dialog.setOnDismissListener {
+                if (completionDialog === dialog) completionDialog = null
+            }
+            dialog.show()
+        }
     }
 
     private fun onOverlayMenuPositioned(position: IntOffset) {
