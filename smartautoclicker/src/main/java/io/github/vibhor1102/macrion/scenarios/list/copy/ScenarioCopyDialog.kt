@@ -9,9 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -53,7 +51,7 @@ class ScenarioCopyDialog : DialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel.setCopyName(defaultName)
+        viewModel.initializeCopyName(defaultName)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog =
@@ -62,7 +60,7 @@ class ScenarioCopyDialog : DialogFragment() {
             .setView(ComposeView(requireContext()).apply {
                 setContent {
                     MacrionTheme {
-                        MacrionDialogSurface { CopyNameField(viewModel, defaultName) }
+                        MacrionDialogSurface { CopyNameField(viewModel) }
                     }
                 }
             })
@@ -84,13 +82,13 @@ class ScenarioCopyDialog : DialogFragment() {
 }
 
 @Composable
-private fun CopyNameField(viewModel: ScenarioCopyViewModel, defaultName: String) {
-    var name by remember { mutableStateOf(defaultName) }
+private fun CopyNameField(viewModel: ScenarioCopyViewModel) {
+    val name by viewModel.copyName.collectAsStateWithLifecycle()
     val isError by viewModel.copyNameError.collectAsStateWithLifecycle(false)
     val focusRequester = remember { FocusRequester() }
     MacrionTextField(
-        value = name,
-        onValueChange = { name = it; viewModel.setCopyName(it) },
+        value = name.orEmpty(),
+        onValueChange = viewModel::setCopyName,
         label = stringResource(R.string.default_click_name),
         isError = isError,
         maxLength = 60,

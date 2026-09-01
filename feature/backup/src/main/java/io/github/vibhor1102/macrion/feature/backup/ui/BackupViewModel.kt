@@ -66,6 +66,8 @@ class BackupViewModel @Inject constructor(
      * @param isImport true for import, false for export.
      */
     fun initialize(context: Context, isImport: Boolean) {
+        if (_backupState.value != null) return
+
         isImportMode = isImport
         _backupState.value = getInitialState(context, isImport)
     }
