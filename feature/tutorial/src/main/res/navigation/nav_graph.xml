@@ -24,8 +24,7 @@
     <fragment
         android:id="@+id/fragment_tutorial_list"
         android:name="io.github.vibhor1102.macrion.feature.tutorial.ui.list.TutorialListFragment"
-        android:label="fragment_two"
-        tools:layout="@layout/fragment_tutorial_list">
+        android:label="fragment_two">
 
         <argument
             android:name="categoryType"
