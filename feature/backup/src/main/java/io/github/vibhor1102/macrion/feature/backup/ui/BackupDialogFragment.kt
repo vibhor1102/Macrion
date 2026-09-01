@@ -25,21 +25,18 @@ import android.widget.Toast
 
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 
 import io.github.vibhor1102.macrion.feature.backup.R
-import io.github.vibhor1102.macrion.feature.backup.databinding.DialogBackupBinding
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-
-import kotlinx.coroutines.launch
 
 /** Fragment displaying the state of a backup (import or export). */
 @AndroidEntryPoint
@@ -84,8 +81,6 @@ class BackupDialogFragment : DialogFragment() {
 
     /** The view model containing the backup state. */
     private val backupViewModel: BackupViewModel by viewModels()
-    /** The view binding on the views of this dialog.*/
-    private lateinit var viewBinding: DialogBackupBinding
     /** The result launcher for the file picker activity. Provides the uri for the backup file. */
     private lateinit var backupActivityResult: ActivityResultLauncher<Intent>
 
@@ -112,110 +107,58 @@ class BackupDialogFragment : DialogFragment() {
                 }
             }
         }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                backupViewModel.backupState.collect { backupState ->
-                    backupState?.let { onNewState(backupState) }
-                }
-            }
-        }
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        viewBinding = DialogBackupBinding.inflate(layoutInflater)
-
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle(if (isImport) R.string.dialog_title_import_backup else R.string.dialog_title_create_backup)
-            .setView(viewBinding.root)
-            .setCancelable(false)
-            .setPositiveButton(android.R.string.ok, null)
-            .setNegativeButton(android.R.string.cancel, null)
-            .create()
-
-        dialog.setOnShowListener {
-            backupViewModel.backupState.value?.let { onNewState(it) }
-        }
-
-        return dialog
-    }
-
-    /**
-     * Update the UI with the new state.
-     * @param state the new UI state.
-     */
-    private fun onNewState(state: BackupDialogUiState) {
-        viewBinding.apply {
-            textFileSelection.apply {
-                visibility = state.fileSelectionVisibility
-                text = state.fileSelectionText
-
-                setOnClickListener {
-                    if (state.requiresCompatibilityPreparation) {
-                        backupViewModel.prepareKlickrCompatibleExport(
-                            requireContext(),
-                            exportDumbScenarios,
-                            exportSmartScenarios,
+        val content = ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MacrionTheme {
+                    MacrionDialogSurface {
+                        BackupDialogContent(
+                            title = getString(
+                                if (isImport) R.string.dialog_title_import_backup
+                                else R.string.dialog_title_create_backup
+                            ),
+                            stateFlow = backupViewModel.backupState,
+                            onFileSelection = ::onFileSelection,
+                            onKlickrCompatibleChanged = {
+                                backupViewModel.setKlickrCompatibleExport(requireContext(), it)
+                            },
+                            onConfirm = ::onConfirm,
+                            onCancel = ::dismiss,
                         )
-                    } else if (!launchDocumentPicker()) {
-                        Toast.makeText(context, R.string.message_backup_error_no_zip_app, Toast.LENGTH_LONG).show()
                     }
-                }
-            }
-
-            loading.visibility = state.loadingVisibility
-
-            textStatus.apply {
-                visibility = state.textStatusVisibility
-                text = state.textStatusText
-            }
-
-            layoutCompatWarning.visibility = state.compatWarningVisibility
-
-            checkboxKlickrCompatible.apply {
-                visibility = state.klickrCheckboxVisibility
-                setOnCheckedChangeListener(null)
-                isChecked = state.klickrCompatibleChecked
-                setOnCheckedChangeListener { _, checked ->
-                    backupViewModel.setKlickrCompatibleExport(requireContext(), checked)
-                }
-            }
-
-            textKlickrCompatWarning.visibility = state.klickrExportWarningVisibility
-
-            iconStatus.apply {
-                visibility = state.iconStatusVisibility
-                state.iconStatus?.let { setImageResource(it) }
-                state.iconTint?.let { drawable.setTint(it) }
-            }
-
-            setDialogButtonsEnabledState(
-                enabledPositive = state.dialogOkButtonEnabled,
-                enabledNegative = state.dialogCancelButtonEnabled,
-            )
-            (dialog as? AlertDialog)?.getButton(AlertDialog.BUTTON_POSITIVE)?.setOnClickListener {
-                if (state.compatibilityReviewReady) {
-                    if (!launchDocumentPicker()) {
-                        Toast.makeText(context, R.string.message_backup_error_no_zip_app, Toast.LENGTH_LONG).show()
-                    }
-                } else if (state.dialogOkButtonEnabled) {
-                    dismiss()
                 }
             }
         }
+
+        return MaterialAlertDialogBuilder(requireContext())
+            .setView(content)
+            .setCancelable(false)
+            .create()
     }
 
-    /**
-     * Set the enabled state of the dialog buttons.
-     * @param enabledPositive true to enable the OK button, false to disable it.
-     * @param enabledNegative true to enable the Cancel button, false to disable it.
-     */
-    private fun setDialogButtonsEnabledState(enabledPositive: Boolean, enabledNegative: Boolean) {
-        dialog?.let {
-            (it as AlertDialog).apply {
-                getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = enabledPositive
-                getButton(AlertDialog.BUTTON_NEGATIVE).isEnabled = enabledNegative
-            }
+    private fun onFileSelection(state: BackupDialogUiState) {
+        if (state.requiresCompatibilityPreparation) {
+            backupViewModel.prepareKlickrCompatibleExport(
+                requireContext(),
+                exportDumbScenarios,
+                exportSmartScenarios,
+            )
+        } else {
+            launchDocumentPickerOrShowError()
+        }
+    }
+
+    private fun onConfirm(state: BackupDialogUiState) {
+        if (state.compatibilityReviewReady) launchDocumentPickerOrShowError()
+        else dismiss()
+    }
+
+    private fun launchDocumentPickerOrShowError() {
+        if (!launchDocumentPicker()) {
+            Toast.makeText(context, R.string.message_backup_error_no_zip_app, Toast.LENGTH_LONG).show()
         }
     }
 
