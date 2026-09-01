@@ -179,11 +179,15 @@ private fun ScenarioCreationTopBar(
 @Composable
 private fun ScenarioTypeCard(item: ScenarioTypeItem, selected: Boolean, showWarning: Boolean, onClick: () -> Unit) {
     val containerColor = if (selected) {
-        MaterialTheme.colorScheme.surfaceVariant
+        MaterialTheme.colorScheme.primaryContainer
     } else {
         MaterialTheme.colorScheme.surfaceContainerHighest
     }
-    val contentColor = MaterialTheme.colorScheme.onSurface
+    val contentColor = if (selected) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
@@ -208,8 +212,8 @@ private fun ScenarioTypeCard(item: ScenarioTypeItem, selected: Boolean, showWarn
                     Surface(
                         modifier = Modifier.size(22.dp),
                         shape = CircleShape,
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        color = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text("✓", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
