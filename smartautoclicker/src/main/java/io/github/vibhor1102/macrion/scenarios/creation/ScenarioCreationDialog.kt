@@ -5,26 +5,38 @@ import android.app.Dialog
 import android.os.Bundle
 import android.view.KeyEvent
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
@@ -36,6 +48,7 @@ import io.github.vibhor1102.macrion.R
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.R as UiR
 
 @AndroidEntryPoint
 class ScenarioCreationDialog : DialogFragment() {
@@ -73,44 +86,145 @@ private fun ScenarioCreationContent(viewModel: ScenarioCreationViewModel, onDism
         if (creationState == CreationState.SAVED) onDismiss()
     }
 
-    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            TextButton(onClick = onDismiss) { Text(stringResource(android.R.string.cancel)) }
-            Text(stringResource(R.string.dialog_title_add_scenario), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
-            TextButton(onClick = viewModel::createScenario, enabled = creationState == CreationState.CONFIGURING) {
-                Text(stringResource(android.R.string.ok))
+    Column(Modifier.fillMaxWidth()) {
+        ScenarioCreationTopBar(
+            saveEnabled = creationState == CreationState.CONFIGURING,
+            onDismiss = onDismiss,
+            onSave = viewModel::createScenario,
+        )
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+        ) {
+            MacrionTextField(
+                value = name,
+                onValueChange = viewModel::setName,
+                label = stringResource(R.string.input_field_label_scenario_name),
+                isError = nameError,
+                maxLength = 60,
+                modifier = Modifier.padding(vertical = 12.dp),
+            )
+            ElevatedCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, bottom = 12.dp),
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                ),
+            ) {
+                Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                    ScenarioTypeCard(
+                        item = ScenarioTypeItem.Dumb,
+                        selected = selection?.selectedItem == ScenarioTypeSelection.DUMB,
+                        showWarning = false,
+                        onClick = { viewModel.setSelectedType(ScenarioTypeSelection.DUMB) },
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    ScenarioTypeCard(
+                        item = ScenarioTypeItem.Smart,
+                        selected = selection?.selectedItem == ScenarioTypeSelection.SMART,
+                        showWarning = showWarning,
+                        onClick = { viewModel.setSelectedType(ScenarioTypeSelection.SMART) },
+                    )
+                }
             }
         }
-        MacrionTextField(
-            value = name,
-            onValueChange = viewModel::setName,
-            label = stringResource(R.string.input_field_label_scenario_name),
-            isError = nameError,
-            maxLength = 60,
-            modifier = Modifier.padding(vertical = 16.dp),
-        )
-        ScenarioTypeCard(ScenarioTypeItem.Dumb, selection?.selectedItem == ScenarioTypeSelection.DUMB, false) {
-            viewModel.setSelectedType(ScenarioTypeSelection.DUMB)
-        }
-        ScenarioTypeCard(ScenarioTypeItem.Smart, selection?.selectedItem == ScenarioTypeSelection.SMART, showWarning) {
-            viewModel.setSelectedType(ScenarioTypeSelection.SMART)
+    }
+}
+
+@Composable
+private fun ScenarioCreationTopBar(
+    saveEnabled: Boolean,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(65.dp)
+            .shadow(3.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = onDismiss) {
+                Icon(
+                    painter = painterResource(UiR.drawable.ic_cancel),
+                    contentDescription = stringResource(android.R.string.cancel),
+                )
+            }
+            Text(
+                text = stringResource(R.string.dialog_title_add_scenario),
+                modifier = Modifier.weight(1f).padding(horizontal = 4.dp),
+                style = MaterialTheme.typography.titleLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            IconButton(
+                onClick = onSave,
+                enabled = saveEnabled,
+                colors = IconButtonDefaults.filledIconButtonColors(),
+            ) {
+                Icon(
+                    painter = painterResource(UiR.drawable.ic_save_filled),
+                    contentDescription = stringResource(android.R.string.ok),
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun ScenarioTypeCard(item: ScenarioTypeItem, selected: Boolean, showWarning: Boolean, onClick: () -> Unit) {
+    val containerColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
     Card(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = containerColor, contentColor = contentColor),
     ) {
-        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Icon(painterResource(item.iconRes), contentDescription = null)
-            Column {
-                Text(stringResource(item.titleRes), style = MaterialTheme.typography.titleMedium)
-                Text(stringResource(item.descriptionText), style = MaterialTheme.typography.bodySmall)
+        Row(
+            Modifier.padding(horizontal = 16.dp, vertical = 12.dp).defaultMinSize(minHeight = 80.dp),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Icon(
+                painterResource(item.iconRes),
+                contentDescription = null,
+                modifier = Modifier.padding(top = 3.dp).size(24.dp),
+                tint = contentColor,
+            )
+            Column(Modifier.weight(1f).padding(start = 8.dp, end = 8.dp)) {
+                Text(
+                    stringResource(item.titleRes),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = contentColor,
+                )
+                Text(
+                    stringResource(item.descriptionText),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = contentColor,
+                )
                 if (showWarning && item is ScenarioTypeItem.Smart) {
-                    Text(stringResource(R.string.item_desc_smart_scenario_pro_mode), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        stringResource(R.string.item_desc_smart_scenario_pro_mode),
+                        color = if (selected) contentColor else MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+            if (selected) {
+                Surface(
+                    modifier = Modifier.size(22.dp),
+                    shape = CircleShape,
+                    color = contentColor,
+                    contentColor = containerColor,
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text("✓", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }
