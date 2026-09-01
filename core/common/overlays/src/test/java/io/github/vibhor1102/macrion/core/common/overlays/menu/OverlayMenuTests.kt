@@ -255,6 +255,36 @@ class OverlayMenuTests {
     }
 
     @Test
+    fun restoreMenuPositionOnLeftEdge() {
+        mockWhen(mockOverlayMenuPositionDataSource.loadMenuPosition(anyInt()))
+            .thenReturn(Point(0, 42))
+        overlayMenuController = OverlayMenuTestImpl(overlayMenuControllerImpl)
+        mockViewsFromImpl()
+
+        overlayMenuController.create(mockContext)
+        overlayMenuController.start()
+
+        val wmAddedView = captureWindowManagerAddedMenuView(mockWindowManager)
+        assertEquals("X position should remain on the left edge", 0, wmAddedView.params.x)
+        assertEquals("Y position should be restored", 42, wmAddedView.params.y)
+    }
+
+    @Test
+    fun restoreMenuPositionOnTopEdge() {
+        mockWhen(mockOverlayMenuPositionDataSource.loadMenuPosition(anyInt()))
+            .thenReturn(Point(84, 0))
+        overlayMenuController = OverlayMenuTestImpl(overlayMenuControllerImpl)
+        mockViewsFromImpl()
+
+        overlayMenuController.create(mockContext)
+        overlayMenuController.start()
+
+        val wmAddedView = captureWindowManagerAddedMenuView(mockWindowManager)
+        assertEquals("X position should be restored", 84, wmAddedView.params.x)
+        assertEquals("Y position should remain on the top edge", 0, wmAddedView.params.y)
+    }
+
+    @Test
     fun setupViewClickListeners() {
         overlayMenuController = OverlayMenuTestImpl(overlayMenuControllerImpl)
         val menuItems = sequenceOf(

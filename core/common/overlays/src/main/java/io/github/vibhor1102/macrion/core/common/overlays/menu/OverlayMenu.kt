@@ -583,7 +583,7 @@ abstract class OverlayMenu(
 
     private fun loadMenuPosition(orientation: Int) {
         val savedPosition = positionDataSource.loadMenuPosition(orientation)
-        if (savedPosition != null && savedPosition.x != 0 && savedPosition.y != 0) {
+        if (savedPosition != null) {
             updateMenuPosition(savedPosition)
         } else {
             menuLayout.doWhenMeasured {
