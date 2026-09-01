@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -34,6 +35,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.feature.tutorial.R
@@ -58,7 +60,7 @@ internal fun TutorialListScreen(
                     is TutorialCategoryUiItems.Header -> TutorialCategoryHeader(item)
                     is TutorialCategoryUiItems.Item -> TutorialItemCard(item) { onItemClicked(item) }
                     TutorialCategoryUiItems.SectionDivider -> HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp),
+                        modifier = Modifier.padding(start = 24.dp, top = 8.dp, end = 24.dp, bottom = 16.dp),
                     )
                 }
             }
@@ -69,7 +71,7 @@ internal fun TutorialListScreen(
 @Composable
 private fun TutorialCategoryHeader(item: TutorialCategoryUiItems.Header) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Card(
@@ -108,21 +110,26 @@ private fun TutorialCategoryHeader(item: TutorialCategoryUiItems.Header) {
 private fun TutorialItemCard(item: TutorialCategoryUiItems.Item, onClick: () -> Unit) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 12.dp),
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Image(
                 painter = painterResource(item.iconRes()),
                 contentDescription = null,
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(32.dp),
             )
             Column(Modifier.weight(1f)) {
-                Text(stringResource(item.nameRes), style = MaterialTheme.typography.titleMedium)
-                Text(stringResource(item.descriptionRes), style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(item.nameRes), style = MaterialTheme.typography.bodyLarge)
+                Spacer(Modifier.size(4.dp))
+                Text(
+                    stringResource(item.descriptionRes),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontStyle = FontStyle.Italic,
+                )
             }
             Image(
                 painter = painterResource(R.drawable.ic_chevron_right),
