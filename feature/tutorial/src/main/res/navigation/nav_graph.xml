@@ -85,7 +85,6 @@
     <fragment
         android:id="@+id/fragment_timing_game"
         android:name="io.github.vibhor1102.macrion.feature.tutorial.ui.game.timing.TimingGameFragment"
-        android:label="fragment_timing_game"
-        tools:layout="@layout/fragment_timing_game"/>
+        android:label="fragment_timing_game"/>
 
 </navigation>
