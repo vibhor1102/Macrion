@@ -1,0 +1,50 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <group
+        android:pivotX="256"
+        android:pivotY="256"
+        android:scaleX="0.6"
+        android:scaleY="0.6">
+        <path
+            android:fillColor="@android:color/transparent"
+            android:pathData="M160.75,88H127.75C106.15,88 88.75,105.4 88.75,127V160"
+            android:strokeColor="@android:color/white"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="30" />
+        <path
+            android:fillColor="@android:color/transparent"
+            android:pathData="M351.25,88H384.25C405.85,88 423.25,105.4 423.25,127V160"
+            android:strokeColor="@android:color/white"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="30" />
+        <path
+            android:fillColor="@android:color/transparent"
+            android:pathData="M160.75,424H127.75C106.15,424 88.75,406.6 88.75,385V352"
+            android:strokeColor="@android:color/white"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="30" />
+        <path
+            android:fillColor="@android:color/transparent"
+            android:pathData="M351.25,424H384.25C405.85,424 423.25,406.6 423.25,385V352"
+            android:strokeColor="@android:color/white"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="30" />
+        <group
+            android:scaleX="0.23"
+            android:scaleY="0.23"
+            android:translateX="145.6"
+            android:translateY="364.1">
+            <!-- ADB glyph supplied by the user, replacing the target's two inner circles. -->
+            <path
+                android:fillColor="#E3E3E3"
+                android:pathData="M200,-520v-40q0,-72 32.5,-131.5T320,-789l-75,-75 35,-36 85,85q26,-12 55.5,-18.5T480,-840q30,0 59.5,6.5T595,-815l85,-85 35,36 -75,75q55,38 87.5,97.5T760,-560v40H200ZM628.5,-611.5Q640,-623 640,-640t-11.5,-28.5Q617,-680 600,-680t-28.5,11.5Q560,-657 560,-640t11.5,28.5Q583,-600 600,-600t28.5,-11.5Zm-240,0Q400,-623 400,-640t-11.5,-28.5Q377,-680 360,-680t-28.5,11.5Q320,-657 320,-640t11.5,28.5Q343,-600 360,-600t28.5,-11.5Zm-107,490Q200,-203 200,-320v-160h560v160q0,117 -81.5,198.5T480,-40q-117,0 -198.5,-81.5Z" />
+        </group>
+    </group>
+</vector>
