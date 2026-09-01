@@ -119,6 +119,7 @@
     <!-- Settings Activity  ======================================================================================== -->
 
     <string name="activity_settings_title">Settings</string>
+    <string name="content_desc_back">Navigate back</string>
 
     <string name="field_show_scenario_filters_ui_title">Show Scenarios filters</string>
     <string name="field_show_scenario_filters_ui_desc">Display or hide the filters in the scenario list screen.</string>

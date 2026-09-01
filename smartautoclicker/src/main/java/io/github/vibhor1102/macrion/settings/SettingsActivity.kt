@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,29 +18,28 @@
 package io.github.vibhor1102.macrion.settings
 
 import android.os.Bundle
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import io.github.vibhor1102.macrion.R
-import com.google.android.material.appbar.MaterialToolbar
+import androidx.activity.viewModels
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class SettingsActivity : AppCompatActivity() {
 
+    private val viewModel: SettingsViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_settings)
-        setSupportActionBar(findViewById<MaterialToolbar>(R.id.topAppBar))
-
-        supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
-            setDisplayShowHomeEnabled(true)
+        setContent {
+            SettingsRoute(
+                viewModel = viewModel,
+                onNavigateBack = ::finish,
+                onShowPrivacySettings = { viewModel.showPrivacySettings(this) },
+                onShowPurchase = { viewModel.showPurchaseActivity(this) },
+                onShowTroubleshooting = { viewModel.showTroubleshootingDialog(this) },
+            )
         }
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        finish()
-        return true
     }
 }

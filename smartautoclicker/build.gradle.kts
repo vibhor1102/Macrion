@@ -29,6 +29,7 @@ plugins {
     alias(libs.plugins.buzbuz.obfuscation)
     alias(libs.plugins.buzbuz.buildParameters)
     alias(libs.plugins.buzbuz.hilt)
+    alias(libs.plugins.jetbrainsKotlinCompose)
 }
 
 val supportedDebugAbis = listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
@@ -66,6 +67,7 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        compose = true
     }
 
     defaultConfig {
@@ -159,9 +161,15 @@ if (project.isBuildForVariant(MacrionFlavour.PLAY_STORE, MacrionBuildType.RELEAS
 }
 
 dependencies {
+    val composeBom = platform(libs.androidx.compose.bom)
+
     implementation(libs.kotlinx.coroutines.core)
 
+    implementation(composeBom)
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appCompat)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.datastore)
@@ -172,6 +180,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.common.java8)
 
     implementation(libs.airbnb.lottie)
