@@ -19,17 +19,26 @@ plugins {
     alias(libs.plugins.buzbuz.androidLibrary)
     alias(libs.plugins.buzbuz.flavour)
     alias(libs.plugins.buzbuz.hilt)
+    alias(libs.plugins.jetbrainsKotlinCompose)
 }
 
 android {
     namespace = "io.github.vibhor1102.macrion.core.ui"
-    buildFeatures.viewBinding = true
+    buildFeatures {
+        viewBinding = true
+        compose = true
+    }
 }
 
 dependencies {
+    val composeBom = platform(libs.androidx.compose.bom)
+
     implementation(libs.kotlinx.coroutines.core)
 
+    implementation(composeBom)
     implementation(libs.androidx.appCompat)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.recyclerView)
