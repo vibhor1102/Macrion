@@ -17,43 +17,124 @@
 package io.github.vibhor1102.macrion.feature.tutorial.ui.dialogs
 
 import android.content.Context
-import android.view.LayoutInflater
 import androidx.appcompat.app.AlertDialog
-
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.TutorialRepository
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
 import io.github.vibhor1102.macrion.feature.tutorial.R
-import io.github.vibhor1102.macrion.feature.tutorial.databinding.DialogStopWithVolumeDownBinding
-
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.vibhor1102.macrion.core.ui.R as UiR
 
 
 internal fun Context.createStopWithVolumeDownTutorialDialog(
     tutorialRepository: TutorialRepository,
     onDismissed: (() -> Unit)?,
 ): AlertDialog {
-
     val dialogContext = getDynamicColorsContext(R.style.AppTheme)
-    val dialogViewBinding = DialogStopWithVolumeDownBinding.inflate(LayoutInflater.from(dialogContext))
-    val dialog = MaterialAlertDialogBuilder(dialogContext)
-        .setView(dialogViewBinding.root)
-        .setOnDismissListener {
-            val dontShowAgain = dialogViewBinding.buttonDontShowAgain.isChecked
-            if (dontShowAgain) tutorialRepository.dontShowTipAgain(Tip.STOP_WITH_VOLUME_DOWN)
-
-            onDismissed?.invoke()
-        }
-        .create()
-
-    dialogViewBinding.apply {
-        textDontShowAgain.setOnClickListener {
-            buttonDontShowAgain.isChecked = !buttonDontShowAgain.isChecked
-        }
-        buttonUnderstood.setOnClickListener {
-            dialog.dismiss()
+    var dontShowAgain by mutableStateOf(false)
+    lateinit var dialog: AlertDialog
+    val content = ComposeView(dialogContext).apply {
+        setContent {
+            MacrionTheme {
+                MacrionDialogSurface {
+                    StopWithVolumeDownTipContent(
+                        dontShowAgain = dontShowAgain,
+                        onDontShowAgainChanged = { dontShowAgain = it },
+                        onDismiss = { dialog.dismiss() },
+                    )
+                }
+            }
         }
     }
 
+    dialog = MaterialAlertDialogBuilder(dialogContext)
+        .setView(content)
+        .setOnDismissListener {
+            if (dontShowAgain) tutorialRepository.dontShowTipAgain(Tip.STOP_WITH_VOLUME_DOWN)
+            onDismissed?.invoke()
+        }
+        .create()
     return dialog
+}
+
+@Composable
+private fun StopWithVolumeDownTipContent(
+    dontShowAgain: Boolean,
+    onDontShowAgainChanged: (Boolean) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = stringResource(R.string.dialog_title_tutorial),
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp),
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center,
+        )
+        HorizontalDivider()
+        Column(
+            modifier = Modifier.verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_volume_down),
+                contentDescription = null,
+                modifier = Modifier.padding(top = 16.dp).size(50.dp),
+            )
+            Text(
+                text = stringResource(R.string.message_tutorial_volume_down_stop),
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+            Row(
+                modifier = Modifier
+                    .clickable { onDontShowAgainChanged(!dontShowAgain) }
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Checkbox(
+                    checked = dontShowAgain,
+                    onCheckedChange = onDontShowAgainChanged,
+                )
+                Text(stringResource(R.string.message_dont_show_again))
+            }
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 8.dp),
+            ) {
+                Text(stringResource(UiR.string.button_understood))
+            }
+        }
+    }
 }
