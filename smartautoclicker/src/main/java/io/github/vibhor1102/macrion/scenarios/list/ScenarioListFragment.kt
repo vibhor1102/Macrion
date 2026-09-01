@@ -31,6 +31,23 @@ import android.view.WindowManager
 
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -42,7 +59,7 @@ import io.github.vibhor1102.macrion.core.base.extensions.applySafeContentInsets
 import io.github.vibhor1102.macrion.core.common.navigation.TutorialNavigator
 import io.github.vibhor1102.macrion.core.common.navigation.getTutorialNavigator
 import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
-import io.github.vibhor1102.macrion.databinding.DialogImportExportBinding
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.databinding.FragmentScenariosBinding
 import io.github.vibhor1102.macrion.feature.backup.ui.BackupDialogFragment
 import io.github.vibhor1102.macrion.feature.backup.ui.BackupDialogFragment.Companion.FRAGMENT_TAG_BACKUP_DIALOG
@@ -314,24 +331,47 @@ class ScenarioListFragment : Fragment() {
 
     private fun showImportExportDialog() {
         val dialogContext = requireContext().getDynamicColorsContext(R.style.AppTheme)
-        val dialogViewBinding = DialogImportExportBinding.inflate(LayoutInflater.from(dialogContext))
+        val composeView = ComposeView(dialogContext)
         val dialog = MaterialAlertDialogBuilder(dialogContext)
-            .setView(dialogViewBinding.root)
+            .setView(composeView)
             .create()
 
-        dialogViewBinding.apply {
-            buttonImport.setOnClickListener {
-                dialog.dismiss()
-                showBackupDialog(isImport = true)
-            }
-
-            buttonExport.setOnClickListener {
-                dialog.dismiss()
-                scenarioListViewModel.setUiState(ScenarioListUiState.Type.EXPORT)
+        composeView.setContent {
+            MacrionTheme {
+                ImportExportContent(
+                    onImport = {
+                        dialog.dismiss()
+                        showBackupDialog(isImport = true)
+                    },
+                    onExport = {
+                        dialog.dismiss()
+                        scenarioListViewModel.setUiState(ScenarioListUiState.Type.EXPORT)
+                    },
+                )
             }
         }
-
         dialog.show()
+    }
+
+    @Composable
+    private fun ImportExportContent(onImport: () -> Unit, onExport: () -> Unit) {
+        Column(
+            Modifier.fillMaxWidth().padding(vertical = 20.dp, horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(stringResource(R.string.dialog_title_backup), style = MaterialTheme.typography.titleLarge)
+            HorizontalDivider()
+            Text(stringResource(R.string.message_backup), textAlign = TextAlign.Center)
+            OutlinedButton(onClick = onImport, modifier = Modifier.fillMaxWidth()) {
+                Icon(painterResource(R.drawable.ic_backup_load), contentDescription = null)
+                Text(stringResource(R.string.button_import), modifier = Modifier.padding(start = 8.dp))
+            }
+            OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth()) {
+                Icon(painterResource(R.drawable.ic_menu_save), contentDescription = null)
+                Text(stringResource(R.string.button_export), modifier = Modifier.padding(start = 8.dp))
+            }
+        }
     }
 
     /**
