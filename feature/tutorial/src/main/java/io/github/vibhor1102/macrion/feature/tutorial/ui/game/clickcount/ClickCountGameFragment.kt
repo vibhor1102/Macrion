@@ -36,13 +36,11 @@ import androidx.navigation.fragment.findNavController
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.tutorial.subject.quickclickgame.QuickClickGameTargetState
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.tutorial.subject.quickclickgame.QuickClickGameTargetType
-import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
 import io.github.vibhor1102.macrion.feature.tutorial.R
-import io.github.vibhor1102.macrion.feature.tutorial.databinding.DialogTutorialSuccessBinding
 import io.github.vibhor1102.macrion.feature.tutorial.databinding.FragmentClickCountGameBinding
+import io.github.vibhor1102.macrion.feature.tutorial.ui.dialogs.createTutorialSuccessDialog
 import io.github.vibhor1102.macrion.feature.tutorial.ui.overlay.TutorialFullscreenOverlay
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -174,21 +172,9 @@ class ClickCountGameFragment : Fragment() {
     private fun showCompletionDialog(show: Boolean) {
         if (!show) return
 
-        val dialogContext = requireContext().getDynamicColorsContext(R.style.AppTheme)
-        val dialogViewBinding = DialogTutorialSuccessBinding.inflate(LayoutInflater.from(dialogContext))
-        val dialog = MaterialAlertDialogBuilder(dialogContext)
-            .setView(dialogViewBinding.root)
-            .create()
-
-        dialogViewBinding.apply {
-            buttonKeepPlaying.setOnClickListener { dialog.dismiss() }
-            buttonClose.setOnClickListener {
-                dialog.dismiss()
-                findNavController().navigateUp()
-            }
-        }
-
-        dialog.show()
+        requireContext().createTutorialSuccessDialog {
+            findNavController().navigateUp()
+        }.show()
     }
 
     private fun lockMenuPosition() {
@@ -242,4 +228,3 @@ class ClickCountGameFragment : Fragment() {
             QuickClickGameTargetType.NUMBER -> numberTarget
         }
 }
-
