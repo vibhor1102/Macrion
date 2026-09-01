@@ -9,6 +9,7 @@
 package io.github.vibhor1102.macrion.core.ui.compose
 
 import android.os.Build
+import android.util.TypedValue
 import androidx.annotation.ColorRes
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -24,10 +25,23 @@ import io.github.vibhor1102.macrion.core.ui.R
 
 @Composable
 fun MacrionTheme(content: @Composable () -> Unit) {
-    val darkTheme = isSystemInDarkTheme()
+    val context = LocalContext.current
+    val systemDarkTheme = isSystemInDarkTheme()
+    val lightThemeAttribute = TypedValue()
+    val darkTheme = if (
+        context.theme.resolveAttribute(
+            android.R.attr.isLightTheme,
+            lightThemeAttribute,
+            true,
+        )
+    ) {
+        lightThemeAttribute.data == 0
+    } else {
+        systemDarkTheme
+    }
     val colorScheme = when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && darkTheme -> dynamicDarkColorScheme(LocalContext.current)
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> dynamicLightColorScheme(LocalContext.current)
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && darkTheme -> dynamicDarkColorScheme(context)
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> dynamicLightColorScheme(context)
         darkTheme -> macrionDarkColorScheme()
         else -> macrionLightColorScheme()
     }
