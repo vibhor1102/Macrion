@@ -225,10 +225,10 @@ private fun GameTarget(
 }
 
 private fun QuickClickGameTargetType.drawableRes(): Int = when (this) {
-    QuickClickGameTargetType.IMAGE_BLUE -> R.drawable.ic_game_target_primary
-    QuickClickGameTargetType.IMAGE_RED -> R.drawable.ic_game_target_secondary
-    QuickClickGameTargetType.IMAGE_GREEN -> R.drawable.ic_game_target_green
-    QuickClickGameTargetType.IMAGE_YELLOW -> R.drawable.ic_game_target_yellow
+    QuickClickGameTargetType.IMAGE_BLUE -> R.drawable.ic_target_blue
+    QuickClickGameTargetType.IMAGE_RED -> R.drawable.ic_target_red
+    QuickClickGameTargetType.IMAGE_GREEN -> R.drawable.ic_target_green
+    QuickClickGameTargetType.IMAGE_YELLOW -> R.drawable.ic_target_yellow
     else -> error("Not an image target: $this")
 }
 
