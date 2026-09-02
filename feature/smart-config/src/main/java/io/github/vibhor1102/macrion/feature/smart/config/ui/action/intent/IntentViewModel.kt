@@ -73,26 +73,22 @@ class IntentViewModel @Inject constructor(
     /** The name of the pause. */
     val name: Flow<String?> = configuredIntent
         .map { it.name }
-        .take(1)
     /** Tells if the action name is valid or not. */
     val nameError: Flow<Boolean> = configuredIntent.map { it.name?.isEmpty() ?: true }
 
     /** The intent action. */
     val action: Flow<String?> = configuredIntent
         .map { it.intentAction }
-        .take(1)
     /** Tells if the intent action is valid or not. */
     val actionError: Flow<Boolean> = configuredIntent.map { it.intentAction?.isEmpty() ?: true }
 
     /** The flags for this intent. */
     val flags: Flow<String> = configuredIntent
-        .map { it.flags?.toString() ?: "0" }
-        .take(1)
+        .map { it.flags?.toString().orEmpty() }
 
     /** The component name for the intent. */
     val componentName: Flow<String?> = configuredIntent
         .map { it.componentName?.flattenToString() }
-        .take(1)
     /** Tells if the intent component name is valid or not. */
     val componentNameError: Flow<Boolean> = configuredIntent.map { intent ->
         !intent.isBroadcast && intent.componentName == null
@@ -111,6 +107,8 @@ class IntentViewModel @Inject constructor(
             }
         }
         .filterNotNull()
+
+    val advanced: Flow<Boolean> = configuredIntent.map { it.isAdvanced == true }
 
     /** The list of extra items to be displayed. */
     val extras: Flow<List<ExtraListItem>> = editionRepository.editionState.editedActionIntentExtrasState
