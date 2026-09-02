@@ -255,7 +255,9 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(context.getString(R.string.item_title_try_element, context.getString(R.string.dialog_title_image_event)),
                     Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
-                FilledIconButton(::showTryElementMenu, enabled = enabled) { Icon(painterResource(R.drawable.ic_play_arrow), null) }
+                FilledIconButton(::showTryElementMenu, enabled = enabled) {
+                    Icon(painterResource(R.drawable.ic_play_arrow), null, Modifier.size(18.dp))
+                }
             }
         }
     }
