@@ -86,10 +86,11 @@ class ScreenConditionSelectionDialog(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
             Column(Modifier.height(124.dp)) {
                 ConditionPreview(item, Modifier.fillMaxWidth().height(68.dp))
-                Column(Modifier.weight(1f).padding(horizontal = 8.dp, vertical = 5.dp),
+                Column(Modifier.weight(1f).padding(vertical = 5.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterVertically)) {
-                    Text(item.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(item.name, Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                        style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                             Icon(painterResource(item.shouldBeVisibleIconRes), null, Modifier.size(14.dp))
