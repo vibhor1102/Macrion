@@ -1,120 +1,62 @@
-/*
- * Copyright (C) 2026 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2026 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet
 
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
-import androidx.viewbinding.ViewBinding
-
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.ItemAlphabetBinding
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.ItemMessageHeaderBinding
 
-class AlphabetModelItemAdapter(
-    private val onItemClicked: (item: AlphabetSelectionItem) -> Unit,
-) : ListAdapter<AlphabetSelectionItem, AlphabetSelectionViewHolder>(AlphabetItemDiffUtilCallback) {
-
-    override fun getItemViewType(position: Int): Int =
-        when (getItem(position)) {
-            is AlphabetSelectionItem.Header -> R.layout.item_message_header
-            is AlphabetSelectionItem.Alphabet -> R.layout.item_alphabet
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AlphabetSelectionViewHolder =
-            when (viewType) {
-                    R.layout.item_message_header -> AlphabetSelectionViewHolder.Header(
-                        ItemMessageHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false),
-                        )
-
-                    R.layout.item_alphabet -> AlphabetSelectionViewHolder.Item(
-                        ItemAlphabetBinding.inflate(LayoutInflater.from(parent.context), parent, false),
-                            onItemClicked,
-                        )
-
-                    else -> throw IllegalArgumentException("Unsupported item type")
+@Composable
+internal fun AlphabetModelSheet(
+    items: List<AlphabetSelectionItem>?,
+    showSave: Boolean,
+    saveEnabled: Boolean,
+    onDismiss: () -> Unit,
+    onItemClicked: (AlphabetSelectionItem) -> Unit,
+) {
+    Surface(
+        Modifier.fillMaxWidth().heightIn(min = 600.dp, max = 680.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLowest,
+    ) {
+        Column(Modifier.fillMaxSize()) {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(onDismiss) { Icon(painterResource(R.drawable.ic_cancel), null) }
+                Text(
+                    stringResource(R.string.dialog_title_condition_selection),
+                    Modifier.weight(1f).padding(horizontal = 8.dp),
+                    style = MaterialTheme.typography.titleLarge,
+                    maxLines = 1,
+                )
+                if (showSave) {
+                    FilledIconButton(onDismiss, enabled = saveEnabled) {
+                        Icon(painterResource(R.drawable.ic_save_filled), null)
+                    }
                 }
-
-
-       override fun onBindViewHolder(holder: AlphabetSelectionViewHolder, position: Int) =
-           when (holder) {
-               is AlphabetSelectionViewHolder.Header ->
-                   holder.onBind((getItem(position) as AlphabetSelectionItem.Header))
-               is AlphabetSelectionViewHolder.Item ->
-                   holder.onBind((getItem(position) as AlphabetSelectionItem.Alphabet))
-           }
-    }
-
-sealed class AlphabetSelectionViewHolder(viewBinding: ViewBinding) : RecyclerView.ViewHolder(viewBinding.root) {
-
-    internal class Header (
-        val viewBinding: ItemMessageHeaderBinding,
-    ): AlphabetSelectionViewHolder(viewBinding) {
-
-        fun onBind(header: AlphabetSelectionItem.Header) {
-            viewBinding.headerText.setText(header.text)
-        }
-    }
-
-    internal class Item (
-        val viewBinding: ItemAlphabetBinding,
-        val onItemClicked: (AlphabetSelectionItem) -> Unit,
-    ): AlphabetSelectionViewHolder(viewBinding) {
-
-        fun onBind(item: AlphabetSelectionItem.Alphabet) {
-            viewBinding.apply {
-                alphabetName.setText(item.alphabetName)
-                alphabetDesc.setText(item.alphabetDesc)
-
-                root.setOnClickListener { onItemClicked(item) }
-                buttonEnabledState.setOnClickListener { onItemClicked(item) }
-                buttonDownload.setOnClickListener { onItemClicked(item) }
-
-                when (item.downloadState) {
-                    AlphabetDownloadUiState.Error,
-                    AlphabetDownloadUiState.NotDownloaded -> {
-                        textDownloadProgress.visibility = View.GONE
-                        buttonEnabledState.visibility = View.GONE
-                        buttonDownload.visibility = View.VISIBLE
-                        imageInstalled.visibility = View.GONE
-                    }
-
-                    is AlphabetDownloadUiState.Downloading -> {
-                        textDownloadProgress.visibility = View.VISIBLE
-                        textDownloadProgress.text = item.downloadState.progressText
-                        buttonEnabledState.visibility = View.GONE
-                        buttonDownload.visibility = View.GONE
-                        imageInstalled.visibility = View.GONE
-                    }
-
-                    AlphabetDownloadUiState.Downloaded -> {
-                        textDownloadProgress.visibility = View.GONE
-                        buttonDownload.visibility = View.GONE
-
-                        if (item.selectableWhenInstalled) {
-                            buttonEnabledState.visibility = View.VISIBLE
-                            buttonEnabledState.isChecked = item.selected
-                            imageInstalled.visibility = View.GONE
-                        } else {
-                            buttonEnabledState.visibility = View.GONE
-                            imageInstalled.visibility = View.VISIBLE
+            }
+            when {
+                items == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+                items.isEmpty() -> Spacer(Modifier.weight(1f))
+                else -> LazyColumn(
+                    Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(top = 8.dp, bottom = 12.dp),
+                ) {
+                    items(items, key = ::itemKey) { item ->
+                        when (item) {
+                            is AlphabetSelectionItem.Header -> AlphabetHeader(item)
+                            is AlphabetSelectionItem.Alphabet -> AlphabetRow(item) { onItemClicked(item) }
                         }
                     }
                 }
@@ -123,13 +65,56 @@ sealed class AlphabetSelectionViewHolder(viewBinding: ViewBinding) : RecyclerVie
     }
 }
 
-internal object AlphabetItemDiffUtilCallback: DiffUtil.ItemCallback<AlphabetSelectionItem>() {
+private fun itemKey(item: AlphabetSelectionItem): String = when (item) {
+    is AlphabetSelectionItem.Header -> "header:${item.text}"
+    is AlphabetSelectionItem.Alphabet -> "alphabet:${item.alphabet.name}"
+}
 
-    override fun areItemsTheSame(oldItem: AlphabetSelectionItem, newItem: AlphabetSelectionItem): Boolean =
-        (oldItem is AlphabetSelectionItem.Header && newItem is AlphabetSelectionItem.Header) ||
-                (oldItem is AlphabetSelectionItem.Alphabet && newItem is AlphabetSelectionItem.Alphabet
-                        && oldItem.alphabet == newItem.alphabet)
+@Composable
+private fun AlphabetHeader(header: AlphabetSelectionItem.Header) {
+    ElevatedCard(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
+        Text(
+            stringResource(header.text),
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        )
+    }
+}
 
-    override fun areContentsTheSame(oldItem: AlphabetSelectionItem, newItem: AlphabetSelectionItem): Boolean =
-        oldItem == newItem
+@Composable
+private fun AlphabetRow(item: AlphabetSelectionItem.Alphabet, onClick: () -> Unit) {
+    Column(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 62.dp).padding(horizontal = 24.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(stringResource(item.alphabetName), style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    stringResource(item.alphabetDesc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                when (val state = item.downloadState) {
+                    AlphabetDownloadUiState.Error,
+                    AlphabetDownloadUiState.NotDownloaded -> FilledTonalIconButton(onClick) {
+                        Icon(painterResource(R.drawable.ic_download), null)
+                    }
+                    is AlphabetDownloadUiState.Downloading -> Text(
+                        state.progressText,
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    AlphabetDownloadUiState.Downloaded -> if (item.selectableWhenInstalled) {
+                        RadioButton(item.selected, onClick)
+                    } else {
+                        Icon(painterResource(R.drawable.ic_confirm), null)
+                    }
+                }
+            }
+        }
+        HorizontalDivider()
+    }
 }
