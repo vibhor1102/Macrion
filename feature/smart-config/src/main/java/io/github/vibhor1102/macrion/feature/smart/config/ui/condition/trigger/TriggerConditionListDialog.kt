@@ -2,6 +2,7 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger
 
 import android.view.ViewGroup
+import android.view.View
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -13,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -35,6 +37,8 @@ import io.github.vibhor1102.macrion.feature.smart.config.ui.copy.condition.Condi
 class TriggerConditionListDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
     private val viewModel: TriggerConditionListViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java, creator = { triggerConditionsViewModel() })
+    private var closeButtonAnchor: View? = null
+    private var createButtonAnchor: View? = null
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.TRIGGER_CONDITION_LIST.name
 
     override fun onCreateView(): ViewGroup = ComposeView(context).apply {
@@ -42,18 +46,31 @@ class TriggerConditionListDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
         setContent { MacrionTheme { this@TriggerConditionListDialog.Content() } }
     }
     override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
+    override fun onResume() {
+        super.onResume()
+        val closeButton = closeButtonAnchor
+        val createButton = createButtonAnchor
+        if (closeButton != null && createButton != null) viewModel.monitorViews(createButton, closeButton)
+    }
     override fun onPause() { viewModel.stopViewMonitoring(); super.onPause() }
 
     @Composable private fun Content() {
         val conditions = viewModel.configuredTriggerConditions.collectAsStateWithLifecycle(emptyList()).value
         val canCopy = viewModel.canCopyCondition.collectAsStateWithLifecycle(false).value
         Scaffold(
+            modifier = Modifier.fillMaxWidth().heightIn(max = dimensionResource(io.github.vibhor1102.macrion.core.ui.R.dimen.bottom_sheet_min_height)),
             containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
             topBar = {
                 Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box {
                         IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
-                        TutorialClickAnchor(viewModel::monitorCloseButton, ::back)
+                        TutorialClickAnchor(
+                            onViewChanged = { view ->
+                                closeButtonAnchor = view
+                                viewModel.monitorCloseButton(view)
+                            },
+                            onClick = ::back,
+                        )
                     }
                     Text(context.getString(R.string.dialog_title_trigger_event), Modifier.weight(1f).padding(8.dp),
                         style = MaterialTheme.typography.titleLarge)
@@ -68,7 +85,13 @@ class TriggerConditionListDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
                         FloatingActionButton(onClick = ::showTriggerConditionTypeSelectionDialog) {
                             Icon(painterResource(R.drawable.ic_add), null)
                         }
-                        TutorialClickAnchor(viewModel::monitorCreateButton, ::showTriggerConditionTypeSelectionDialog)
+                        TutorialClickAnchor(
+                            onViewChanged = { view ->
+                                createButtonAnchor = view
+                                viewModel.monitorCreateButton(view)
+                            },
+                            onClick = ::showTriggerConditionTypeSelectionDialog,
+                        )
                     }
                 }
             },
