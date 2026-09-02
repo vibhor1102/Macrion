@@ -110,12 +110,14 @@ class ChangeCounterViewModel @Inject constructor(
         }
     }
 
-    fun monitorSelectCounterView(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.COUNTER_ACTION_DIALOG_FIELD_SELECT_COUNTER, view)
+    fun monitorSelectCounterView(view: View?) {
+        if (view != null) monitoredViewsManager.attach(MonitoredViewType.COUNTER_ACTION_DIALOG_FIELD_SELECT_COUNTER, view)
+        else monitoredViewsManager.detach(MonitoredViewType.COUNTER_ACTION_DIALOG_FIELD_SELECT_COUNTER)
     }
 
-    fun monitorSaveButtonView(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.COUNTER_ACTION_DIALOG_BUTTON_SAVE, view)
+    fun monitorSaveButtonView(view: View?) {
+        if (view != null) monitoredViewsManager.attach(MonitoredViewType.COUNTER_ACTION_DIALOG_BUTTON_SAVE, view)
+        else monitoredViewsManager.detach(MonitoredViewType.COUNTER_ACTION_DIALOG_BUTTON_SAVE)
     }
 
     fun detachMonitoredViews() {
