@@ -29,10 +29,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
@@ -86,7 +89,7 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
         val ui = state ?: return
         var name by rememberSaveable { mutableStateOf(ui.name.orEmpty()) }
         LaunchedEffect(ui.name) { if (name != ui.name) name = ui.name.orEmpty() }
-        Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             Column { TopBar(ui.canBeSaved)
                 Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -115,16 +118,19 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
     } }
 
     @Composable private fun ConditionsCard(ui: EventDialogUiState) {
-        val items = when (ui) { is EventDialogUiState.ScreenEvent -> ui.imageConditionsItems.map { EventChildrenItem(it.iconRes, it.haveError) }
-            is EventDialogUiState.TriggerEvent -> ui.triggerConditionsItems }
         EventCard(context.getString(R.string.menu_item_title_conditions), colorResource(R.color.event_conditions_color)) {
-            Box { ChildrenSelector(items, true, ::showConditions)
+            Box { when (ui) {
+                    is EventDialogUiState.ScreenEvent -> ScreenConditionSelector(ui.imageConditionsItems)
+                    is EventDialogUiState.TriggerEvent -> ChildrenSelector(ui.triggerConditionsItems, true, ::showConditions)
+                }
                 TutorialClickAnchor({ conditionsAnchor = it; viewModel.monitorConditionsView(it) }, ::showConditions) }
             HorizontalDivider()
             Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) { Text(context.getString(R.string.field_operator_title), style = MaterialTheme.typography.titleSmall)
+                Column(Modifier.weight(1f).padding(end = 16.dp)) { Text(context.getString(R.string.field_operator_title), style = MaterialTheme.typography.bodyLarge)
                     Text(context.getString(if (ui.conditionOperator == AND) R.string.field_operator_desc_and else R.string.field_operator_desc_or),
                         style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                VerticalDivider(Modifier.height(48.dp))
+                Spacer(Modifier.width(12.dp))
                 OperatorButtons(ui.conditionOperator)
             }
         }
@@ -139,30 +145,46 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
     @Composable private fun EventCard(title: String, accent: Color, content: @Composable ColumnScope.() -> Unit) {
         ElevatedCard(Modifier.fillMaxWidth().border(2.dp, accent, RoundedCornerShape(12.dp))) {
             Text(title, Modifier.fillMaxWidth().background(accent).padding(horizontal = 16.dp, vertical = 6.dp),
-                style = MaterialTheme.typography.titleSmall, color = Color.White)
+                style = MaterialTheme.typography.bodyLarge, color = Color.White, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), content = content)
         }
     }
 
+    @Composable private fun ScreenConditionSelector(items: List<io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition>) {
+        if (items.isEmpty()) { EmptySelector(true, ::showConditions); return }
+        Row(Modifier.fillMaxWidth().height(116.dp).clickable(onClick = ::showConditions), verticalAlignment = Alignment.CenterVertically) {
+            AndroidView(factory = { ctx -> RecyclerView(ctx).apply {
+                layoutManager = LinearLayoutManager(ctx, RecyclerView.HORIZONTAL, false)
+                adapter = EventImageConditionsAdapter(::showImageConditionsBriefMenu, viewModel::getConditionBitmap)
+                overScrollMode = View.OVER_SCROLL_NEVER
+            } }, update = { (it.adapter as EventImageConditionsAdapter).submitList(items) }, modifier = Modifier.weight(1f).fillMaxHeight())
+            Icon(painterResource(R.drawable.ic_chevron_right), null)
+        }
+    }
+
     @Composable private fun ChildrenSelector(items: List<EventChildrenItem>, conditions: Boolean, onClick: () -> Unit) {
+        if (items.isEmpty()) { EmptySelector(conditions, onClick); return }
         Row(Modifier.fillMaxWidth().heightIn(min = 62.dp).clickable(onClick = onClick).padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically) {
-            if (items.isEmpty()) Column(Modifier.weight(1f)) {
+            AndroidView(factory = { ctx -> RecyclerView(ctx).apply {
+                layoutManager = LinearLayoutManager(ctx, RecyclerView.HORIZONTAL, false)
+                adapter = EventChildrenCardsAdapter { index -> if (conditions) showTriggerConditionsDialog() else showActionsOverlay(index) }
+                overScrollMode = View.OVER_SCROLL_NEVER
+            } }, update = { (it.adapter as EventChildrenCardsAdapter).submitList(items) }, modifier = Modifier.weight(1f).height(64.dp))
+            Icon(painterResource(R.drawable.ic_chevron_right), null)
+        }
+    }
+
+    @Composable private fun EmptySelector(conditions: Boolean, onClick: () -> Unit) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 62.dp).clickable(onClick = onClick).padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
                 Text(context.getString(if (conditions) { if (viewModel.isConfiguringScreenEvent()) R.string.message_empty_screen_condition_list_title
                     else R.string.message_empty_trigger_condition_list_title } else R.string.message_empty_action_list_title),
-                    style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.error)
+                    style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.error)
                 Text(context.getString(if (conditions) { if (viewModel.isConfiguringScreenEvent()) R.string.message_empty_screen_condition_list_desc
                     else R.string.message_empty_trigger_condition_list_desc } else R.string.message_empty_action_list_desc),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
-            } else Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items.forEachIndexed { index, item -> Box(Modifier.size(44.dp).clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant).clickable {
-                        if (conditions && viewModel.isConfiguringScreenEvent()) showImageConditionsBriefMenu(index)
-                        else if (!conditions) showActionsOverlay(index) else showTriggerConditionsDialog()
-                    }, contentAlignment = Alignment.Center) {
-                    Icon(painterResource(item.iconRes), null, Modifier.size(24.dp))
-                    if (item.isInError) Box(Modifier.align(Alignment.TopEnd).size(10.dp).background(MaterialTheme.colorScheme.error, CircleShape))
-                } }
             }
             Icon(painterResource(R.drawable.ic_chevron_right), null)
         }
@@ -195,8 +217,10 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
 
     @Composable private fun SwitchField(title: String, desc: String, checked: Boolean, toggle: () -> Unit) {
         Row(Modifier.fillMaxWidth().clickable(onClick = toggle).padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) { Text(title, style = MaterialTheme.typography.titleSmall); Text(desc,
+            Column(Modifier.weight(1f).padding(end = 16.dp)) { Text(title, style = MaterialTheme.typography.bodyLarge); Text(desc,
                 style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            VerticalDivider(Modifier.height(48.dp))
+            Spacer(Modifier.width(12.dp))
             Switch(checked, { toggle() })
         }
     }
@@ -226,9 +250,14 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
         }
     }
 
-    @Composable private fun TestCard(enabled: Boolean) = EventCard(context.getString(R.string.item_title_try_element,
-        context.getString(R.string.dialog_title_image_event)), colorResource(R.color.event_test_color)) {
-        FilledIconButton(::showTryElementMenu, enabled = enabled, modifier = Modifier.align(Alignment.End)) { Icon(painterResource(R.drawable.ic_play_arrow), null) }
+    @Composable private fun TestCard(enabled: Boolean) {
+        ElevatedCard(Modifier.fillMaxWidth().border(2.dp, colorResource(R.color.event_test_color), RoundedCornerShape(12.dp))) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(context.getString(R.string.item_title_try_element, context.getString(R.string.dialog_title_image_event)),
+                    Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                FilledIconButton(::showTryElementMenu, enabled = enabled) { Icon(painterResource(R.drawable.ic_play_arrow), null) }
+            }
+        }
     }
 
     override fun back() { if (viewModel.hasUnsavedModifications()) { context.showCloseWithoutSavingDialog { onDismiss(); super.back() }; return }
