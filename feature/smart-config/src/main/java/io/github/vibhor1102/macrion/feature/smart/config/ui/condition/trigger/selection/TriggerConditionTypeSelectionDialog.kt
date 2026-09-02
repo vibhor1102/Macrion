@@ -1,55 +1,76 @@
-/*
- * Copyright (C) 2026 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.selection
 
-import android.view.View
-
+import android.view.ViewGroup
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
-import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.MultiChoiceDialog
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
 
 class TriggerConditionTypeSelectionDialog(
-    choices: List<TriggerConditionTypeChoice>,
-    onChoiceSelectedListener: (TriggerConditionTypeChoice) -> Unit,
-    onCancelledListener: (() -> Unit)? = null,
-) : MultiChoiceDialog<TriggerConditionTypeChoice>(
-    theme = R.style.AppTheme,
-    dialogTitleText = R.string.dialog_title_trigger_condition_type,
-    choices = choices,
-    onChoiceSelected = onChoiceSelectedListener,
-    onCanceled = onCancelledListener,
-) {
-
+    private val choices: List<TriggerConditionTypeChoice>,
+    private val onChoiceSelectedListener: (TriggerConditionTypeChoice) -> Unit,
+    private val onCancelledListener: (() -> Unit)? = null,
+) : OverlayDialog(R.style.AppTheme) {
+    private val viewModel: TriggerConditionTypeSelectionViewModel by viewModels(
+        entryPoint = ScenarioConfigViewModelsEntryPoint::class.java, creator = { triggerConditionTypeSelectionViewModel() })
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.TRIGGER_CONDITION_TYPE_SELECTION.name
 
-    private val viewModel: TriggerConditionTypeSelectionViewModel by viewModels(
-        entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
-        creator = { triggerConditionTypeSelectionViewModel() },
-    )
-
-    override fun onStop() {
-        super.onStop()
-        viewModel.stopAllViewsMonitoring()
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@TriggerConditionTypeSelectionDialog.Content() } }
     }
+    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
+    override fun onStop() { viewModel.stopAllViewsMonitoring(); super.onStop() }
 
-    override fun onChoiceViewBound(choice: TriggerConditionTypeChoice, view: View?) {
-        if (view != null) viewModel.monitorTriggerConditionTypeView(choice, view)
-        else viewModel.stopTriggerConditionTypeViewMonitoring(choice)
+    @Composable private fun Content() {
+        Surface(Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            Column {
+                Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = ::cancel) { Icon(painterResource(R.drawable.ic_cancel), null) }
+                    Text(stringResource(R.string.dialog_title_trigger_condition_type), Modifier.weight(1f).padding(8.dp),
+                        style = MaterialTheme.typography.titleLarge)
+                }
+                LazyColumn(contentPadding = PaddingValues(bottom = 12.dp)) {
+                    items(choices, key = { it::class.simpleName.orEmpty() }) { choice ->
+                        Box(Modifier.fillMaxWidth()) {
+                            Card(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
+                                Row(Modifier.fillMaxWidth().heightIn(min = 76.dp).padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    choice.iconId?.let { Icon(painterResource(it), null, Modifier.size(32.dp)) }
+                                    Column(Modifier.weight(1f).padding(start = 16.dp)) {
+                                        Text(stringResource(choice.title), style = MaterialTheme.typography.titleSmall)
+                                        choice.description?.let { Text(stringResource(it), style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                                    }
+                                }
+                            }
+                            TutorialClickAnchor(
+                                onViewChanged = { view -> if (view != null) viewModel.monitorTriggerConditionTypeView(choice, view)
+                                    else viewModel.stopTriggerConditionTypeViewMonitoring(choice) },
+                                onClick = { back(); onChoiceSelectedListener(choice) },
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
+    private fun cancel() { onCancelledListener?.invoke(); back() }
 }

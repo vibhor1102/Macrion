@@ -92,4 +92,14 @@ class TriggerConditionListViewModel @Inject constructor(
         monitoredViewsManager.detach(MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CREATE)
         monitoredViewsManager.detach(MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CLOSE)
     }
+
+    fun monitorCreateButton(view: View?) {
+        if (view != null) monitoredViewsManager.attach(MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CREATE, view)
+        else monitoredViewsManager.detach(MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CREATE)
+    }
+
+    fun monitorCloseButton(view: View?) {
+        if (view != null) monitoredViewsManager.attach(MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CLOSE, view)
+        else monitoredViewsManager.detach(MonitoredViewType.TRIGGER_CONDITION_LIST_DIALOG_BUTTON_CLOSE)
+    }
 }
