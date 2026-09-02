@@ -16,9 +16,14 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.imageevents
 
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -26,9 +31,10 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.ItemScreenEventBinding
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.bindings.bind
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.UiImageEvent
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.EventListRow
 
 import java.util.Collections
 
@@ -46,7 +52,7 @@ class ImageEventListAdapter(
 ) : ListAdapter<UiImageEvent, ImageEventViewHolder>(ImageEventDiffUtilCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageEventViewHolder =
-        ImageEventViewHolder(ItemScreenEventBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        ImageEventViewHolder(parent)
 
     override fun onBindViewHolder(holder: ImageEventViewHolder, position: Int) {
         holder.bindEvent(getItem(position), itemClickedListener)
@@ -89,8 +95,33 @@ object ImageEventDiffUtilCallback: DiffUtil.ItemCallback<UiImageEvent>() {
  * View holder displaying a click in the [ImageEventListAdapter].
  * @param holderViewBinding the view binding for this item.
  */
-class ImageEventViewHolder(private val holderViewBinding: ItemScreenEventBinding)
-    : RecyclerView.ViewHolder(holderViewBinding.root) {
+class ImageEventViewHolder(parent: ViewGroup)
+    : RecyclerView.ViewHolder(ComposeView(parent.context)) {
+    private var itemState by mutableStateOf<UiImageEvent?>(null)
+    private var clickListener: ((ScreenEvent) -> Unit)? = null
+
+    init {
+        (itemView as ComposeView).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
+            setContent {
+                MacrionTheme {
+                    itemState?.let { item ->
+                        EventListRow(
+                            name = item.name,
+                            conditionsCount = item.conditionsCountText,
+                            actionsCount = item.actionsCountText,
+                            enabledTextRes = item.enabledOnStartTextRes,
+                            enabledIconRes = item.enabledOnStartIconRes,
+                            conditionIconRes = R.drawable.ic_condition,
+                            actionsInError = item.haveError,
+                            showReorderHandle = true,
+                            onClick = { clickListener?.invoke(item.event) },
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Bind this view holder to an event.
@@ -99,7 +130,8 @@ class ImageEventViewHolder(private val holderViewBinding: ItemScreenEventBinding
      * @param itemClickedListener listener called when an event is clicked.
      */
     fun bindEvent(item: UiImageEvent, itemClickedListener: (ScreenEvent) -> Unit) {
-        holderViewBinding.bind(item = item, startBtnVisible = true, itemClickedListener = itemClickedListener)
+        clickListener = itemClickedListener
+        itemState = item
     }
 }
 

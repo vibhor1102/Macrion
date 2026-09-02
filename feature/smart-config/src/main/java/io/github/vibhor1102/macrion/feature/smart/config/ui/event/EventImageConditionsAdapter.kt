@@ -19,12 +19,27 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.event
 import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.ItemScreenConditionListBinding
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.feature.smart.config.databinding.IncludeScreenConditionCardBinding
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.bindings.bind
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
 
@@ -38,7 +53,7 @@ internal class EventImageConditionsAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EventImageConditionViewHolder =
         EventImageConditionViewHolder(
-            ItemScreenConditionListBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+            parent,
             bitmapProvider,
             itemClickedListener,
         )
@@ -53,25 +68,65 @@ internal class EventImageConditionsAdapter(
 }
 
 internal class EventImageConditionViewHolder (
-    private val viewBinding: ItemScreenConditionListBinding,
+    parent: ViewGroup,
     private val bitmapProvider: (ScreenCondition.Image, onBitmapLoaded: (Bitmap?) -> Unit) -> Job?,
     private val itemClickedListener: (index: Int) -> Unit,
-): ViewHolder(viewBinding.root) {
+): ViewHolder(ComposeView(parent.context)) {
+    private var itemState by mutableStateOf<UiScreenCondition?>(null)
 
     /** Job for the loading of the condition bitmap. Null until bound. */
     private var bitmapLoadingJob: Job? = null
 
-    fun onBind(uiCondition: UiScreenCondition) {
-
-        bitmapLoadingJob?.cancel()
-        bitmapLoadingJob = viewBinding.cardImageCondition.bind(uiCondition, bitmapProvider) {
-            itemClickedListener(bindingAdapterPosition)
+    init {
+        (itemView as ComposeView).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
+            setContent {
+                MacrionTheme {
+                    Box(Modifier.size(108.dp).padding(horizontal = 4.dp, vertical = 4.dp)) {
+                        OutlinedCard(
+                            modifier = Modifier.fillMaxSize(),
+                            elevation = CardDefaults.outlinedCardElevation(defaultElevation = 2.dp),
+                        ) {
+                            AndroidView(
+                                factory = { context ->
+                                    IncludeScreenConditionCardBinding.inflate(
+                                        LayoutInflater.from(context),
+                                        null,
+                                        false,
+                                    ).root
+                                },
+                                update = { root ->
+                                    val condition = itemState ?: return@AndroidView
+                                    bitmapLoadingJob?.cancel()
+                                    bitmapLoadingJob = IncludeScreenConditionCardBinding.bind(root).bind(
+                                        condition,
+                                        bitmapProvider,
+                                    ) {
+                                        val position = bindingAdapterPosition
+                                        if (position != androidx.recyclerview.widget.RecyclerView.NO_POSITION) {
+                                            itemClickedListener(position)
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                    }
+                }
+            }
         }
+    }
+
+    fun onBind(uiCondition: UiScreenCondition) {
+        bitmapLoadingJob?.cancel()
+        bitmapLoadingJob = null
+        itemState = uiCondition
     }
 
     fun onUnbind() {
         bitmapLoadingJob?.cancel()
         bitmapLoadingJob = null
+        itemState = null
     }
 }
 
