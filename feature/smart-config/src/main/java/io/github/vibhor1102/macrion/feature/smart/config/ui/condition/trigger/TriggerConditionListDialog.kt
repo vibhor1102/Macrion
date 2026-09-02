@@ -77,7 +77,7 @@ class TriggerConditionListDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
                 }
             },
             floatingActionButton = {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     if (canCopy) FloatingActionButton(onClick = ::showCopyDialog, containerColor = MaterialTheme.colorScheme.secondaryContainer) {
                         Icon(painterResource(R.drawable.ic_copy), null)
                     }
