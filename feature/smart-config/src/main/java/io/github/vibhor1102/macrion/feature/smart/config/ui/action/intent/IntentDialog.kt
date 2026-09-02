@@ -248,7 +248,9 @@ class IntentDialog(
                     items(extras, key = { item ->
                         when (item) {
                             ExtraListItem.AddExtraItem -> "add"
-                            is ExtraListItem.ExtraItem -> item.extra.id
+                            is ExtraListItem.ExtraItem -> item.extra.id.let { id ->
+                                "extra:${id.databaseId}:${id.tempId.orEmpty()}"
+                            }
                         }
                     }) { item ->
                         when (item) {
@@ -422,3 +424,5 @@ class IntentDialog(
 }
 
 private const val TAG = "IntentDialog"
+
+private fun Long?.orEmpty(): String = this?.toString().orEmpty()
