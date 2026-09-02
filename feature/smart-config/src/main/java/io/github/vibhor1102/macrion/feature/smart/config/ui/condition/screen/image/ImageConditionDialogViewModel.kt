@@ -152,23 +152,16 @@ class ImageConditionViewModel @Inject constructor(
         editionRepository.editionState.isEditedConditionReferencedByClick()
 
 
-    fun monitorSaveButtonView(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.SCREEN_CONDITION_DIALOG_BUTTON_SAVE, view)
+    fun monitorSaveButtonView(view: View?) = monitorView(MonitoredViewType.SCREEN_CONDITION_DIALOG_BUTTON_SAVE, view)
+    fun monitorDetectionTypeItemInAreaView(view: View?) = monitorView(MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_TYPE_ITEM_IN_AREA, view)
+    fun monitorDetectionAreaSelector(view: View?) = monitorView(MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_AREA_SELECTOR, view)
+    fun monitorVisibilityView(view: View?) = monitorView(MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_VISIBILITY, view)
+
+    private fun monitorView(type: MonitoredViewType, view: View?) {
+        if (view == null) monitoredViewsManager.detach(type) else monitoredViewsManager.attach(type, view)
     }
 
-    fun monitorDetectionTypeItemInAreaView(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_TYPE_ITEM_IN_AREA, view)
-    }
-
-    fun monitorDetectionAreaSelector(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_AREA_SELECTOR, view)
-    }
-
-    fun monitorVisibilityView(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_VISIBILITY, view)
-    }
-
-    fun stopViewMonitoring() {
+    fun detachMonitoredViews() {
         monitoredViewsManager.detach(MonitoredViewType.SCREEN_CONDITION_DIALOG_BUTTON_SAVE)
         monitoredViewsManager.detach(MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_TYPE_ITEM_IN_AREA)
         monitoredViewsManager.detach(MonitoredViewType.SCREEN_CONDITION_DIALOG_FIELD_AREA_SELECTOR)
