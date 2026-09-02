@@ -1,115 +1,102 @@
-/*
- * Copyright (C) 2024 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.counter.selection
 
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.DividerItemDecoration
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.setEmptyText
-
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.updateState
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.DialogBaseListBinding
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.counter.creation.CounterCreationDialog
 
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlinx.coroutines.launch
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
-
-class CounterSelectionDialog(
-    private val onCounterSelected: (String) -> Unit,
-) : OverlayDialog(R.style.ScenarioConfigTheme) {
-
+class CounterSelectionDialog(private val onCounterSelected: (String) -> Unit) :
+    OverlayDialog(R.style.ScenarioConfigTheme) {
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.COUNTER_SELECTION.name
-
-    /** The view model for this dialog. */
     private val viewModel: CounterSelectionViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { counterSelectionViewModel() },
     )
-    /** ViewBinding containing the views for this dialog. */
-    private lateinit var viewBinding: DialogBaseListBinding
+    private var createButtonAnchor: View? = null
 
-    private lateinit var counterNameAdapter: CounterSelectionAdapter
-
-    override fun onCreateView(): ViewGroup {
-        viewBinding = DialogBaseListBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(R.string.generic_counters)
-                buttonDismiss.setDebouncedOnClickListener { back() }
-            }
-
-            floatingButtonsLayout.visibility = View.VISIBLE
-            buttonCopy.visibility = View.GONE
-            buttonNew.visibility = View.VISIBLE
-            buttonNew.setDebouncedOnClickListener { showCounterCreationDialog() }
-
-            counterNameAdapter = CounterSelectionAdapter { selectedCounter ->
-                debounceUserInteraction {
-                    onCounterSelected(selectedCounter.counterName)
-                    back()
-                }
-            }
-
-            layoutLoadableList.apply {
-                setEmptyText(R.string.message_empty_counter_name_list_title, R.string.message_empty_counter_name_list_desc)
-                list.adapter = counterNameAdapter
-                list.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
-            }
-        }
-
-        return viewBinding.root
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@CounterSelectionDialog.Content() } }
     }
-
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.counterNames.collect(::updateCounterNames) }
-            }
-        }
-    }
-
+    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
     override fun onStart() {
         super.onStart()
-        viewModel.monitorCreateCounterView(viewBinding.buttonNew)
+        createButtonAnchor?.let(viewModel::monitorCreateCounterView)
+    }
+    override fun onStop() { viewModel.stopViewMonitoring(); super.onStop() }
+
+    @Composable private fun Content() {
+        val counters = viewModel.counterNames.collectAsStateWithLifecycle(emptyList()).value
+        Scaffold(
+            modifier = Modifier.fillMaxWidth().heightIn(max = 640.dp),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+            topBar = {
+                Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
+                    Text(context.getString(R.string.generic_counters), Modifier.weight(1f).padding(8.dp),
+                        style = MaterialTheme.typography.titleLarge)
+                }
+            },
+            floatingActionButton = {
+                Box {
+                    FloatingActionButton(onClick = ::showCounterCreationDialog) {
+                        Icon(painterResource(R.drawable.ic_add), null)
+                    }
+                    TutorialClickAnchor(
+                        onViewChanged = { view ->
+                            createButtonAnchor = view
+                            if (view != null) viewModel.monitorCreateCounterView(view) else viewModel.stopViewMonitoring()
+                        },
+                        onClick = ::showCounterCreationDialog,
+                    )
+                }
+            },
+        ) { padding ->
+            if (counters.isEmpty()) Box(Modifier.fillMaxSize().padding(padding).padding(24.dp),
+                contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(context.getString(R.string.message_empty_counter_name_list_title), style = MaterialTheme.typography.titleMedium)
+                    Text(context.getString(R.string.message_empty_counter_name_list_desc),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            } else LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = 88.dp)) {
+                items(counters, key = { it.counterName }) { counter ->
+                    Row(Modifier.fillMaxWidth().heightIn(min = 64.dp).clickable {
+                        onCounterSelected(counter.counterName); back()
+                    }.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(counter.counterName, style = MaterialTheme.typography.titleSmall)
+                            Text(counter.counterStartingValueDesc, style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Icon(painterResource(R.drawable.ic_chevron_right), null, Modifier.size(24.dp))
+                    }
+                    HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                }
+            }
+        }
     }
 
-    override fun onStop() {
-        super.onStop()
-        viewModel.stopViewMonitoring()
-    }
-    private fun updateCounterNames(counterNames: List<CounterSelectionUiItem>) {
-        viewBinding.layoutLoadableList.updateState(counterNames)
-        counterNameAdapter.submitList(counterNames)
-    }
-
-    private fun showCounterCreationDialog() {
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = CounterCreationDialog(),
-            hideCurrent = false,
-        )
-    }
+    private fun showCounterCreationDialog() = overlayManager.navigateTo(context, CounterCreationDialog(), false)
 }

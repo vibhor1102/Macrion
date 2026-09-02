@@ -84,10 +84,12 @@ class ScreenConditionSelectionDialog(
     @Composable private fun ConditionCard(item: UiScreenCondition, onClick: () -> Unit) {
         Card(Modifier.fillMaxWidth().padding(6.dp).clickable(onClick = onClick), shape = RoundedCornerShape(10.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
-            Column(Modifier.height(100.dp)) {
-                ConditionPreview(item, Modifier.fillMaxWidth().height(55.dp))
-                Column(Modifier.weight(1f).padding(horizontal = 8.dp, vertical = 3.dp)) {
-                    Text(item.name, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Column(Modifier.height(124.dp)) {
+                ConditionPreview(item, Modifier.fillMaxWidth().height(68.dp))
+                Column(Modifier.weight(1f).padding(horizontal = 8.dp, vertical = 5.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterVertically)) {
+                    Text(item.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(painterResource(item.shouldBeVisibleIconRes), null, Modifier.size(14.dp))
                         if (item.condition is ScreenCondition.Image) Icon(painterResource(item.detectionTypeIconRes), null, Modifier.size(14.dp))
