@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -183,7 +184,7 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     FilledTonalIconButton(viewModel::decreaseDetectionQuality, Modifier.size(48.dp)) {
-                        Icon(painterResource(R.drawable.ic_chevron_left), null)
+                        Icon(painterResource(R.drawable.ic_chevron_right), null, Modifier.rotate(180f))
                     }
                     Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.medium) {
                         Text(state.displayText, Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
