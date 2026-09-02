@@ -29,7 +29,7 @@ internal fun CopyPickerContent(
     items: LazyListScope.() -> Unit,
 ) {
     Surface(
-        Modifier.fillMaxWidth().heightIn(min = 320.dp, max = 680.dp),
+        Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.surfaceContainerLowest,
     ) {
         Column(Modifier.fillMaxWidth()) {

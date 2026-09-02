@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -31,6 +32,8 @@ import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toEffectDescription
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
 import io.github.vibhor1102.macrion.feature.smart.config.ui.copy.*
 import io.github.vibhor1102.macrion.feature.smart.config.ui.copy.fix.eventchildren.FixEventChildrenCopyDialog
 
@@ -113,19 +116,21 @@ class ConditionCopyDialog(
                 .clickable(onClick = onClick), shape = shape,
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
         ) {
-            Column(Modifier.height(190.dp)) {
-                ConditionPreview(condition, Modifier.fillMaxWidth().height(108.dp))
+            Column(Modifier.height(100.dp)) {
+                ConditionPreview(condition, Modifier.fillMaxWidth().height(55.dp))
                 Row(Modifier.fillMaxWidth().weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f).padding(start = 10.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Text(condition.name, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(painterResource(condition.shouldBeVisibleIconRes), null, Modifier.size(18.dp))
-                        Icon(painterResource(condition.detectionTypeIconRes), null, Modifier.size(18.dp))
+                Column(Modifier.weight(1f).padding(start = 8.dp), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                    Text(condition.name, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(painterResource(condition.shouldBeVisibleIconRes), null, Modifier.size(14.dp))
+                        if (condition.condition is ScreenCondition.Image) {
+                            Icon(painterResource(condition.detectionTypeIconRes), null, Modifier.size(14.dp))
+                        }
                         Text(condition.thresholdText, style = MaterialTheme.typography.bodySmall,
                             color = if (condition.haveError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                Checkbox(checked, onCheckedChange = { onClick() })
+                Checkbox(checked, onCheckedChange = { onClick() }, Modifier.size(38.dp))
                 }
             }
         }
@@ -142,12 +147,15 @@ class ConditionCopyDialog(
         Box(modifier.clip(RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
             when (source) {
-                is ScreenCondition.Color -> Box(Modifier.size(54.dp).background(Color(source.color), RoundedCornerShape(8.dp)))
+                is ScreenCondition.Color -> Box(Modifier.size(40.dp).background(Color(source.color), CircleShape))
                 is ScreenCondition.Image -> bitmap?.let {
                     Image(it.asImageBitmap(), null, Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
                 } ?: Icon(painterResource(if (condition.haveError) R.drawable.ic_cancel else condition.iconRes), null, Modifier.size(40.dp),
                     tint = if (condition.haveError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
-                is ScreenCondition.Number -> Text(source.comparisonOperation.toString(), style = MaterialTheme.typography.bodyMedium)
+                is ScreenCondition.Number -> Text(
+                    source.comparisonOperation.toEffectDescription(context, operand = source.counterValue.toNaturalDisplayString()),
+                    Modifier.padding(6.dp), style = MaterialTheme.typography.bodySmall, maxLines = 2,
+                )
                 is ScreenCondition.Text -> Text(source.text, Modifier.padding(8.dp), style = MaterialTheme.typography.bodyMedium,
                     maxLines = 3, overflow = TextOverflow.Ellipsis)
             }

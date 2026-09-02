@@ -22,7 +22,7 @@ internal fun FixCopyContent(
     onSave: () -> Unit,
     content: LazyListScope.() -> Unit,
 ) {
-    Surface(Modifier.fillMaxWidth().heightIn(min = 280.dp, max = 680.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+    Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
         Column {
             Row(
                 Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLow)
