@@ -57,7 +57,7 @@ class MoreContent(appContext: Context) : NavBarDialogContent(appContext) {
                     SwitchField(context.getString(R.string.item_title_debug_generate_report),
                         context.getString(R.string.item_desc_debug_generate_report), debugReport, viewModel::toggleIsDebugReportEnabled,
                         contentPadding = PaddingValues(0.dp))
-                    HorizontalDivider()
+                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
                     SelectorField(context.getString(R.string.field_show_debug_report_title),
                         context.getString(if (reportAvailable) R.string.field_show_debug_report_desc_available
                         else R.string.field_show_debug_report_desc_not_available), reportAvailable, ::showDebugReport,

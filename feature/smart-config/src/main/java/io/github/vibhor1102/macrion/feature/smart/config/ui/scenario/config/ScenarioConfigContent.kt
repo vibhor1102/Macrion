@@ -1,187 +1,211 @@
-/*
- * Copyright (C) 2026 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2026 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.config
 
 import android.content.Context
-import android.text.InputFilter
-import android.text.InputFilter.LengthFilter
-import android.text.InputType
-import android.view.LayoutInflater
 import android.view.ViewGroup
-
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
-import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.setItems
-import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.setSelectedItem
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setChecked
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setDescription
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnClickListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setTitle
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setupDescriptions
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setLabel
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnTextChangedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setText
-import io.github.vibhor1102.macrion.core.ui.utils.MinMaxDoubleInputFilter
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.ContentScenarioConfigBinding
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
-import com.google.android.material.textfield.TextInputLayout
-
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalMaterial3Api::class)
 class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContext) {
-
-    /** View model for this content. */
     private val viewModel: ScenarioConfigViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { scenarioConfigViewModel() },
     )
 
-    private lateinit var viewBinding: ContentScenarioConfigBinding
+    override fun onCreateView(container: ViewGroup): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@ScenarioConfigContent.Content() } }
+    }
 
-    override fun onCreateView(container: ViewGroup): ViewGroup {
-        viewBinding = ContentScenarioConfigBinding.inflate(LayoutInflater.from(context), container, false).apply {
-            fieldScenarioName.apply {
-                setLabel(R.string.input_field_label_scenario_name)
-                setOnTextChangedListener { viewModel.setScenarioName(it.toString()) }
-                textField.filters = arrayOf<InputFilter>(
-                    LengthFilter(context.resources.getInteger(R.integer.name_max_length))
-                )
-            }
-            dialogController.hideSoftInputOnFocusLoss(fieldScenarioName.textField)
+    override fun onViewCreated() = Unit
 
-            fieldAntiDetection.apply {
-                setTitle(context.resources.getString(R.string.input_field_label_anti_detection))
-                setupDescriptions(
-                    listOf(
-                        context.getString(R.string.dropdown_helper_text_anti_detection_disabled),
-                        context.getString(R.string.dropdown_helper_text_anti_detection_enabled),
+    @Composable
+    private fun Content() {
+        val state by viewModel.uiState.collectAsStateWithLifecycle()
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            state?.let {
+                Column(
+                    Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    ScenarioName(it.name)
+                    SwitchCard(
+                        stringResource(R.string.input_field_label_anti_detection),
+                        stringResource(if (it.randomizeChecked) R.string.dropdown_helper_text_anti_detection_enabled
+                        else R.string.dropdown_helper_text_anti_detection_disabled),
+                        it.randomizeChecked,
+                        viewModel::toggleRandomization,
                     )
-                )
-                setOnClickListener(viewModel::toggleRandomization)
-            }
-
-            fieldKeepScreenOn.apply {
-                setTitle(context.resources.getString(R.string.field_scenario_keep_screen_on_title))
-                setupDescriptions(
-                    listOf(
-                        context.getString(R.string.field_scenario_keep_screen_on_disabled),
-                        context.getString(R.string.field_scenario_keep_screen_on_enabled),
+                    SwitchCard(
+                        stringResource(R.string.field_scenario_keep_screen_on_title),
+                        stringResource(if (it.keepScreenOnChecked) R.string.field_scenario_keep_screen_on_enabled
+                        else R.string.field_scenario_keep_screen_on_disabled),
+                        it.keepScreenOnChecked,
+                        viewModel::toggleKeepScreenOn,
                     )
-                )
-                setOnClickListener(viewModel::toggleKeepScreenOn)
-            }
-
-            fieldLimitFps.apply {
-                setTitle(context.getString(R.string.field_scenario_fps_limit_title))
-                setDescription(context.getString(R.string.field_scenario_fps_limit_desc))
-                setOnClickListener(viewModel::toggleFpsLimiter)
-            }
-
-            editFpsLimit.apply {
-                textLayout.endIconMode = TextInputLayout.END_ICON_NONE
-                setLabel(R.string.field_scenario_fps_rate_label)
-                setOnTextChangedListener {
-                    viewModel.setComputeRate(
-                        if (it.isNotEmpty()) it.toString().toDoubleOrNull() ?: return@setOnTextChangedListener
-                        else return@setOnTextChangedListener
-                    )
+                    ComputeRateCard(it.computeRateState)
+                    DetectionQualityCard(it.qualityUiState)
+                    Spacer(Modifier.height(12.dp))
                 }
             }
-            dialogController.hideSoftInputOnFocusLoss(editFpsLimit.textField)
+        }
+    }
 
-            fpsTimeUnitField.setItems(
-                label = context.getString(R.string.field_scenario_fps_rate_unit_label),
-                items = allComputeRateUnitDropdownItems(),
-                onItemSelected = viewModel::setComputeRateUnit,
-            )
+    @Composable
+    private fun ScenarioName(repositoryName: String) {
+        var name by rememberSaveable { mutableStateOf(repositoryName) }
+        var focused by remember { mutableStateOf(false) }
+        LaunchedEffect(repositoryName, focused) { if (!focused) name = repositoryName }
+        val maxLength = context.resources.getInteger(R.integer.name_max_length)
+        OutlinedTextField(
+            name,
+            { value -> if (value.length <= maxLength) { name = value; viewModel.setScenarioName(value) } },
+            Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused },
+            label = { Text(stringResource(R.string.input_field_label_scenario_name)) },
+            singleLine = true,
+        )
+    }
 
-            textSpeed.setOnClickListener { viewModel.decreaseDetectionQuality() }
-            textPrecision.setOnClickListener { viewModel.increaseDetectionQuality() }
-            seekbarResolution.addOnChangeListener { _, value, fromUser ->
-                if (fromUser) viewModel.setDetectionQuality(value.roundToInt())
+    @Composable
+    private fun SwitchCard(title: String, description: String, checked: Boolean, onToggle: () -> Unit) {
+        ElevatedCard(Modifier.fillMaxWidth()) {
+            Row(
+                Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f).padding(end = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(title, style = MaterialTheme.typography.bodyLarge)
+                    Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                VerticalDivider(Modifier.height(48.dp))
+                Spacer(Modifier.width(12.dp))
+                Switch(checked, { onToggle() })
             }
         }
-
-        return viewBinding.root
     }
 
-    override fun onViewCreated() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.uiState.collect(::updateUiState)}
+    @Composable
+    private fun ComputeRateCard(state: ComputeRateLimitUiState) {
+        var value by rememberSaveable { mutableStateOf(state.value.toNaturalDisplayString()) }
+        var focused by remember { mutableStateOf(false) }
+        var menuExpanded by remember { mutableStateOf(false) }
+        LaunchedEffect(state.value, state.unit, state.isEnabled, focused) {
+            if (!focused) value = if (state.isEnabled) state.value.toNaturalDisplayString()
+            else context.getString(R.string.field_scenario_fps_limit_disable_rate)
+        }
+        ElevatedCard(Modifier.fillMaxWidth()) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Row(
+                    Modifier.fillMaxWidth().clickable(onClick = viewModel::toggleFpsLimiter),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f).padding(end = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(stringResource(R.string.field_scenario_fps_limit_title), style = MaterialTheme.typography.bodyLarge)
+                        Text(stringResource(R.string.field_scenario_fps_limit_desc), style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    VerticalDivider(Modifier.height(48.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Switch(state.isEnabled, { viewModel.toggleFpsLimiter() })
+                }
+                Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedTextField(
+                        value,
+                        { input ->
+                            if (input.matches(Regex("\\d*(\\.\\d*)?"))) {
+                                value = input
+                                input.toDoubleOrNull()?.takeIf { it > FRAME_LIMIT_MIN_VALUE && it <= state.maxValue }
+                                    ?.let(viewModel::setComputeRate)
+                            }
+                        },
+                        Modifier.weight(1f).onFocusChanged { focused = it.isFocused },
+                        enabled = state.isEnabled,
+                        label = { Text(stringResource(R.string.field_scenario_fps_rate_label)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    )
+                    Text("/", Modifier.padding(horizontal = 8.dp), style = MaterialTheme.typography.headlineMedium)
+                    ExposedDropdownMenuBox(menuExpanded, { if (state.isEnabled) menuExpanded = !menuExpanded }, Modifier.weight(.8f)) {
+                        OutlinedTextField(
+                            stringResource(state.unit.title), {}, readOnly = true, enabled = state.isEnabled,
+                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+                            label = { Text(stringResource(R.string.field_scenario_fps_rate_unit_label)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(menuExpanded) },
+                            singleLine = true,
+                        )
+                        ExposedDropdownMenu(menuExpanded, { menuExpanded = false }) {
+                            allComputeRateUnitDropdownItems().forEach { item ->
+                                DropdownMenuItem(
+                                    { Text(stringResource(item.title)) },
+                                    { viewModel.setComputeRateUnit(item); menuExpanded = false },
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
-    private fun updateUiState(uiState: ScenarioConfigUiState?) {
-        uiState ?: return
-
-        viewBinding.apply {
-            fieldScenarioName.setText(uiState.name)
-
-            fieldAntiDetection.setChecked(uiState.randomizeChecked)
-            fieldAntiDetection.setDescription(if (uiState.randomizeChecked) 1 else 0)
-
-            fieldKeepScreenOn.setChecked(uiState.keepScreenOnChecked)
-            fieldKeepScreenOn.setDescription(if (uiState.keepScreenOnChecked) 1 else 0)
-        }
-
-        updateQuality(uiState.qualityUiState)
-        updateComputeRate(uiState.computeRateState)
-    }
-
-    private fun updateComputeRate(state: ComputeRateLimitUiState) {
-        viewBinding.apply {
-            fieldLimitFps.setChecked(state.isEnabled)
-
-            editFpsLimit.textLayout.isEnabled = state.isEnabled
-            if (state.isEnabled) {
-                editFpsLimit.textField.filters = arrayOf(MinMaxDoubleInputFilter(min = 0.0, max = state.maxValue))
-                editFpsLimit.setText(
-                    text = state.value.toNaturalDisplayString(),
-                    type = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL,
+    @Composable
+    private fun DetectionQualityCard(state: DetectionQualityUiState) {
+        ElevatedCard(Modifier.fillMaxWidth()) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(stringResource(R.string.field_scenario_quality_title), style = MaterialTheme.typography.bodyLarge)
+                Row(
+                    Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    FilledTonalIconButton(viewModel::decreaseDetectionQuality, Modifier.size(48.dp)) {
+                        Icon(painterResource(R.drawable.ic_chevron_left), null)
+                    }
+                    Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.medium) {
+                        Text(state.displayText, Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            color = MaterialTheme.colorScheme.onSecondaryContainer, style = MaterialTheme.typography.bodyLarge)
+                    }
+                    FilledTonalIconButton(viewModel::increaseDetectionQuality, Modifier.size(48.dp)) {
+                        Icon(painterResource(R.drawable.ic_chevron_right), null)
+                    }
+                }
+                Slider(
+                    value = state.qualityValue,
+                    onValueChange = { viewModel.setDetectionQuality(it.roundToInt()) },
+                    modifier = Modifier.fillMaxWidth(),
+                    valueRange = state.min..state.max,
                 )
-            } else {
-                editFpsLimit.textField.filters = emptyArray<InputFilter>()
-                editFpsLimit.setText(context.getString(R.string.field_scenario_fps_limit_disable_rate))
-            }
-
-            fpsTimeUnitField.textLayout.isEnabled = state.isEnabled
-            fpsTimeUnitField.setSelectedItem(state.unit)
-        }
-    }
-
-    private fun updateQuality(quality: DetectionQualityUiState) {
-        viewBinding.apply {
-            textQualityValue.text = quality.displayText
-
-            val isNotInitialized = seekbarResolution.value == 0f
-            seekbarResolution.value = quality.qualityValue
-
-            if (isNotInitialized && quality.min < quality.max) {
-                seekbarResolution.valueFrom = quality.min
-                seekbarResolution.valueTo = quality.max
+                HorizontalDivider()
+                Text(
+                    stringResource(R.string.field_scenario_quality_description),
+                    Modifier.padding(top = 12.dp, bottom = 4.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
