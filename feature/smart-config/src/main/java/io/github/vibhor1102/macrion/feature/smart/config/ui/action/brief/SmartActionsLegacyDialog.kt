@@ -17,17 +17,22 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief
 
 import android.annotation.SuppressLint
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,7 +49,6 @@ import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.ItemSmartActionLegacyBinding
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.selection.ActionTypeSelectionDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.UiAction
@@ -150,7 +154,7 @@ private class ActionAdapter(
 ) : ListAdapter<ItemBrief, ActionItemBriefViewHolder>(ActionItemBriefDiffUtilCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActionItemBriefViewHolder =
-        ActionItemBriefViewHolder(ItemSmartActionLegacyBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        ActionItemBriefViewHolder(parent)
 
     override fun onBindViewHolder(holder: ActionItemBriefViewHolder, position: Int) {
         holder.onBind(getItem(position), actionClickedListener)
@@ -188,18 +192,63 @@ private object ActionItemBriefDiffUtilCallback: DiffUtil.ItemCallback<ItemBrief>
 }
 
 private class ActionItemBriefViewHolder(
-    private val viewBinding: ItemSmartActionLegacyBinding,
-) : RecyclerView.ViewHolder(viewBinding.root) {
+    parent: ViewGroup,
+) : RecyclerView.ViewHolder(ComposeView(parent.context)) {
+    private var itemState by mutableStateOf<ItemBrief?>(null)
+    private var clickListener: ((ItemBrief) -> Unit)? = null
+
+    init {
+        (itemView as ComposeView).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
+            setContent { MacrionTheme { itemState?.let { ActionRow(it) } } }
+        }
+    }
 
     fun onBind(item: ItemBrief, itemClickedListener: (ItemBrief) -> Unit) {
-        viewBinding.apply {
-            root.setOnClickListener { itemClickedListener(item) }
+        clickListener = itemClickedListener
+        itemState = item
+    }
 
-            val details = item.data as UiAction
-            itemIcon.setImageResource(details.icon)
-            itemName.text = details.name
-            itemDescription.text = details.description
-            errorBadge.visibility = if (details.haveError) View.VISIBLE else View.GONE
+    @Composable
+    private fun ActionRow(item: ItemBrief) {
+        val details = item.data as UiAction
+        Row(
+            Modifier.fillMaxWidth().height(80.dp).clickable { clickListener?.invoke(item) }
+                .padding(start = 8.dp, end = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AndroidView(
+                factory = { context -> ImageView(context).apply { scaleType = ImageView.ScaleType.CENTER } },
+                update = { it.setImageResource(R.drawable.ic_reorder) },
+                modifier = Modifier.size(48.dp),
+            )
+            Column(Modifier.weight(1f).padding(start = 8.dp, end = 12.dp)) {
+                Text(
+                    details.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    details.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontStyle = FontStyle.Italic,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Box(Modifier.size(32.dp)) {
+                AndroidView(
+                    factory = { context -> ImageView(context).apply { scaleType = ImageView.ScaleType.FIT_CENTER } },
+                    update = { it.setImageResource(details.icon) },
+                    modifier = Modifier.matchParentSize(),
+                )
+                if (details.haveError) Box(
+                    Modifier.align(Alignment.TopEnd).size(6.dp)
+                        .background(MaterialTheme.colorScheme.error, CircleShape),
+                )
+            }
         }
     }
 }
