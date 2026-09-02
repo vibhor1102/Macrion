@@ -1,254 +1,267 @@
-/*
- * Copyright (C) 2026 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2026 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.number
 
-import android.text.InputFilter
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.navigation.getTutorialNavigator
-
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonEnabledState
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setDescription
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setError
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setLabel
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnClickListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnTextChangedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnValueChangedFromUserListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setSliderRange
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setSliderValue
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setText
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setTitle
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setValueLabelState
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.DialogConfigConditionNumberBinding
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.bindings.counter.setSelectedOperator
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.bindings.counter.setValueInfo
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.bindings.counter.setup
-import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.setItems
-import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.setSelectedItem
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialViewAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showDeleteConditionsWithAssociatedActionsDialog
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.allNumberFormatDropdownItems
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.counter.allCounterComparisonOperatorDropdownItems
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.counter.*
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.OnConditionConfigCompleteListener
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.areaselector.ConditionAreaSelectorMenu
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.image.MAX_THRESHOLD
 import io.github.vibhor1102.macrion.feature.smart.config.ui.counter.selection.CounterSelectionDialog
-
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.launch
-import kotlin.getValue
 import kotlin.math.roundToInt
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 
-class NumberConditionDialog(
-    private val listener: OnConditionConfigCompleteListener,
-) : OverlayDialog(R.style.ScenarioConfigTheme) {
-
+class NumberConditionDialog(private val listener: OnConditionConfigCompleteListener) : OverlayDialog(R.style.ScenarioConfigTheme) {
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.NUMBER_CONDITION.name
-
-    /** The view model for this dialog. */
     private val viewModel: NumberConditionViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { numberConditionViewModel() },
     )
+    private var saveAnchor: View? = null
+    private var operatorAnchor: View? = null
+    private var valueAnchor: View? = null
+    private var areaAnchor: View? = null
 
-    /** ViewBinding containing the views for this dialog. */
-    private lateinit var viewBinding: DialogConfigConditionNumberBinding
-
-    override fun onCreateView(): ViewGroup {
-        viewBinding = DialogConfigConditionNumberBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(R.string.dialog_title_condition_config)
-
-                buttonDismiss.setDebouncedOnClickListener { back() }
-                buttonSave.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener {
-                        listener.onConfirmClicked()
-                        super.back()
-                    }
-                }
-                buttonDelete.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener { onDeleteClicked() }
-                }
-            }
-
-            fieldEditName.apply {
-                setLabel(R.string.generic_name)
-                setOnTextChangedListener { viewModel.setName(it.toString()) }
-                textField.filters = arrayOf<InputFilter>(
-                    InputFilter.LengthFilter(context.resources.getInteger(R.integer.name_max_length))
-                )
-            }
-            hideSoftInputOnFocusLoss(fieldEditName.textField)
-
-            editValueLayout.apply {
-                setup(
-                    dropdownItems = allCounterComparisonOperatorDropdownItems(),
-                    onOperatorSelected = viewModel::setComparisonOperator,
-                    onChangeTypeClicked = viewModel::setOperandType,
-                    onStaticValueChangedListener = { newValue ->
-                        viewModel.setOperationValue(CounterOperationValue.Number(newValue))
-                    },
-                    onOpenCounterSelectionClicked = {
-                        showCounterSelectionDialog { counterSelected ->
-                            viewModel.setOperationValue(CounterOperationValue.Counter(counterSelected))
-                        }
-                    },
-                    onItemBound = { item, view ->
-                        viewModel.monitorDropdownItem(item, view)
-                    }
-                )
-                hideSoftInputOnFocusLoss(staticValueLayout.textField)
-            }
-
-            fieldNumberFormat.setItems(
-                label = context.getString(R.string.field_number_condition_number_format_label),
-                items = allNumberFormatDropdownItems(),
-                onItemSelected = viewModel::setNumberFormat,
-            )
-
-            fieldSelectArea.apply {
-                setTitle(context.getString(R.string.generic_detection_area_title))
-                setOnClickListener { showDetectionAreaSelector() }
-            }
-
-            fieldSliderThreshold.apply {
-                setTitle(context.getString(R.string.generic_condition_threshold_title))
-                setValueLabelState(isEnabled = true, prefix = "%")
-                setSliderRange(0f, MAX_THRESHOLD)
-                setOnValueChangedFromUserListener { value -> viewModel.setThreshold(value.roundToInt()) }
-            }
-        }
-
-        return viewBinding.root
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@NumberConditionDialog.Content() } }
     }
-
     override fun onDialogCreated(dialog: BottomSheetDialog) {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                launch { viewModel.isEditingCondition.collect(::onConditionEditingStateChanged) }
-            }
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.uiState.collect(::updateUi) }
-            }
-        }
+        lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.CREATED) {
+            viewModel.isEditingCondition.collect { if (!it) { Log.e(TAG, "Closing NumberConditionDialog because there is no condition edited"); finish() } }
+        } }
     }
-
     override fun onStart() {
         super.onStart()
-        viewModel.monitorSaveButtonView(viewBinding.layoutTopBar.buttonSave)
-        viewModel.monitorDetectionAreaField(viewBinding.fieldSelectArea.root)
-        viewModel.monitorOperatorField(viewBinding.editValueLayout.operatorField.root)
-        viewModel.monitorValueToDetectField(viewBinding.editValueLayout.staticValueLayout.textField)
+        viewModel.monitorSaveButtonView(saveAnchor)
+        viewModel.monitorOperatorField(operatorAnchor)
+        viewModel.monitorValueToDetectField(valueAnchor)
+        viewModel.monitorDetectionAreaField(areaAnchor)
+    }
+    override fun onStop() { viewModel.detachMonitoredViews(); super.onStop() }
+
+    @Composable private fun Content() {
+        val state by viewModel.uiState.collectAsStateWithLifecycle()
+        val ui = state ?: return
+        var name by rememberSaveable { mutableStateOf(ui.name) }
+        Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            Column {
+                TopBar(ui.canBeSaved)
+                Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    MacrionTextField(name, { name = it; viewModel.setName(it) }, context.getString(R.string.generic_name),
+                        isError = ui.nameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
+                    OperandCard(ui)
+                    ElevatedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(context.getString(R.string.field_number_condition_effect_title), style = MaterialTheme.typography.titleSmall)
+                        Text(ui.conditionEffectDesc, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } }
+                    DetectionCard(ui)
+                    ThresholdCard(ui.detectionThreshold)
+                }
+            }
+        }
     }
 
-    override fun onStop() {
-        super.onStop()
-        viewModel.stopViewMonitoring()
+    @Composable private fun TopBar(saveEnabled: Boolean) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
+            Text(context.getString(R.string.dialog_title_condition_config), Modifier.weight(1f).padding(horizontal = 8.dp),
+                style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Clip)
+            FilledTonalIconButton(onClick = ::onDeleteClicked) { Icon(painterResource(R.drawable.ic_delete), null) }
+            Spacer(Modifier.width(8.dp))
+            Box {
+                FilledIconButton(onClick = ::save, enabled = saveEnabled) { Icon(painterResource(R.drawable.ic_save_filled), null) }
+                TutorialClickAnchor({ saveAnchor = it; viewModel.monitorSaveButtonView(it) }, ::save, saveEnabled)
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable private fun OperandCard(ui: NumberConditionUiState) {
+        var expanded by remember { mutableStateOf(false) }
+        ElevatedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Box(Modifier.weight(1f)) {
+                    ExposedDropdownMenuBox(expanded, { expanded = it }) {
+                        OutlinedTextField(stringResource(ui.selectorOperatorDropdownItem.title), {}, readOnly = true,
+                            label = { Text(context.getString(R.string.dropdown_comparison_operator_label)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth())
+                        ExposedDropdownMenu(expanded, { expanded = false }) {
+                            allCounterComparisonOperatorDropdownItems().forEach { item ->
+                                Box(Modifier.fillMaxWidth()) {
+                                    DropdownMenuItem(text = { Text(stringResource(item.title)) }, onClick = {
+                                        viewModel.setComparisonOperator(item); expanded = false
+                                    })
+                                    if (item is UiCounterOperatorDropdownItem.Comparison.GreaterItem) TutorialClickAnchor(
+                                        onViewChanged = { viewModel.monitorDropdownItem(item, it) },
+                                        onClick = { viewModel.setComparisonOperator(item); expanded = false })
+                                }
+                            }
+                        }
+                    }
+                    TutorialClickAnchor({ operatorAnchor = it; viewModel.monitorOperatorField(it) }, { expanded = true })
+                }
+                OperandTypeButtons(ui.operandValue)
+            }
+            when (val operand = ui.operandValue) {
+                is UiStaticOrCounterSelection.StaticValue -> StaticValueField(operand)
+                is UiStaticOrCounterSelection.CounterValue -> CounterField(operand)
+            }
+        } }
+    }
+
+    @Composable private fun OperandTypeButtons(operand: UiStaticOrCounterSelection) {
+        val selected = if (operand is UiStaticOrCounterSelection.StaticValue) 0 else 1
+        val shape = RoundedCornerShape(20.dp)
+        Row(Modifier.height(32.dp).clip(shape).border(1.dp, MaterialTheme.colorScheme.outline, shape)) {
+            listOf(UiOperandType.STATIC to R.drawable.ic_numbers, UiOperandType.COUNTER to R.drawable.ic_change_counter)
+                .forEachIndexed { index, (type, icon) ->
+                    if (index > 0) Box(Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outline))
+                    Box(Modifier.width(44.dp).fillMaxHeight()
+                        .background(if (selected == index) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface)
+                        .clickable { viewModel.setOperandType(type) }, contentAlignment = Alignment.Center) {
+                        Icon(painterResource(icon), null, Modifier.size(18.dp), tint = if (selected == index)
+                            MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface)
+                    }
+                }
+        }
+    }
+
+    @Composable private fun StaticValueField(operand: UiStaticOrCounterSelection.StaticValue) {
+        var text by rememberSaveable { mutableStateOf(operand.value.toNaturalDisplayString()) }
+        val focusRequester = remember { FocusRequester() }
+        Box {
+            TutorialViewAnchor({ valueAnchor = it; viewModel.monitorValueToDetectField(it) },
+                { focusRequester.requestFocus() }, Modifier.matchParentSize())
+            OutlinedTextField(text, { newText -> text = newText; newText.toDoubleOrNull()?.let {
+                viewModel.setOperationValue(CounterOperationValue.Number(it)) } }, Modifier.fillMaxWidth().focusRequester(focusRequester),
+                label = { Text(context.getString(R.string.field_counter_operation_value_label)) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true)
+        }
+    }
+
+    @Composable private fun CounterField(operand: UiStaticOrCounterSelection.CounterValue) {
+        ElevatedCard(onClick = { showCounterSelectionDialog { viewModel.setOperationValue(CounterOperationValue.Counter(it)) } },
+            modifier = Modifier.fillMaxWidth()) {
+            Row(Modifier.fillMaxWidth().heightIn(min = 62.dp).padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(painterResource(R.drawable.ic_change_counter), null, Modifier.size(40.dp))
+                Column(Modifier.weight(1f).padding(start = 8.dp, end = 16.dp)) {
+                    Text(operand.counter?.counterName ?: context.getString(R.string.field_counter_selection_title_empty), style = MaterialTheme.typography.titleSmall)
+                    Text(operand.counter?.let { context.getString(R.string.field_counter_selection_desc,
+                        it.defaultValue.toNaturalDisplayString(maxFractionDigits = 2)) } ?: context.getString(R.string.field_counter_selection_desc_empty),
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Icon(painterResource(R.drawable.ic_chevron_right), null)
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable private fun DetectionCard(ui: NumberConditionUiState) {
+        var formatExpanded by remember { mutableStateOf(false) }
+        ElevatedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(vertical = 8.dp)) {
+            ExposedDropdownMenuBox(formatExpanded, { formatExpanded = it }, Modifier.padding(horizontal = 16.dp)) {
+                OutlinedTextField(stringResource(ui.numberFormatDropdownItem.title), {}, readOnly = true,
+                    label = { Text(context.getString(R.string.field_number_condition_number_format_label)) },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(formatExpanded) },
+                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth())
+                ExposedDropdownMenu(formatExpanded, { formatExpanded = false }) {
+                    allNumberFormatDropdownItems().forEach { item -> DropdownMenuItem(text = {
+                        Column { Text(stringResource(item.title)); item.helperText?.let { Text(stringResource(it),
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) } }
+                    }, onClick = { viewModel.setNumberFormat(item); formatExpanded = false }) }
+                }
+            }
+            HorizontalDivider(Modifier.padding(top = 8.dp))
+            Box {
+                Row(Modifier.fillMaxWidth().clickable(onClick = ::showDetectionAreaSelector)
+                    .padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(context.getString(R.string.generic_detection_area_title), style = MaterialTheme.typography.titleSmall)
+                        Text(ui.detectionAreaDescription, style = MaterialTheme.typography.bodySmall,
+                            color = if (ui.detectionAreaError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Icon(painterResource(R.drawable.ic_chevron_right), null)
+                }
+                TutorialClickAnchor({ areaAnchor = it; viewModel.monitorDetectionAreaField(it) }, ::showDetectionAreaSelector)
+            }
+        } }
+    }
+
+    @Composable private fun ThresholdCard(value: Int) {
+        ElevatedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(context.getString(R.string.generic_condition_threshold_title), style = MaterialTheme.typography.titleSmall)
+                Text("$value%", style = MaterialTheme.typography.bodyMedium)
+            }
+            Slider(value.toFloat(), { viewModel.setThreshold(it.roundToInt()) }, valueRange = 0f..MAX_THRESHOLD)
+        } }
     }
 
     override fun back() {
-        if (viewModel.hasUnsavedModifications()) {
-            context.showCloseWithoutSavingDialog {
-                listener.onDismissClicked()
-                super.back()
-            }
-            return
-        }
-
-        listener.onDismissClicked()
-        super.back()
+        if (viewModel.hasUnsavedModifications()) { context.showCloseWithoutSavingDialog { listener.onDismissClicked(); super.back() }; return }
+        listener.onDismissClicked(); super.back()
     }
-
-    private fun updateUi(uiState: NumberConditionUiState?) {
-        if (uiState == null) return
-
-        viewBinding.apply {
-            layoutTopBar.setButtonEnabledState(DialogNavigationButton.SAVE, uiState.canBeSaved)
-            fieldEditName.setText(uiState.name)
-            fieldEditName.setError(uiState.nameError)
-
-            editValueLayout.setSelectedOperator(uiState.selectorOperatorDropdownItem)
-            editValueLayout.setValueInfo(uiState.operandValue)
-            effectDesc.text = uiState.conditionEffectDesc
-
-            fieldNumberFormat.setSelectedItem(uiState.numberFormatDropdownItem)
-            fieldSelectArea.setDescription(uiState.detectionAreaDescription)
-            fieldSelectArea.setError(uiState.detectionAreaError)
-            fieldSliderThreshold.setSliderValue(uiState.detectionThreshold.toFloat())
-        }
-    }
-
+    private fun save() { listener.onConfirmClicked(); super.back() }
     private fun onDeleteClicked() {
-        if (viewModel.isConditionRelatedToClick()) {
-            context.showDeleteConditionsWithAssociatedActionsDialog { onConfirmDelete() }
-            return
-        }
-
-        onConfirmDelete()
+        if (viewModel.isConditionRelatedToClick()) context.showDeleteConditionsWithAssociatedActionsDialog(::onConfirmDelete)
+        else onConfirmDelete()
     }
-
-    private fun onConfirmDelete() {
-        listener.onDeleteClicked()
-        super.back()
-    }
-
-    private fun onConditionEditingStateChanged(isEditing: Boolean) {
-        if (!isEditing) {
-            Log.e(TAG, "Closing ConditionDialog because there is no condition edited")
-            finish()
-        }
-    }
-
-    private fun showCounterSelectionDialog(onCounterSelected: (String) -> Unit) {
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = CounterSelectionDialog(onCounterSelected),
-            hideCurrent = true,
-        )
-    }
-
-    private fun showDetectionAreaSelector() {
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = ConditionAreaSelectorMenu(
-                onHelpClicked = { context.getTutorialNavigator().showTipDialog(context, Tip.NUMBER_DETECTION_AREA) },
-                onAreaSelected = viewModel::setDetectionArea,
-            ),
-            hideCurrent = true,
-        )
-    }
+    private fun onConfirmDelete() { listener.onDeleteClicked(); super.back() }
+    private fun showCounterSelectionDialog(onSelected: (String) -> Unit) =
+        overlayManager.navigateTo(context, CounterSelectionDialog(onSelected), true)
+    private fun showDetectionAreaSelector() = overlayManager.navigateTo(context,
+        ConditionAreaSelectorMenu(onHelpClicked = { context.getTutorialNavigator().showTipDialog(context, Tip.NUMBER_DETECTION_AREA) },
+            onAreaSelected = viewModel::setDetectionArea), true)
 }
 
 private const val TAG = "NumberConditionDialog"

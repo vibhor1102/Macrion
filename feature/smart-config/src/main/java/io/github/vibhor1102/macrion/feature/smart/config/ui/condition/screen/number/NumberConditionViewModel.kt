@@ -130,20 +130,20 @@ class NumberConditionViewModel @Inject constructor(
         updateEditedCondition { it.copy(numberFormatType = item.toNumberFormatType()) }
     }
 
-    fun monitorSaveButtonView(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.NUMBER_CONDITION_DIALOG_BUTTON_SAVE, view)
+    fun monitorSaveButtonView(view: View?) {
+        monitor(MonitoredViewType.NUMBER_CONDITION_DIALOG_BUTTON_SAVE, view)
     }
 
-    fun monitorValueToDetectField(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_VALUE_TO_DETECT, view)
+    fun monitorValueToDetectField(view: View?) {
+        monitor(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_VALUE_TO_DETECT, view)
     }
 
-    fun monitorOperatorField(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_OPERATOR_DROPDOWN, view)
+    fun monitorOperatorField(view: View?) {
+        monitor(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_OPERATOR_DROPDOWN, view)
     }
 
-    fun monitorDetectionAreaField(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_AREA_SELECTOR, view)
+    fun monitorDetectionAreaField(view: View?) {
+        monitor(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_AREA_SELECTOR, view)
     }
 
     fun monitorDropdownItem(item: UiCounterOperatorDropdownItem, view: View?) {
@@ -161,12 +161,16 @@ class NumberConditionViewModel @Inject constructor(
         }
     }
 
-    fun stopViewMonitoring() {
+    fun detachMonitoredViews() {
         monitoredViewsManager.detach(MonitoredViewType.NUMBER_CONDITION_DIALOG_BUTTON_SAVE)
         monitoredViewsManager.detach(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_VALUE_TO_DETECT)
         monitoredViewsManager.detach(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_OPERATOR_DROPDOWN)
         monitoredViewsManager.detach(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_OPERATOR_DROPDOWN_ITEM_GREATER)
         monitoredViewsManager.detach(MonitoredViewType.NUMBER_CONDITION_DIALOG_FIELD_AREA_SELECTOR)
+    }
+
+    private fun monitor(type: MonitoredViewType, view: View?) {
+        if (view == null) monitoredViewsManager.detach(type) else monitoredViewsManager.attach(type, view)
     }
 
     private fun updateEditedCondition(closure: (oldValue: ScreenCondition.Number) -> ScreenCondition.Number?) {

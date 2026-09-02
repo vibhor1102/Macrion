@@ -36,3 +36,28 @@ fun BoxScope.TutorialClickAnchor(
         onDispose { onViewChanged(null) }
     }
 }
+
+/** Exposes bounds and programmatic clicks without covering the Compose control drawn after it. */
+@Composable
+fun TutorialViewAnchor(
+    onViewChanged: (View?) -> Unit,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val currentClick by rememberUpdatedState(onClick)
+    var anchor by remember { mutableStateOf<View?>(null) }
+    AndroidView(
+        factory = { context ->
+            View(context).apply {
+                alpha = 0f
+                setOnClickListener { currentClick() }
+                anchor = this
+            }
+        },
+        modifier = modifier,
+    )
+    DisposableEffect(anchor) {
+        anchor?.let(onViewChanged)
+        onDispose { onViewChanged(null) }
+    }
+}
