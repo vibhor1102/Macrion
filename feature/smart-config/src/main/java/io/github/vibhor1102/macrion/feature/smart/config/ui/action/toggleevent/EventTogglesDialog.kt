@@ -65,6 +65,9 @@ class EventTogglesDialog(
                         items(listItems, key = { item -> when (item) {
                             is EventTogglesListItem.Header -> "header:${item.title}"
                             is EventTogglesListItem.Item -> item.event.id.let { "event:${it.databaseId}:${it.tempId ?: ""}" }
+                        } }, contentType = { item -> when (item) {
+                            is EventTogglesListItem.Header -> "header"
+                            is EventTogglesListItem.Item -> "event"
                         } }) { item -> when (item) {
                             is EventTogglesListItem.Header -> Header(item.title)
                             is EventTogglesListItem.Item -> EventRow(item)
