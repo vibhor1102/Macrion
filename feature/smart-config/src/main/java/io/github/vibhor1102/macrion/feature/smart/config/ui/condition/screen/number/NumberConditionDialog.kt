@@ -243,7 +243,12 @@ class NumberConditionDialog(private val listener: OnConditionConfigCompleteListe
                 Text(context.getString(R.string.generic_condition_threshold_title), style = MaterialTheme.typography.titleSmall)
                 Text("$value%", style = MaterialTheme.typography.bodyMedium)
             }
-            Slider(value.toFloat(), { viewModel.setThreshold(it.roundToInt()) }, valueRange = 0f..MAX_THRESHOLD)
+            Slider(
+                value = value.toFloat(),
+                onValueChange = { viewModel.setThreshold(it.roundToInt()) },
+                valueRange = 0f..MAX_THRESHOLD,
+                steps = MAX_THRESHOLD.roundToInt() - 1,
+            )
         } }
     }
 
