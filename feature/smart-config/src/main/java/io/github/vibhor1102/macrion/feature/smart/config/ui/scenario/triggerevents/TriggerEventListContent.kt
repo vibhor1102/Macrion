@@ -17,19 +17,28 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.triggerevents
 
 import android.content.Context
-import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.setEmptyText
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.updateState
-import io.github.vibhor1102.macrion.core.ui.databinding.IncludeLoadableListBinding
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.domain.model.event.TriggerEvent
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
@@ -47,8 +56,6 @@ class TriggerEventListContent(appContext: Context) : NavBarDialogContent(appCont
         creator = { triggerEventListViewModel() },
     )
 
-    /** View binding for all views in this content. */
-    private lateinit var viewBinding: IncludeLoadableListBinding
     /** Adapter for the list of events. */
     private lateinit var eventAdapter: TriggerEventListAdapter
 
@@ -59,25 +66,16 @@ class TriggerEventListContent(appContext: Context) : NavBarDialogContent(appCont
             itemClickedListener = ::onTriggerEventItemClicked,
         )
 
-        viewBinding = IncludeLoadableListBinding.inflate(LayoutInflater.from(context), container, false).apply {
-            setEmptyText(
-                id = R.string.message_empty_trigger_event_list_title,
-                secondaryId = R.string.message_empty_trigger_event_list_desc,
-            )
-            list.apply {
-                addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
-                adapter = eventAdapter
-            }
+        return ComposeView(context).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent { MacrionTheme { this@TriggerEventListContent.Content() } }
         }
-
-        return viewBinding.root
     }
 
     override fun onViewCreated() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { viewModel.copyButtonIsVisible.collect(::updateCopyButtonVisibility) }
-                launch { viewModel.triggerEvents.collect(::updateTriggerEventList) }
             }
         }
     }
@@ -100,9 +98,25 @@ class TriggerEventListContent(appContext: Context) : NavBarDialogContent(appCont
         }
     }
 
-    private fun updateTriggerEventList(newItems: List<UiTriggerEvent>?) {
-        viewBinding.updateState(newItems)
-        eventAdapter.submitList(newItems)
+    @Composable private fun Content() {
+        val items = viewModel.triggerEvents.collectAsStateWithLifecycle(null).value
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            when {
+                items == null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                items.isEmpty() -> Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(context.getString(R.string.message_empty_trigger_event_list_title), style = MaterialTheme.typography.headlineSmall)
+                    Spacer(Modifier.height(8.dp))
+                    Text(context.getString(R.string.message_empty_trigger_event_list_desc), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                else -> AndroidView(factory = { ctx -> RecyclerView(ctx).apply {
+                    layoutManager = LinearLayoutManager(ctx)
+                    adapter = eventAdapter
+                    addItemDecoration(DividerItemDecoration(ctx, DividerItemDecoration.VERTICAL))
+                } }, update = { eventAdapter.submitList(items) }, modifier = Modifier.fillMaxSize())
+            }
+        }
     }
 
     private fun updateCopyButtonVisibility(isVisible: Boolean) {
