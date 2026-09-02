@@ -62,7 +62,7 @@ internal fun EventListRow(
             Text(
                 text = name,
                 modifier = Modifier.fillMaxWidth(),
-                fontSize = 17.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Clip,
@@ -90,16 +90,22 @@ private fun EventDetail(
     modifier: Modifier,
 ) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        LegacyIcon(iconRes, Modifier.size(18.dp), tint)
-        Text(text = text, color = tint ?: Color.Unspecified, maxLines = 1)
+        LegacyIcon(iconRes, Modifier.size(16.dp), tint, fitCenter = true)
+        Text(text = text, color = tint ?: Color.Unspecified, fontSize = 14.sp, maxLines = 1)
     }
 }
 
 @Composable
-private fun LegacyIcon(@DrawableRes iconRes: Int, modifier: Modifier, tint: Color? = null) {
+private fun LegacyIcon(
+    @DrawableRes iconRes: Int,
+    modifier: Modifier,
+    tint: Color? = null,
+    fitCenter: Boolean = false,
+) {
     AndroidView(
-        factory = { context -> ImageView(context).apply { scaleType = ImageView.ScaleType.CENTER } },
+        factory = { context -> ImageView(context) },
         update = { view ->
+            view.scaleType = if (fitCenter) ImageView.ScaleType.FIT_CENTER else ImageView.ScaleType.CENTER
             view.setImageResource(iconRes)
             if (tint == null) view.clearColorFilter() else view.setColorFilter(tint.toArgb())
         },
