@@ -54,9 +54,9 @@ object ImageConditionsStillTargetTutorial : TutorialItem {
             steps = listOf(
                 // Beginning, hide the overlay for now
                 TutorialStep.ChangeFloatingUiVisibility(
-                    stepStartCondition = TutorialStepStartCondition.MonitoredOverlayDisplayed(
-                        MonitoredOverlayType.MAIN_MENU,
-                    ),
+                    // The tutorial starts while MAIN_MENU is already at the top of the overlay stack.
+                    // Waiting for it to be displayed again deadlocks this first step.
+                    stepStartCondition = TutorialStepStartCondition.Immediate,
                     newVisibility = false,
                 ),
                 // Start screen, before first play
