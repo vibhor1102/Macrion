@@ -1,148 +1,127 @@
-/*
- * Copyright (C) 2024 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.click.offset
 
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import android.text.Editable
-import android.text.InputType
-import android.view.LayoutInflater
-import android.view.View
+import android.graphics.PointF
 import android.view.ViewGroup
+import android.widget.ImageView
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.toPoint
-import androidx.core.graphics.toPointF
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setLabel
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnTextChangedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setText
-import io.github.vibhor1102.macrion.core.ui.utils.MinMaxInputFilter
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.views.clickoffset.ClickOffsetView
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.DialogConfigClickOnConditionOffsetBinding
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlinx.coroutines.launch
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
-
-
 class ClickOffsetDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
-
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.CLICK_OFFSET.name
-
     private val viewModel: ClickOffsetViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { clickOffsetViewModel() },
     )
 
-    private lateinit var viewBinding: DialogConfigClickOnConditionOffsetBinding
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@ClickOffsetDialog.Content() } }
+    }
+    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
 
-    override fun onCreateView(): ViewGroup {
-        viewBinding = DialogConfigClickOnConditionOffsetBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(R.string.field_click_offset_title)
-
-                buttonDismiss.setDebouncedOnClickListener { back() }
-                buttonSave.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener {
-                        viewModel.saveChanges()
-                        back()
-                    }
-                }
-            }
-
-            fieldX.apply {
-                textField.filters = viewModel.getOffsetMaxBoundsX().let { xBounds ->
-                    arrayOf(MinMaxInputFilter(xBounds.first, xBounds.last))
-                }
-                setLabel(R.string.field_click_offset_x)
-                setOnTextChangedListener {
-                    it.getOffsetValue()?.let { xOffset ->
-                        viewModel.setClickOffsetX(xOffset, ClickOffsetUpdateType.TEXT_INPUT)
-                    }
-                }
-            }
-
-            fieldY.apply {
-                textField.filters = viewModel.getOffsetMaxBoundsY().let { yBounds ->
-                    arrayOf(MinMaxInputFilter(yBounds.first, yBounds.last))
-                }
-                setLabel(R.string.field_click_offset_y)
-                setOnTextChangedListener {
-                    it.getOffsetValue()?.let { yOffset ->
-                        viewModel.setClickOffsetY(yOffset, ClickOffsetUpdateType.TEXT_INPUT)
-                    }
-                }
-            }
-
-            viewClickOffset.apply {
-                onOffsetChangedListener = { offset ->
-                    viewModel.setClickOffset(offset.toPoint(), from = ClickOffsetUpdateType.VIEW)
-                }
+    @Composable private fun Content() {
+        val offsetState by viewModel.clickOffset.collectAsStateWithLifecycle(null)
+        val image by viewModel.conditionImage.collectAsStateWithLifecycle(null)
+        val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+        var xText by rememberSaveable { mutableStateOf("") }
+        var yText by rememberSaveable { mutableStateOf("") }
+        LaunchedEffect(offsetState) {
+            offsetState?.takeIf { it.updateFrom != ClickOffsetUpdateType.TEXT_INPUT }?.let {
+                xText = it.offset.x.toString(); yText = it.offset.y.toString()
             }
         }
-
-        return viewBinding.root
-    }
-
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.clickOffset.collect(::updateClickOffset) }
-                launch { viewModel.conditionImage.collect(::updateConditionImage) }
+        Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            Column {
+                TopBar()
+                if (landscape) Row(Modifier.fillMaxWidth().weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                    OffsetFields(xText, yText, { xText = it }, { yText = it }, Modifier.width(166.dp).padding(8.dp))
+                    VerticalDivider()
+                    OffsetCanvas(offsetState, image, Modifier.weight(1f).fillMaxHeight())
+                } else Column(Modifier.fillMaxWidth().weight(1f, fill = false).verticalScroll(rememberScrollState())) {
+                    OffsetCanvas(offsetState, image, Modifier.fillMaxWidth().height(360.dp))
+                    HorizontalDivider()
+                    OffsetFields(xText, yText, { xText = it }, { yText = it }, Modifier.fillMaxWidth().padding(16.dp))
+                }
             }
         }
     }
 
-    private fun updateClickOffset(offsetState: ClickOffsetState) {
-        viewBinding.apply {
-            if (offsetState.updateFrom != ClickOffsetUpdateType.VIEW) {
-                viewClickOffset.offsetValue = offsetState.offset.toPointF()
-            }
-
-            if (offsetState.updateFrom != ClickOffsetUpdateType.TEXT_INPUT) {
-                viewBinding.fieldX.setText(
-                    offsetState.offset.x.toString(),
-                    InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED,
-                )
-                viewBinding.fieldY.setText(
-                    offsetState.offset.y.toString(),
-                    InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED,
-                )
-            }
+    @Composable private fun TopBar() {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
+            Text(context.getString(R.string.field_click_offset_title), Modifier.weight(1f).padding(horizontal = 8.dp),
+                style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Clip)
+            FilledIconButton(onClick = { viewModel.saveChanges(); back() }) { Icon(painterResource(R.drawable.ic_save_filled), null) }
         }
     }
 
-    private fun updateConditionImage(image: Any?) {
-        viewBinding.viewClickOffset.apply {
+    @Composable private fun OffsetFields(xText: String, yText: String, onXChanged: (String) -> Unit,
+        onYChanged: (String) -> Unit, modifier: Modifier) {
+        ElevatedCard(modifier) { Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            OffsetField(xText, context.getString(R.string.field_click_offset_x), viewModel.getOffsetMaxBoundsX(), onXChanged) {
+                viewModel.setClickOffsetX(it, ClickOffsetUpdateType.TEXT_INPUT)
+            }
+            OffsetField(yText, context.getString(R.string.field_click_offset_y), viewModel.getOffsetMaxBoundsY(), onYChanged) {
+                viewModel.setClickOffsetY(it, ClickOffsetUpdateType.TEXT_INPUT)
+            }
+        } }
+    }
+
+    @Composable private fun OffsetField(value: String, label: String, bounds: IntRange, onTextChanged: (String) -> Unit,
+        onValueChanged: (Int) -> Unit) {
+        OutlinedTextField(value, { input ->
+            val filtered = input.filterIndexed { index, char -> char.isDigit() || (char == '-' && index == 0) }
+            val parsed = filtered.toIntOrNull()
+            if (filtered.isEmpty() || filtered == "-" || parsed in bounds) {
+                onTextChanged(filtered); parsed?.let(onValueChanged)
+            }
+        }, Modifier.fillMaxWidth(), label = { Text(label) }, singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+    }
+
+    @Composable private fun OffsetCanvas(offsetState: ClickOffsetState?, image: Any?, modifier: Modifier) {
+        AndroidView(factory = { ClickOffsetView(it).apply {
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
+            onOffsetChangedListener = { point -> viewModel.setClickOffset(PointF(point.x, point.y).toPoint(), ClickOffsetUpdateType.VIEW) }
+        } }, update = { view ->
+            offsetState?.takeIf { it.updateFrom != ClickOffsetUpdateType.VIEW }?.let {
+                view.offsetValue = PointF(it.offset.x.toFloat(), it.offset.y.toFloat())
+            }
             when (image) {
-                is Bitmap -> setImageBitmap(image)
-                is Drawable -> setImageDrawable(image)
-                else -> setImageResource(R.drawable.ic_image_condition_big)
+                is Bitmap -> view.setImageBitmap(image)
+                is Drawable -> view.setImageDrawable(image)
+                else -> view.setImageResource(R.drawable.ic_image_condition_big)
             }
-        }
+        }, modifier = modifier)
     }
 }
-
-private fun Editable.getOffsetValue(): Int? =
-    try { toString().toInt() }
-    catch (_: NumberFormatException) { null }
