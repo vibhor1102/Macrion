@@ -1,105 +1,109 @@
-/*
- * Copyright (C) 2026 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.counter.creation
 
-import android.text.InputType
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import androidx.core.widget.doAfterTextChanged
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonEnabledState
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonVisibility
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setError
-import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.DialogCounterCreationBinding
-import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlinx.coroutines.launch
-
-import kotlin.getValue
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
-import io.github.vibhor1102.macrion.core.ui.utils.NumberInputFilter
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.feature.smart.config.R
+import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 
 class CounterCreationDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
-
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.COUNTER_CREATION.name
 
-    /** View model for this dialog. */
     private val viewModel: CountersCreationViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { counterCreationViewModel() },
     )
 
-    private lateinit var viewBinding: DialogCounterCreationBinding
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@CounterCreationDialog.Content() } }
+    }
 
-    override fun onCreateView(): ViewGroup {
-        viewBinding = DialogCounterCreationBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(R.string.dialog_title_new_counter)
+    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
 
-                setButtonVisibility(DialogNavigationButton.DELETE, View.GONE)
-                setButtonVisibility(DialogNavigationButton.SAVE, View.VISIBLE)
-                setButtonVisibility(DialogNavigationButton.DISMISS, View.VISIBLE)
-                buttonDismiss.setDebouncedOnClickListener { back() }
-                buttonSave.setDebouncedOnClickListener {
-                    viewModel.createCounter()
-                    back()
+    @Composable
+    private fun Content() {
+        val state by viewModel.uiState.collectAsStateWithLifecycle()
+        val name by viewModel.name.collectAsStateWithLifecycle()
+        var startingValue by rememberSaveable { mutableStateOf("0") }
+
+        Surface(
+            Modifier.fillMaxWidth().heightIn(max = 420.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLowest,
+        ) {
+            Column(Modifier.fillMaxWidth()) {
+                Row(
+                    Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLow)
+                        .padding(horizontal = 8.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
+                    Text(
+                        context.getString(R.string.dialog_title_new_counter),
+                        Modifier.weight(1f).padding(horizontal = 8.dp),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                    FilledIconButton(
+                        enabled = state?.canBeSaved == true,
+                        onClick = { viewModel.createCounter(); back() },
+                    ) { Icon(painterResource(R.drawable.ic_save_filled), null) }
+                }
+                Column(
+                    Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    MacrionTextField(
+                        value = name.orEmpty(),
+                        onValueChange = viewModel::setName,
+                        label = context.getString(R.string.generic_name),
+                        isError = state?.nameError == true,
+                        maxLength = context.resources.getInteger(R.integer.name_max_length),
+                    )
+                    if (state?.nameError == true) {
+                        Text(
+                            context.getString(R.string.field_counter_name_already_declared),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    OutlinedTextField(
+                        value = startingValue,
+                        onValueChange = { value ->
+                            if (value.matches(Regex("-?\\d*(\\.\\d*)?"))) {
+                                startingValue = value
+                                viewModel.setStartingValue(value.toDoubleOrNull() ?: 0.0)
+                            }
+                        },
+                        label = { Text(context.getString(R.string.field_new_counter_starting_value)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        singleLine = true,
+                    )
+                    Spacer(Modifier.height(8.dp))
                 }
             }
-
-            fieldName.root.hint = context.getString(R.string.generic_name)
-            fieldName.textField.doAfterTextChanged { viewModel.setName(it.toString()) }
-
-            fieldStartingValue.root.hint = context.getString(R.string.field_new_counter_starting_value)
-            fieldStartingValue.textField.filters = arrayOf(NumberInputFilter(Double::class))
-            fieldStartingValue.textField.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
-            fieldStartingValue.textField.setText("0")
-            fieldStartingValue.textField.doAfterTextChanged {
-                viewModel.setStartingValue(it.toString().toDoubleOrNull() ?: 0.0)
-            }
-        }
-
-        return viewBinding.root
-    }
-
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.uiState.collect(::updateUi) }
-            }
-        }
-    }
-
-    private fun updateUi(uiState: CounterCreationUiState?) {
-        uiState ?: return
-
-        viewBinding.apply {
-            layoutTopBar.setButtonEnabledState(DialogNavigationButton.SAVE, uiState.canBeSaved)
-            fieldName.setError(
-                messageId = R.string.field_counter_name_already_declared,
-                isError = uiState.nameError,
-            )
         }
     }
 }
