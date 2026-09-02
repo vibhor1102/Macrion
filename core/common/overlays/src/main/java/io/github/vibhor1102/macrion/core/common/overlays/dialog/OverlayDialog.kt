@@ -105,7 +105,10 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
 
             window?.apply {
                 setType(OverlayManager.OVERLAY_WINDOW_TYPE)
-                setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN)
+                setSoftInputMode(
+                    WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN or
+                        WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
+                )
                 decorView.setOnTouchListener(hideSoftInputTouchListener)
             }
 
