@@ -32,7 +32,6 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.take
 import javax.inject.Inject
 
 @OptIn(FlowPreview::class)
@@ -56,12 +55,10 @@ class BroadcastReceivedConditionViewModel @Inject constructor(
         .distinctUntilChanged()
         .debounce(1000)
 
-    val name: Flow<String?> = configuredCondition.map { it.name }.take(1)
+    val name: Flow<String?> = configuredCondition.map { it.name }
     val nameError: Flow<Boolean> = configuredCondition.map { it.name.isEmpty() }
 
-    val intentAction: Flow<String?> = configuredCondition
-        .map { it.intentAction }
-        .take(1)
+    val intentAction: Flow<String?> = configuredCondition.map { it.intentAction }
     val intentActionError: Flow<Boolean> = configuredCondition.map { it.intentAction.isEmpty() }
 
     /** Tells if the configured condition is valid and can be saved. */

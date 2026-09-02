@@ -90,11 +90,17 @@ class ScreenConditionSelectionDialog(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterVertically)) {
                     Text(item.name, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(painterResource(item.shouldBeVisibleIconRes), null, Modifier.size(14.dp))
-                        if (item.condition is ScreenCondition.Image) Icon(painterResource(item.detectionTypeIconRes), null, Modifier.size(14.dp))
-                        Text(item.thresholdText, style = MaterialTheme.typography.bodySmall,
-                            color = if (item.haveError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                            Icon(painterResource(item.shouldBeVisibleIconRes), null, Modifier.size(14.dp))
+                        }
+                        if (item.condition is ScreenCondition.Image) Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                            Icon(painterResource(item.detectionTypeIconRes), null, Modifier.size(14.dp))
+                        }
+                        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                            Text(item.thresholdText, style = MaterialTheme.typography.bodySmall,
+                                color = if (item.haveError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
                 }
             }
