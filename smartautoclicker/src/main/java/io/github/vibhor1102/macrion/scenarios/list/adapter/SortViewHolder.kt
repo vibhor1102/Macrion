@@ -4,16 +4,20 @@ package io.github.vibhor1102.macrion.scenarios.list.adapter
 import android.content.res.Configuration
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconToggleButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedIconToggleButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SingleChoiceSegmentedButtonRowScope
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -52,6 +56,7 @@ class SortViewHolder(
     fun onBind(value: ScenarioListUiState.Item.SortItem) { config = value }
     fun onUnbind() = Unit
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun SortControls(state: ScenarioListUiState.Item.SortItem) {
         val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -60,7 +65,7 @@ class SortViewHolder(
                 Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                OrderingButtons(state, Modifier.weight(1f))
+                OrderingButtons(state, Modifier.weight(1f).padding(end = 8.dp))
                 FilterControls(state)
             }
         } else {
@@ -68,44 +73,56 @@ class SortViewHolder(
                 Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                OrderingButtons(state, Modifier.fillMaxWidth())
-                FilterControls(state)
+                OrderingButtons(state, Modifier.fillMaxWidth().padding(horizontal = 32.dp))
+                FilterControls(state, Modifier.padding(top = 8.dp))
             }
         }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun OrderingButtons(state: ScenarioListUiState.Item.SortItem, modifier: Modifier) {
-        Row(modifier, horizontalArrangement = Arrangement.Center) {
-            OrderingButton(
-                R.drawable.ic_sort_name,
-                R.string.item_scenario_filter_by_name,
-                state.sortType == ScenarioSortType.NAME,
-                { onSortTypeClicked(ScenarioSortType.NAME) },
-            )
-            OrderingButton(
-                R.drawable.ic_sort_recent,
-                R.string.item_scenario_filter_by_recent,
-                state.sortType == ScenarioSortType.RECENT,
-                { onSortTypeClicked(ScenarioSortType.RECENT) },
-            )
-            OrderingButton(
-                R.drawable.ic_most_used,
-                R.string.item_scenario_filter_by_most_used,
-                state.sortType == ScenarioSortType.MOST_USED,
-                { onSortTypeClicked(ScenarioSortType.MOST_USED) },
-            )
+        Box(modifier, contentAlignment = Alignment.Center) {
+            SingleChoiceSegmentedButtonRow {
+                OrderingButton(
+                    R.drawable.ic_sort_name,
+                    R.string.item_scenario_filter_by_name,
+                    state.sortType == ScenarioSortType.NAME,
+                    0,
+                    { onSortTypeClicked(ScenarioSortType.NAME) },
+                )
+                OrderingButton(
+                    R.drawable.ic_sort_recent,
+                    R.string.item_scenario_filter_by_recent,
+                    state.sortType == ScenarioSortType.RECENT,
+                    1,
+                    { onSortTypeClicked(ScenarioSortType.RECENT) },
+                )
+                OrderingButton(
+                    R.drawable.ic_most_used,
+                    R.string.item_scenario_filter_by_most_used,
+                    state.sortType == ScenarioSortType.MOST_USED,
+                    2,
+                    { onSortTypeClicked(ScenarioSortType.MOST_USED) },
+                )
+            }
         }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun OrderingButton(icon: Int, label: Int, selected: Boolean, onClick: () -> Unit) {
-        OutlinedButton(
+    private fun SingleChoiceSegmentedButtonRowScope.OrderingButton(
+        icon: Int,
+        label: Int,
+        selected: Boolean,
+        index: Int,
+        onClick: () -> Unit,
+    ) {
+        SegmentedButton(
+            selected = selected,
             onClick = onClick,
-            colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
-                containerColor = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
-            ),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp),
+            shape = SegmentedButtonDefaults.itemShape(index = index, count = 3),
+            icon = {},
         ) {
             Icon(painterResource(icon), null, Modifier.size(18.dp))
             Text(stringResource(label), Modifier.padding(start = 6.dp), maxLines = 1)
@@ -113,21 +130,33 @@ class SortViewHolder(
     }
 
     @Composable
-    private fun FilterControls(state: ScenarioListUiState.Item.SortItem) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    private fun FilterControls(state: ScenarioListUiState.Item.SortItem, modifier: Modifier = Modifier) {
+        Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(
                 selected = state.smartVisible,
                 onClick = { onSmartChipClicked(!state.smartVisible) },
                 label = { Text(stringResource(R.string.item_title_smart_scenario)) },
-                leadingIcon = { Icon(painterResource(R.drawable.ic_smart), null, Modifier.size(18.dp)) },
+                leadingIcon = {
+                    Icon(
+                        painterResource(if (state.smartVisible) R.drawable.ic_confirm else R.drawable.ic_smart),
+                        null,
+                        Modifier.size(18.dp),
+                    )
+                },
             )
             FilterChip(
                 selected = state.dumbVisible,
                 onClick = { onDumbChipClicked(!state.dumbVisible) },
                 label = { Text(stringResource(R.string.item_title_dumb_scenario)) },
-                leadingIcon = { Icon(painterResource(R.drawable.ic_dumb), null, Modifier.size(18.dp)) },
+                leadingIcon = {
+                    Icon(
+                        painterResource(if (state.dumbVisible) R.drawable.ic_confirm else R.drawable.ic_dumb),
+                        null,
+                        Modifier.size(18.dp),
+                    )
+                },
             )
-            IconToggleButton(
+            OutlinedIconToggleButton(
                 checked = state.changeOrderChecked,
                 onCheckedChange = onSortOrderClicked,
             ) {

@@ -3,6 +3,7 @@ package io.github.vibhor1102.macrion.scenarios.list.adapter
 
 import android.graphics.Bitmap
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -49,11 +50,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.recyclerview.widget.RecyclerView
 import io.github.vibhor1102.macrion.R
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbScenario as DumbScenarioModel
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.utils.setColorIndicatorDrawable
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toEffectDescription
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
 import io.github.vibhor1102.macrion.scenarios.list.model.ScenarioListUiState
@@ -147,7 +150,9 @@ private fun ScenarioCard(onClick: () -> Unit, content: @Composable () -> Unit) {
         modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
         elevation = CardDefaults.elevatedCardElevation(),
     ) {
-        Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) { content() }
+        Box(
+            Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp),
+        ) { content() }
     }
 }
 
@@ -180,7 +185,7 @@ private fun ValidScenarioCard(
                 if (item.showExportCheckbox) {
                     RadioButton(selected = item.checkedForExport, onClick = onExport)
                 } else {
-                    VerticalDivider(Modifier.height(32.dp).padding(horizontal = 8.dp))
+                    VerticalDivider(Modifier.height(32.dp).padding(start = 16.dp, end = 8.dp))
                     IconButton(onClick = onExpand) {
                         Icon(
                             painterResource(if (item.expanded) R.drawable.ic_chevron_up else R.drawable.ic_chevron_down),
@@ -276,7 +281,7 @@ private fun EventCard(
     item: EventItem,
     bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job?,
 ) {
-    OutlinedCard(Modifier.width(128.dp).height(160.dp)) {
+    OutlinedCard(Modifier.width(100.dp).height(100.dp)) {
         ConditionPreview(item.firstCondition, bitmapProvider, Modifier.fillMaxWidth().weight(1f))
         HorizontalDivider()
         Text(
@@ -288,9 +293,18 @@ private fun EventCard(
             style = MaterialTheme.typography.bodySmall,
         )
         Row(Modifier.fillMaxWidth().padding(bottom = 4.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
-            Stat(R.drawable.ic_click_small, item.actionsCount.toString())
-            Stat(R.drawable.ic_condition, item.conditionsCount.toString())
+            EventStat(R.drawable.ic_click_small, item.actionsCount.toString())
+            EventStat(R.drawable.ic_condition, item.conditionsCount.toString())
         }
+    }
+}
+
+@Composable
+private fun EventStat(icon: Int, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(text, style = MaterialTheme.typography.labelSmall)
+        Spacer(Modifier.width(2.dp))
+        Icon(painterResource(icon), null, Modifier.size(14.dp))
     }
 }
 
@@ -303,7 +317,11 @@ private fun ConditionPreview(
     val context = LocalContext.current
     Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant).padding(2.dp), Alignment.Center) {
         when (condition) {
-            is ScreenCondition.Color -> Spacer(Modifier.fillMaxSize().background(Color(condition.color)))
+            is ScreenCondition.Color -> AndroidView(
+                factory = { ImageView(it).apply { scaleType = ImageView.ScaleType.CENTER_INSIDE } },
+                update = { it.setColorIndicatorDrawable(condition.color) },
+                modifier = Modifier.fillMaxSize(),
+            )
             is ScreenCondition.Image -> {
                 var bitmap by remember(condition) { mutableStateOf<Bitmap?>(null) }
                 var loaded by remember(condition) { mutableStateOf(false) }
