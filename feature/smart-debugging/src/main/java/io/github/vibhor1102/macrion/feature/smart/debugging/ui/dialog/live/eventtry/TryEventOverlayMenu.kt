@@ -31,6 +31,10 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -86,6 +90,11 @@ class TryEventOverlayMenu(
     @Composable private fun ResultPanel(state: EventResultUiState?) {
         val textColor = colorResource(R.color.overlayViewPrimary)
         val iconColor = colorResource(R.color.overlayMenuButtons)
+        val textStyle = TextStyle(
+            fontFamily = FontFamily.SansSerif,
+            fontWeight = FontWeight.Medium,
+            fontSize = 14.sp,
+        )
         Column(Modifier.width(200.dp).height(140.dp).padding(vertical = 8.dp)) {
             Row(
                 Modifier.fillMaxWidth().weight(1f).padding(horizontal = 4.dp),
@@ -98,15 +107,27 @@ class TryEventOverlayMenu(
                     color = textColor,
                     maxLines = 1,
                     overflow = TextOverflow.Clip,
+                    style = textStyle,
                 )
             }
             HorizontalDivider(thickness = 2.dp, color = textColor)
             Row(Modifier.fillMaxWidth().weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                Text(state?.eventConditionOperator.orEmpty(), Modifier.weight(1f).padding(start = 8.dp), color = textColor)
+                Text(
+                    state?.eventConditionOperator.orEmpty(),
+                    Modifier.weight(1f).padding(start = 8.dp),
+                    color = textColor,
+                    style = textStyle,
+                )
                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(textColor))
                 Row(Modifier.weight(1f).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                     if (state != null) Icon(painterResource(R.drawable.ic_duration), null, Modifier.size(20.dp), tint = iconColor)
-                    Text(state?.eventDuration.orEmpty(), Modifier.padding(start = 4.dp), color = textColor, maxLines = 1)
+                    Text(
+                        state?.eventDuration.orEmpty(),
+                        Modifier.padding(start = 4.dp),
+                        color = textColor,
+                        maxLines = 1,
+                        style = textStyle,
+                    )
                 }
             }
             HorizontalDivider(thickness = 2.dp, color = textColor)

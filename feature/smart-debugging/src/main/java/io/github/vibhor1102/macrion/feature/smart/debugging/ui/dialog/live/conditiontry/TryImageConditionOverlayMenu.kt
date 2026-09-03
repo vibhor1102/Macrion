@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,6 +27,10 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -86,36 +91,60 @@ class TryImageConditionOverlayMenu(
     @Composable private fun ResultPanel() {
         val textColor = colorResource(R.color.textTitle)
         val controlColor = colorResource(R.color.overlayMenuButtons)
-        Column(Modifier.width(287.dp).height(152.dp).padding(start = 8.dp, end = 4.dp, top = 12.dp, bottom = 8.dp)) {
-            Row(Modifier.fillMaxWidth().weight(1f)) {
+        Column(Modifier.width(287.dp).height(152.dp).padding(start = 8.dp, end = 4.dp, top = 12.dp, bottom = 4.dp)) {
+            Box(Modifier.fillMaxWidth().weight(1f)) {
+                Row(Modifier.fillMaxWidth().fillMaxHeight()) {
                 ResultValue(context.getString(R.string.overlay_title_results), result?.resultText.orEmpty(), Modifier.weight(1f))
-                Column(Modifier.fillMaxHeight().width(1.dp).background(controlColor)) {}
+                    Box(Modifier.width(1.dp))
                 ResultValue(context.getString(R.string.overlay_title_threshold), thresholdText, Modifier.weight(1f))
+                }
+                Box(
+                    Modifier
+                        .align(Alignment.Center)
+                        .fillMaxHeight()
+                        .padding(vertical = 8.dp)
+                        .width(1.dp)
+                        .background(controlColor),
+                )
             }
-            AndroidView(
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                factory = { ctx -> Slider(ctx).apply {
-                    valueFrom = MIN_THRESHOLD
-                    valueTo = MAX_THRESHOLD
-                    stepSize = 1f
-                    value = imageCondition.threshold.toFloat()
-                    thumbHeight = (32 * resources.displayMetrics.density).toInt()
-                    trackHeight = (12 * resources.displayMetrics.density).toInt()
-                    trackTintList = ColorStateList.valueOf(controlColor.toArgb())
-                    thumbTintList = ColorStateList.valueOf(controlColor.toArgb())
-                    addOnChangeListener { _, sliderValue, fromUser ->
-                        if (fromUser) viewModel.setThreshold(sliderValue.toInt())
-                    }
-                } },
-            )
+            Box(Modifier.fillMaxWidth().height(52.dp).padding(top = 4.dp)) {
+                AndroidView(
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    factory = { ctx -> Slider(ctx).apply {
+                        valueFrom = MIN_THRESHOLD
+                        valueTo = MAX_THRESHOLD
+                        stepSize = 1f
+                        value = imageCondition.threshold.toFloat()
+                        thumbHeight = (32 * resources.displayMetrics.density).toInt()
+                        trackHeight = (12 * resources.displayMetrics.density).toInt()
+                        trackTintList = ColorStateList.valueOf(controlColor.toArgb())
+                        thumbTintList = ColorStateList.valueOf(controlColor.toArgb())
+                        addOnChangeListener { _, sliderValue, fromUser ->
+                            if (fromUser) viewModel.setThreshold(sliderValue.toInt())
+                        }
+                    } },
+                )
+            }
         }
     }
 
     @Composable private fun ResultValue(title: String, value: String, modifier: Modifier) {
         val color = colorResource(R.color.textTitle)
         Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(title, color = color, maxLines = 1, textAlign = TextAlign.Center)
-            Text(value, color = color, maxLines = 1, textAlign = TextAlign.Center)
+            Text(
+                title,
+                color = color,
+                maxLines = 1,
+                textAlign = TextAlign.Center,
+                style = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Medium, fontSize = 16.sp),
+            )
+            Text(
+                value,
+                color = color,
+                maxLines = 1,
+                textAlign = TextAlign.Center,
+                style = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Medium, fontSize = 26.sp),
+            )
         }
     }
 }

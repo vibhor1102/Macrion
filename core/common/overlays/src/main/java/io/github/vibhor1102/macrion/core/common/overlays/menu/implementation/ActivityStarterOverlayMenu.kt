@@ -22,8 +22,9 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 
 import io.github.vibhor1102.macrion.core.base.extensions.safeStartActivity
-import io.github.vibhor1102.macrion.core.common.overlays.databinding.OverlayMenuBackToPreviousBinding
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
+import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuButton
+import io.github.vibhor1102.macrion.core.common.overlays.menu.createOverlayMenuLayout
 import io.github.vibhor1102.macrion.core.common.overlays.R
 
 
@@ -47,7 +48,13 @@ open class ActivityStarterOverlayMenu(
     }
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup =
-        OverlayMenuBackToPreviousBinding.inflate(layoutInflater).root
+        createOverlayMenuLayout(
+            context,
+            listOf(
+                OverlayMenuButton(R.id.btn_back, R.drawable.ic_back, R.string.content_desc_play_pause_scenario),
+                OverlayMenuButton(R.id.btn_move, R.drawable.ic_move, R.string.content_desc_move_menu),
+            ),
+        )
 
     override fun onMenuItemClicked(viewId: Int) {
         if (viewId == R.id.btn_back) back()
