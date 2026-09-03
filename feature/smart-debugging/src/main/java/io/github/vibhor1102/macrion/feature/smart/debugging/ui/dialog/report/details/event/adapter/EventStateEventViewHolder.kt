@@ -16,44 +16,34 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.event.adapter
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.annotation.DrawableRes
-import androidx.recyclerview.widget.RecyclerView
-import io.github.vibhor1102.macrion.core.base.extensions.setLeftRightCompoundDrawables
-import io.github.vibhor1102.macrion.core.base.extensions.setRightCompoundDrawable
+import androidx.compose.ui.res.stringResource
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ItemEventStateEventBinding
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportComposeViewHolder
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportIconTransition
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportNameValueRow
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.event.DebugEventStateItem
 
-class EventStateEventViewHolder private constructor(
-    private val viewBinding: ItemEventStateEventBinding,
-) : RecyclerView.ViewHolder(viewBinding.root) {
-
-    constructor(parent: ViewGroup) : this(
-        viewBinding = ItemEventStateEventBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
-    )
+class EventStateEventViewHolder(parent: ViewGroup) : ReportComposeViewHolder<DebugEventStateItem.EventState>(
+    parent = parent,
+    content = { item ->
+        ReportNameValueRow(name = item.eventName, value = "") {
+            ReportIconTransition(
+                startIcon = if (item.haveChanged) (!item.isEnabled).toEventStateIcon() else null,
+                endIcon = item.isEnabled.toEventStateIcon(),
+                separator = stringResource(R.string.event_state_changed_separator),
+            )
+        }
+    },
+) {
 
     fun bind(item: DebugEventStateItem.EventState) {
-        viewBinding.apply {
-            eventNameText.text = item.eventName
-
-            if (item.haveChanged) {
-                stateText.setText(R.string.event_state_changed_separator)
-                stateText.setLeftRightCompoundDrawables(
-                    idLeft = (!item.isEnabled).toEventStateIcon(),
-                    idRight = item.isEnabled.toEventStateIcon(),
-                )
-            } else {
-                stateText.text = ""
-                stateText.setRightCompoundDrawable(item.isEnabled.toEventStateIcon())
-            }
-        }
+        bindComposeItem(item)
     }
 
-    @DrawableRes
-    private fun Boolean.toEventStateIcon(): Int =
-        if (this) R.drawable.ic_confirm else R.drawable.ic_cancel
 }
+
+@DrawableRes
+private fun Boolean.toEventStateIcon(): Int =
+    if (this) R.drawable.ic_confirm else R.drawable.ic_cancel

@@ -82,7 +82,6 @@
                 android:paddingBottom="88dp"
                 android:visibility="gone"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:listitem="@layout/item_event_activity"
                 tools:visibility="visible" />
 
             <io.github.vibhor1102.macrion.core.ui.views.fastscroll.VerticalFastScrollerView

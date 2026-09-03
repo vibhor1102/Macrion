@@ -16,30 +16,32 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.activity.adapter
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ItemEventActivityBinding
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ItemEventStateHeaderBinding
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.activity.EventActivityListItem
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.activity.EventActivityType
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportActivityRow
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportComposeViewHolder
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportSectionHeader
 
 
 class EventActivityAdapter : ListAdapter<EventActivityListItem, RecyclerView.ViewHolder>(DiffCallback) {
 
     override fun getItemViewType(position: Int): Int = when (getItem(position)) {
-        is EventActivityListItem.Header -> R.layout.item_event_state_header
-        is EventActivityListItem.Event -> R.layout.item_event_activity
+        is EventActivityListItem.Header -> VIEW_TYPE_HEADER
+        is EventActivityListItem.Event -> VIEW_TYPE_EVENT
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
         when (viewType) {
-            R.layout.item_event_state_header -> HeaderViewHolder(parent)
-            R.layout.item_event_activity -> EventViewHolder(parent)
+            VIEW_TYPE_HEADER -> HeaderViewHolder(parent)
+            VIEW_TYPE_EVENT -> EventViewHolder(parent)
             else -> error("Unknown Event Activity view type $viewType")
         }
 
@@ -51,47 +53,43 @@ class EventActivityAdapter : ListAdapter<EventActivityListItem, RecyclerView.Vie
     }
 }
 
-private class HeaderViewHolder private constructor(
-    private val binding: ItemEventStateHeaderBinding,
-) : RecyclerView.ViewHolder(binding.root) {
-
-    constructor(parent: ViewGroup) : this(
-        ItemEventStateHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false),
-    )
+private class HeaderViewHolder(parent: ViewGroup) : ReportComposeViewHolder<EventActivityListItem.Header>(
+    parent = parent,
+    content = { item ->
+        val title = when (item.type) {
+            EventActivityType.SCREEN -> R.string.item_event_activity_screen_events
+            EventActivityType.TRIGGER -> R.string.item_event_activity_trigger_events
+        }
+        val icon = when (item.type) {
+            EventActivityType.SCREEN -> R.drawable.ic_screen_event
+            EventActivityType.TRIGGER -> R.drawable.ic_trigger_event
+        }
+        ReportSectionHeader(stringResource(title), icon)
+    },
+) {
 
     fun bind(item: EventActivityListItem.Header) {
-        when (item.type) {
-            EventActivityType.SCREEN -> {
-                binding.sectionText.setText(R.string.item_event_activity_screen_events)
-                binding.sectionIcon.setImageResource(R.drawable.ic_screen_event)
-            }
-            EventActivityType.TRIGGER -> {
-                binding.sectionText.setText(R.string.item_event_activity_trigger_events)
-                binding.sectionIcon.setImageResource(R.drawable.ic_trigger_event)
-            }
-        }
+        bindComposeItem(item)
     }
 }
 
-private class EventViewHolder private constructor(
-    private val binding: ItemEventActivityBinding,
-) : RecyclerView.ViewHolder(binding.root) {
-
-    constructor(parent: ViewGroup) : this(
-        ItemEventActivityBinding.inflate(LayoutInflater.from(parent.context), parent, false),
-    )
+private class EventViewHolder(parent: ViewGroup) : ReportComposeViewHolder<EventActivityListItem.Event>(
+    parent = parent,
+    content = { item ->
+        val activity = item.activity
+        ReportActivityRow(
+            name = activity.name,
+            count = LocalContext.current.getString(
+                R.string.item_event_activity_occurrence_count,
+                activity.occurrenceCount,
+            ),
+            reached = activity.occurrenceCount != 0,
+        )
+    },
+) {
 
     fun bind(item: EventActivityListItem.Event) {
-        val activity = item.activity
-        binding.eventNameText.text = activity.name
-        binding.occurrenceCountText.text = binding.root.context.getString(
-            R.string.item_event_activity_occurrence_count,
-            activity.occurrenceCount,
-        )
-
-        val alpha = if (activity.occurrenceCount == 0) UNREACHED_ALPHA else 1f
-        binding.eventNameText.alpha = alpha
-        binding.occurrenceCountText.alpha = alpha
+        bindComposeItem(item)
     }
 }
 
@@ -109,4 +107,5 @@ private object DiffCallback : DiffUtil.ItemCallback<EventActivityListItem>() {
         oldItem == newItem
 }
 
-private const val UNREACHED_ALPHA = 0.6f
+private const val VIEW_TYPE_HEADER = 0
+private const val VIEW_TYPE_EVENT = 1

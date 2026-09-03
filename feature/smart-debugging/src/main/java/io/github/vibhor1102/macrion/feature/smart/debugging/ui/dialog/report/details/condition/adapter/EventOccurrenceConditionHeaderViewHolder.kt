@@ -16,23 +16,24 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.condition.adapter
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ItemConditionResultHeaderBinding
+import androidx.compose.ui.res.stringResource
+import io.github.vibhor1102.macrion.feature.smart.debugging.R
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportComposeViewHolder
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportKeyValueCard
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.condition.EventOccurrenceItem
 
-class EventOccurrenceConditionHeaderViewHolder private constructor(
-    private val viewBinding: ItemConditionResultHeaderBinding,
-) : RecyclerView.ViewHolder(viewBinding.root) {
-
-    constructor(parent: ViewGroup) : this(
-        viewBinding = ItemConditionResultHeaderBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
+class EventOccurrenceConditionHeaderViewHolder(parent: ViewGroup) : ReportComposeViewHolder<EventOccurrenceItem.Header>(
+    parent = parent,
+    content = { item ->
+        ReportKeyValueCard(
+            title = stringResource(R.string.item_event_occurrence_details_header_title),
+            value = item.conditionOperatorValueText,
         )
-    )
+    },
+) {
 
     fun bind(item: EventOccurrenceItem.Header) {
-        viewBinding.operatorValueText.text = item.conditionOperatorValueText
+        bindComposeItem(item)
     }
 }
