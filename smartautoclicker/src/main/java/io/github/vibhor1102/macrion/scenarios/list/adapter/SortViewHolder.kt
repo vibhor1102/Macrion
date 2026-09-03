@@ -124,8 +124,10 @@ class SortViewHolder(
             shape = SegmentedButtonDefaults.itemShape(index = index, count = 3),
             icon = {},
         ) {
-            Icon(painterResource(icon), null, Modifier.size(18.dp))
-            Text(stringResource(label), Modifier.padding(start = 6.dp), maxLines = 1)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(painterResource(icon), null, Modifier.size(18.dp))
+                Text(stringResource(label), Modifier.padding(start = 8.dp), maxLines = 1)
+            }
         }
     }
 

@@ -102,10 +102,11 @@ class EmptyScenarioHolder(
                 Spacer(Modifier.width(8.dp))
                 ScenarioTitle(item.displayName, Modifier.weight(1f))
                 IconButton(onClick = { delete(item) }) {
-                    Icon(painterResource(R.drawable.ic_delete), null)
+                    Icon(painterResource(R.drawable.ic_delete), null, Modifier.size(20.dp))
                 }
+                Spacer(Modifier.width(16.dp))
                 FilledIconButton(onClick = { launch(item) }) {
-                    Icon(painterResource(R.drawable.ic_play_arrow), null)
+                    Icon(painterResource(R.drawable.ic_play_arrow), null, Modifier.size(20.dp))
                 }
             }
         }
