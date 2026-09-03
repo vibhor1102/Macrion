@@ -38,6 +38,8 @@ import androidx.core.view.forEach
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 
 import io.github.vibhor1102.macrion.core.base.addDumpTabulationLvl
 import io.github.vibhor1102.macrion.core.base.extensions.disableMoveAnimations
@@ -199,8 +201,8 @@ abstract class OverlayMenu(
 
         // WindowManager overlay roots don't receive the Activity view-tree owners. Propagate this
         // overlay's lifecycle so ComposeView children can create and dispose their recomposer safely.
-        menuLayout.setViewTreeLifecycleOwner(this)
-        screenOverlayView?.setViewTreeLifecycleOwner(this)
+        menuLayout.installOverlayViewTreeOwners()
+        screenOverlayView?.installOverlayViewTreeOwners()
 
         // Set the clicks listener on the menu items
         menuBackground = menuLayout.findViewById(R.id.menu_background)
@@ -240,6 +242,12 @@ abstract class OverlayMenu(
             finish()
             return
         }
+    }
+
+    private fun View.installOverlayViewTreeOwners() {
+        setViewTreeLifecycleOwner(this@OverlayMenu)
+        setViewTreeSavedStateRegistryOwner(this@OverlayMenu)
+        setViewTreeViewModelStoreOwner(this@OverlayMenu)
     }
 
     private fun setupButtons(buttonsContainer: ViewGroup) {
