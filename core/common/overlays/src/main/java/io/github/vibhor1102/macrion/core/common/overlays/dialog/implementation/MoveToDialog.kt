@@ -23,11 +23,13 @@ import android.view.LayoutInflater
 
 import androidx.annotation.StyleRes
 import androidx.appcompat.app.AlertDialog
+import androidx.compose.ui.platform.ComposeView
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
-import io.github.vibhor1102.macrion.core.common.overlays.databinding.DialogBaseMoveToBinding
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.databinding.IncludeFieldTextInputBinding
 import io.github.vibhor1102.macrion.core.ui.bindings.fields.setLabel
 import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnTextChangedListener
 import io.github.vibhor1102.macrion.core.ui.bindings.fields.setText
@@ -44,27 +46,30 @@ class MoveToDialog(
 ) : BaseOverlay(theme, recreateOnRotation = true) {
 
     /** ViewBinding containing the views for this dialog. */
-    private lateinit var viewBinding: DialogBaseMoveToBinding
+    private lateinit var fieldBinding: IncludeFieldTextInputBinding
 
     /** Tells if the dialog is visible. */
     private var isShown = false
     private var dialog: AlertDialog? = null
 
     override fun onCreate() {
-        viewBinding = DialogBaseMoveToBinding.inflate(LayoutInflater.from(context)).apply {
-            fieldMoveToIndex.apply {
-                textField.filters = arrayOf(MinMaxInputFilter(min = 1, max = itemCount))
+        fieldBinding = IncludeFieldTextInputBinding.inflate(LayoutInflater.from(context)).apply {
+            textField.filters = arrayOf(MinMaxInputFilter(min = 1, max = itemCount))
 
-                setLabel(R.string.dialog_move_to_position_label)
-                setText(defaultValue.toString(), InputType.TYPE_CLASS_NUMBER)
-                textField.setHint("Max: $itemCount")
-                setOnTextChangedListener { updatePositiveButtonState() }
+            setLabel(R.string.dialog_move_to_position_label)
+            setText(defaultValue.toString(), InputType.TYPE_CLASS_NUMBER)
+            textField.setHint("Max: $itemCount")
+            setOnTextChangedListener { updatePositiveButtonState() }
+        }
+        val content = ComposeView(context).apply {
+            setContent {
+                MacrionTheme { MoveToDialogScaffold(fieldBinding.root) }
             }
         }
 
         dialog = MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
             .setTitle(R.string.dialog_move_to_title)
-            .setView(viewBinding.root)
+            .setView(content)
             .setOnKeyListener { _, keyCode, event ->
                 if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
                     this@MoveToDialog.back()
@@ -90,7 +95,7 @@ class MoveToDialog(
         isShown = true
         dialog?.show()
 
-        viewBinding.fieldMoveToIndex.textField.requestFocus()
+        fieldBinding.textField.requestFocus()
     }
 
     override fun onStop() {
@@ -107,11 +112,11 @@ class MoveToDialog(
 
     private fun updatePositiveButtonState() {
         dialog?.getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled =
-            viewBinding.fieldMoveToIndex.textField.text?.getEditedValue() != null
+            fieldBinding.textField.text?.getEditedValue() != null
     }
 
     private fun validateCurrentValueAndClose() {
-        viewBinding.fieldMoveToIndex.textField.text?.getEditedValue()?.let { value ->
+        fieldBinding.textField.text?.getEditedValue()?.let { value ->
             onValueSelected(value)
             back()
         }

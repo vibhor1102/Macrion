@@ -20,9 +20,12 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 
 import androidx.annotation.StyleRes
+import androidx.compose.ui.platform.ComposeView
 
-import io.github.vibhor1102.macrion.core.common.overlays.databinding.DialogBaseCopyBinding
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.databinding.IncludeDialogSearchTopBarBinding
+import io.github.vibhor1102.macrion.core.ui.databinding.IncludeLoadableListBinding
 import io.github.vibhor1102.macrion.core.ui.bindings.lists.setEmptyText
 import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setOnDismissClickedListener
 import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setOnTextChangedListener
@@ -32,8 +35,8 @@ abstract class CopyDialog(
     @StyleRes theme: Int,
 ) : OverlayDialog(theme) {
 
-    /** ViewBinding containing the views for this dialog. */
-    protected lateinit var viewBinding: DialogBaseCopyBinding
+    /** List content retained as a RecyclerView for large copy sources. */
+    protected lateinit var loadableListBinding: IncludeLoadableListBinding
     /** The resource id for the dialog title. */
     protected abstract val titleRes: Int
     /** The resource id for the search hint text. */
@@ -42,18 +45,29 @@ abstract class CopyDialog(
     protected abstract val emptyRes: Int
 
     final override fun onCreateView(): ViewGroup {
-        viewBinding = DialogBaseCopyBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                setup(titleRes, searchHintRes)
-                setOnDismissClickedListener { debounceUserInteraction { back() } }
-                setOnTextChangedListener(::onSearchQueryChanged)
-                buttonCopy.setOnClickListener{ onCopyClicked() }
-            }
-
-            layoutLoadableList.setEmptyText(emptyRes)
+        val inflater = LayoutInflater.from(context)
+        val topBarBinding = IncludeDialogSearchTopBarBinding.inflate(inflater).apply {
+            setup(titleRes, searchHintRes)
+            setOnDismissClickedListener { debounceUserInteraction { back() } }
+            setOnTextChangedListener(::onSearchQueryChanged)
+            buttonCopy.setOnClickListener { onCopyClicked() }
+        }
+        loadableListBinding = IncludeLoadableListBinding.inflate(inflater).apply {
+            setEmptyText(emptyRes)
         }
 
-        return viewBinding.root
+        return ComposeView(context).apply {
+            setContent {
+                MacrionTheme {
+                    ListDialogScaffold(
+                        topBar = topBarBinding.root,
+                        list = loadableListBinding.root,
+                        enforceMinimumHeight = true,
+                        listBottomPadding = true,
+                    )
+                }
+            }
+        }
     }
 
     abstract fun onSearchQueryChanged(newText: String?)

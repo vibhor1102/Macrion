@@ -54,10 +54,10 @@ import androidx.compose.ui.unit.dp
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 
-import io.github.vibhor1102.macrion.core.common.overlays.databinding.DialogBaseMultiChoiceBinding
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.databinding.IncludeDialogNavigationTopBarBinding
 
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
@@ -78,38 +78,51 @@ open class MultiChoiceDialog<T : DialogChoice>(
     private val onCanceled: (() -> Unit)? = null,
 ) : OverlayDialog(theme) {
 
-    /** ViewBinding containing the views for this dialog. */
-    protected lateinit var viewBinding: DialogBaseMultiChoiceBinding
+    private lateinit var list: RecyclerView
     /** The adapter displaying the choices. */
     protected lateinit var adapter: ChoiceAdapter<T>
 
     override fun onCreateView(): ViewGroup {
-        viewBinding = DialogBaseMultiChoiceBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(dialogTitleText)
-                buttonDismiss.setDebouncedOnClickListener {
-                    onCanceled?.invoke()
-                    back()
-                }
+        val inflater = LayoutInflater.from(context)
+        val topBarBinding = IncludeDialogNavigationTopBarBinding.inflate(inflater).apply {
+            dialogTitle.setText(dialogTitleText)
+            buttonDismiss.setDebouncedOnClickListener {
+                onCanceled?.invoke()
+                back()
             }
-
-            adapter = ChoiceAdapter(
-                choices = choices,
-                onChoiceSelected = { choice ->
-                    debounceUserInteraction {
-                        back()
-                        onChoiceSelected(choice)
-                    }
-                },
-                onChoiceViewBound = ::onChoiceViewBound,
-            )
+        }
+        list = RecyclerView(context).apply {
+            layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+            isVerticalScrollBarEnabled = true
         }
 
-        return viewBinding.root
+        adapter = ChoiceAdapter(
+            choices = choices,
+            onChoiceSelected = { choice ->
+                debounceUserInteraction {
+                    back()
+                    onChoiceSelected(choice)
+                }
+            },
+            onChoiceViewBound = ::onChoiceViewBound,
+        )
+
+        return ComposeView(context).apply {
+            setContent {
+                MacrionTheme {
+                    ListDialogScaffold(
+                        topBar = topBarBinding.root,
+                        list = list,
+                        enforceMinimumHeight = false,
+                        listBottomPadding = false,
+                    )
+                }
+            }
+        }
     }
 
     override fun onDialogCreated(dialog: BottomSheetDialog) {
-        viewBinding.list.adapter = adapter
+        list.adapter = adapter
     }
 
     open fun onChoiceViewBound(choice: T, view: View?) = Unit

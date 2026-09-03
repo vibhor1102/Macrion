@@ -62,7 +62,7 @@ class DumbActionCopyDialog(
             }
         }
 
-        viewBinding.layoutLoadableList.list.apply {
+        loadableListBinding.list.apply {
             addItemDecoration(newDividerWithoutHeader(context))
             adapter = actionCopyAdapter
         }
@@ -81,7 +81,7 @@ class DumbActionCopyDialog(
     override fun onCopyClicked() = Unit
 
     private fun updateActionList(newList: List<DumbActionCopyItem>) {
-        viewBinding.layoutLoadableList.updateState(newList)
+        loadableListBinding.updateState(newList)
         actionCopyAdapter.submitList(ArrayList(newList))
     }
 }
