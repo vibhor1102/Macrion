@@ -10,7 +10,9 @@ package io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.ui
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.widget.FrameLayout
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -68,7 +70,7 @@ class LocalePluginExecutionActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_locale_plugin_execution)
+        setContentView(FrameLayout(this).apply { setBackgroundColor(Color.TRANSPARENT) })
         mediaProjectionRequest.registerForActivityResult(this)
         handleLaunchIntent(intent)
     }

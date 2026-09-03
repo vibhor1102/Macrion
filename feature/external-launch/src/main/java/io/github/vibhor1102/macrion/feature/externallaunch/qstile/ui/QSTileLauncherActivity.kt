@@ -19,8 +19,10 @@ package io.github.vibhor1102.macrion.feature.externallaunch.qstile.ui
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -55,7 +57,7 @@ class QSTileLauncherActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_qstile_launcher)
+        setContentView(FrameLayout(this).apply { setBackgroundColor(Color.TRANSPARENT) })
 
         val scenarioId = intent?.getLongExtra(EXTRA_SCENARIO_ID, -1)
         val isSmartScenario = intent?.getBooleanExtra(EXTRA_IS_SMART_SCENARIO, false)

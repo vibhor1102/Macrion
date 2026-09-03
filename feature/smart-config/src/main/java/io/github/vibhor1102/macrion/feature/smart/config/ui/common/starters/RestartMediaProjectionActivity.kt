@@ -18,8 +18,10 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -54,7 +56,7 @@ class RestartMediaProjectionActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_transparent)
+        setContentView(FrameLayout(this).apply { setBackgroundColor(Color.TRANSPARENT) })
 
         mediaProjectionRequest.registerForActivityResult(this)
         mediaProjectionRequest.showMediaProjectionWarning(
