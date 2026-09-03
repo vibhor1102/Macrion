@@ -1,19 +1,4 @@
-/*
- * Copyright (C) 2025 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2025 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.eventtry
 
 import android.util.Size
@@ -21,110 +6,119 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-
-import io.github.vibhor1102.macrion.core.base.extensions.setLeftCompoundDrawable
 import io.github.vibhor1102.macrion.core.base.isStopScenarioKey
-import io.github.vibhor1102.macrion.core.domain.model.scenario.Scenario
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
 import io.github.vibhor1102.macrion.core.domain.model.event.ScreenEvent
+import io.github.vibhor1102.macrion.core.domain.model.scenario.Scenario
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.OverlayTryEventMenuBinding
 import io.github.vibhor1102.macrion.feature.smart.debugging.di.DebuggingViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.createDebugOverlayMenu
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.uistate.EventResultUiState
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.view.DebugOverlayView
-
 import kotlinx.coroutines.launch
 
 class TryEventOverlayMenu(
     private val scenario: Scenario,
     private val triedElement: ScreenEvent,
 ) : OverlayMenu() {
-
-    /** The view model for this dialog. */
     private val viewModel: TryElementViewModel by viewModels(
         entryPoint = DebuggingViewModelsEntryPoint::class.java,
         creator = { tryElementViewModel() },
     )
+    private var result by mutableStateOf<EventResultUiState?>(null)
 
-    /** Adapter upon actions being executed while in live debugging. */
-    private val tryEventActionsAdapter: TryEventActionsAdapter = TryEventActionsAdapter()
-
-    private lateinit var viewBinding: OverlayTryEventMenuBinding
-
-    override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
-        viewBinding = OverlayTryEventMenuBinding.inflate(LayoutInflater.from(context))
-        viewBinding.actionList.adapter = tryEventActionsAdapter
-
-        return viewBinding.root
-    }
-
+    override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup =
+        createDebugOverlayMenu(context) { ResultPanel(result) }
     override fun onCreateOverlayView(): View = DebugOverlayView(context)
 
     override fun onStart() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.displayResults.collect(::updateDetectionResults) }
+        lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewModel.displayResults.collect { state ->
+                result = state
+                (screenOverlayView as? DebugOverlayView)?.setResults(state?.detectionResults ?: emptyList())
             }
-        }
-
+        } }
         viewModel.startTry(context, scenario, triedElement)
     }
-
-    override fun onStop() {
-        viewModel.stopTry()
-    }
-
-    override fun getWindowMaximumSize(backgroundView: ViewGroup): Size {
-        val bgSize = super.getWindowMaximumSize(backgroundView)
-        return Size(
-            bgSize.width + context.resources.getDimensionPixelSize(R.dimen.overlay_debug_text_width),
-            bgSize.height,
-        )
-    }
-
+    override fun onStop() = viewModel.stopTry()
+    override fun getWindowMaximumSize(backgroundView: ViewGroup): Size =
+        super.getWindowMaximumSize(backgroundView).let { Size(
+            it.width + context.resources.getDimensionPixelSize(R.dimen.overlay_debug_text_width), it.height,
+        ) }
     override fun onMenuItemClicked(viewId: Int) {
-        when (viewId) {
-            R.id.btn_back -> {
-                viewModel.stopTry()
-                back()
-            }
-        }
+        if (viewId == R.id.btn_back) { viewModel.stopTry(); back() }
     }
-
     override fun onKeyEvent(keyEvent: KeyEvent): Boolean {
         if (!keyEvent.isStopScenarioKey()) return false
-
-        if (keyEvent.action == KeyEvent.ACTION_DOWN) {
-            viewModel.stopTry()
-            back()
-        }
-
+        if (keyEvent.action == KeyEvent.ACTION_DOWN) { viewModel.stopTry(); back() }
         return true
     }
 
-    private fun updateDetectionResults(uiState: EventResultUiState?) {
-        (screenOverlayView as? DebugOverlayView)?.setResults(uiState?.detectionResults ?: emptyList())
-        viewBinding.apply {
-            debugEventName.apply {
-                text = uiState?.eventName
-                setLeftCompoundDrawable(uiState?.eventIcon)
+    @Composable private fun ResultPanel(state: EventResultUiState?) {
+        val textColor = colorResource(R.color.overlayViewPrimary)
+        val iconColor = colorResource(R.color.overlayMenuButtons)
+        Column(Modifier.width(200.dp).height(140.dp).padding(vertical = 8.dp)) {
+            Row(
+                Modifier.fillMaxWidth().weight(1f).padding(horizontal = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                state?.let { Icon(painterResource(it.eventIcon), null, Modifier.size(24.dp), tint = iconColor) }
+                Text(
+                    state?.eventName.orEmpty(),
+                    Modifier.weight(1f).padding(start = 8.dp).basicMarquee(),
+                    color = textColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Clip,
+                )
             }
-
-            debugEventConditionOperator.apply {
-                text = uiState?.eventConditionOperator
+            HorizontalDivider(thickness = 2.dp, color = textColor)
+            Row(Modifier.fillMaxWidth().weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                Text(state?.eventConditionOperator.orEmpty(), Modifier.weight(1f).padding(start = 8.dp), color = textColor)
+                Spacer(Modifier.fillMaxHeight().width(2.dp).background(textColor))
+                Row(Modifier.weight(1f).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (state != null) Icon(painterResource(R.drawable.ic_duration), null, Modifier.size(20.dp), tint = iconColor)
+                    Text(state?.eventDuration.orEmpty(), Modifier.padding(start = 4.dp), color = textColor, maxLines = 1)
+                }
             }
-
-            debugEventConditionComputeTime.apply {
-                text = uiState?.eventDuration
-                setLeftCompoundDrawable(if (uiState != null) R.drawable.ic_duration else null)
+            HorizontalDivider(thickness = 2.dp, color = textColor)
+            Row(
+                Modifier.fillMaxWidth().weight(1f).padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                state?.actions?.forEach { action ->
+                    Icon(painterResource(action.icon), null, Modifier.width(32.dp).height(24.dp).padding(horizontal = 4.dp), tint = textColor)
+                }
             }
-
-            tryEventActionsAdapter.submitList(uiState?.actions)
         }
     }
 }

@@ -32,6 +32,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import io.github.vibhor1102.macrion.core.ui.views.fastscroll.VerticalFastScrollerView
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
+import androidx.compose.ui.res.colorResource
 
 internal class ReportRecyclerViews(
     val recyclerView: RecyclerView,
@@ -138,4 +139,26 @@ internal fun ReportRecycler(
             }
         },
     )
+}
+
+@Composable
+internal fun ReportLoadableList(
+    items: List<*>?,
+    @StringRes contentDescriptionRes: Int,
+    emptyTitle: String? = null,
+    emptySecondary: String? = null,
+    onCreated: (ReportRecyclerViews) -> Unit,
+) {
+    val overlayColor = colorResource(R.color.overlayViewPrimary)
+    when {
+        items == null -> ReportLoading(overlayColor)
+        items.isEmpty() && emptyTitle != null -> ReportEmptyMessage(
+            title = emptyTitle,
+            secondary = emptySecondary,
+            contentColor = overlayColor,
+            secondaryColor = overlayColor.copy(alpha = 0.7f),
+        )
+        items.isEmpty() -> Box(Modifier.fillMaxSize())
+        else -> ReportRecycler(contentDescriptionRes, Modifier.fillMaxSize(), onCreated = onCreated)
+    }
 }
