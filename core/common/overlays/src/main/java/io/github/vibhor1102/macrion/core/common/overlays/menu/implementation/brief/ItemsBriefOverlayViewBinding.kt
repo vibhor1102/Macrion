@@ -22,6 +22,13 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
 import androidx.recyclerview.widget.RecyclerView
 import io.github.vibhor1102.macrion.core.common.overlays.databinding.OverlayViewActionBriefLandBinding
 import io.github.vibhor1102.macrion.core.common.overlays.databinding.OverlayViewActionBriefPortBinding
@@ -69,7 +76,10 @@ class ItemsBriefOverlayViewBinding private constructor(
         buttonPlay = binding.buttonPlayAction,
         emptyScenarioCard = binding.emptyScenarioCard,
         emptyScenarioText = binding.textEmptyScenario,
-    )
+    ) {
+        binding.backgroundInstructions.setFade(FadeDirection.TOP)
+        binding.backgroundList.setFade(FadeDirection.BOTTOM)
+    }
 
     constructor(binding: OverlayViewActionBriefLandBinding) : this(
         root = binding.root,
@@ -86,5 +96,30 @@ class ItemsBriefOverlayViewBinding private constructor(
         buttonPlay = binding.buttonPlayAction,
         emptyScenarioCard = binding.emptyScenarioCard,
         emptyScenarioText = binding.textEmptyScenario,
-    )
+    ) {
+        binding.backgroundInstructions.setFade(FadeDirection.TOP)
+        binding.backgroundList.setFade(FadeDirection.LEFT)
+    }
+}
+
+private enum class FadeDirection { TOP, BOTTOM, LEFT }
+
+private fun ComposeView.setFade(direction: FadeDirection) {
+    isClickable = false
+    setContent {
+        val opaque = Color.Black
+        val middle = Color.Black.copy(alpha = 0.53f)
+        val transparent = Color.Transparent
+        val colors = when (direction) {
+            FadeDirection.TOP -> arrayOf(0f to opaque, 0.7f to middle, 1f to transparent)
+            FadeDirection.BOTTOM -> arrayOf(0f to transparent, 0.3f to middle, 1f to opaque)
+            FadeDirection.LEFT -> arrayOf(0f to opaque, 0.7f to middle, 1f to transparent)
+        }
+        val brush = if (direction == FadeDirection.LEFT) {
+            Brush.horizontalGradient(colorStops = colors)
+        } else {
+            Brush.verticalGradient(colorStops = colors)
+        }
+        Box(Modifier.fillMaxSize().background(brush))
+    }
 }
