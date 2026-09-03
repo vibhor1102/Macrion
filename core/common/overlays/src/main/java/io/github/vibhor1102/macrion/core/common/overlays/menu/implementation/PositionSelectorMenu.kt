@@ -19,9 +19,7 @@ package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.constraintlayout.widget.ConstraintLayout
 
-import io.github.vibhor1102.macrion.core.common.overlays.databinding.OverlayPositionSelectionViewBinding
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuButton
 import io.github.vibhor1102.macrion.core.common.overlays.menu.createOverlayMenuLayout
@@ -49,7 +47,7 @@ class PositionSelectorMenu(
 ) : OverlayMenu() {
 
     /** The view binding for the position selector. */
-    private lateinit var selectorViewBinding: OverlayPositionSelectionViewBinding
+    private lateinit var selectorViews: PositionSelectorViews
     private lateinit var confirmButton: View
 
     /** Controls the instructions in and out animations. */
@@ -61,11 +59,14 @@ class PositionSelectorMenu(
     override fun tutorialMonitoringTag(): String = tutorialMonitoringTag
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
-        selectorViewBinding = OverlayPositionSelectionViewBinding.inflate(layoutInflater)
+        selectorViews = PositionSelectorViews(
+            context = context,
+            safeInsetTopPx = displayConfigManager.displayConfig.safeInsetTopPx,
+        )
 
         instructionsAnimationController = AutoHideAnimationController().apply {
             attachToView(
-                selectorViewBinding.layoutInstructions,
+                selectorViews.instructions,
                 AutoHideAnimationController.ScreenSide.TOP,
             )
         }
@@ -82,12 +83,7 @@ class PositionSelectorMenu(
     }
 
     override fun onCreateOverlayView(): View {
-        selectorViewBinding.textInstructions.layoutParams =
-            (selectorViewBinding.textInstructions.layoutParams as ConstraintLayout.LayoutParams).apply {
-                setMargins(leftMargin, topMargin + displayConfigManager.displayConfig.safeInsetTopPx, rightMargin, bottomMargin)
-            }
-
-        return selectorViewBinding.root
+        return selectorViews.root
     }
 
     override fun onStart() {
@@ -116,8 +112,8 @@ class PositionSelectorMenu(
     }
 
     private fun setClickDescription(description: ClickDescription) {
-        selectorViewBinding.textInstructions.setText(R.string.toast_configure_single_click)
-        selectorViewBinding.positionSelector.apply {
+        selectorViews.setInstruction(R.string.toast_configure_single_click)
+        selectorViews.positionSelector.apply {
             setDescription(description)
             onTouchListener = { position ->
                 setClickDescription(description.copy(position = position))
@@ -141,8 +137,8 @@ class PositionSelectorMenu(
     }
 
     private fun toSelectSwipeFromState(description: SwipeDescription) {
-        selectorViewBinding.textInstructions.setText(R.string.toast_configure_swipe_from)
-        selectorViewBinding.positionSelector.apply {
+        selectorViews.setInstruction(R.string.toast_configure_swipe_from)
+        selectorViews.positionSelector.apply {
             setDescription(description)
             onTouchListener = { position ->
                 toSelectSwipeFromState(description.copy(from = position))
@@ -159,8 +155,8 @@ class PositionSelectorMenu(
     }
 
     private fun toSelectSwipeToState(description: SwipeDescription) {
-        selectorViewBinding.textInstructions.setText(R.string.toast_configure_swipe_to)
-        selectorViewBinding.positionSelector.apply {
+        selectorViews.setInstruction(R.string.toast_configure_swipe_to)
+        selectorViews.positionSelector.apply {
             setDescription(description)
             onTouchListener = { position ->
                 toSelectSwipeToState(description.copy(to = position))

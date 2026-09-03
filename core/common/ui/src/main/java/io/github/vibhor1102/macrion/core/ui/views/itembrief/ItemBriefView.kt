@@ -59,7 +59,6 @@ class ItemBriefView @JvmOverloads constructor(
     }
 
     init {
-        if (attrs == null) throw IllegalArgumentException("AttributeSet is null")
         style = context.getItemBriefStyle(attrs, defStyleAttr)
     }
 
