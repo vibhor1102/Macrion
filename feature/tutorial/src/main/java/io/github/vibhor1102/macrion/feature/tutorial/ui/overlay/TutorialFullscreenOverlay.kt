@@ -1,73 +1,62 @@
-/*
- * Copyright (C) 2024 Kevin Buzeau
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.tutorial.ui.overlay
 
 import android.view.LayoutInflater
 import android.view.View
-
-import androidx.annotation.IdRes
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
-import androidx.core.view.contains
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-
-import io.github.vibhor1102.macrion.core.common.overlays.other.FullscreenOverlay
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
+import io.github.vibhor1102.macrion.core.common.overlays.other.FullscreenOverlay
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.tutorial.R
-import io.github.vibhor1102.macrion.feature.tutorial.databinding.IncludeTutorialInstructionsBinding
-import io.github.vibhor1102.macrion.feature.tutorial.databinding.OverlayTutorialBinding
 import io.github.vibhor1102.macrion.feature.tutorial.di.TutorialViewModelsEntryPoint
-
-import kotlinx.coroutines.launch
 
 class TutorialFullscreenOverlay : FullscreenOverlay(theme = R.style.AppTheme) {
 
-    /** The view model for this overlay. */
     private val viewModel: TutorialOverlayViewModel by viewModels(
         entryPoint = TutorialViewModelsEntryPoint::class.java,
         creator = { tutorialOverlayViewModel() },
     )
 
-    /** ViewBinding containing the views for this overlay. */
-    private lateinit var viewBinding: OverlayTutorialBinding
-    /** ViewBinding containing the instructions. */
-    private lateinit var instructionsViewBinding: IncludeTutorialInstructionsBinding
-
-    override fun onCreateView(layoutInflater: LayoutInflater): View {
-        viewBinding = OverlayTutorialBinding.inflate(layoutInflater).apply {
-            buttonSkipAll.setOnClickListener { onSkipAllClicked() }
-            buttonNext.setOnClickListener { viewModel.toNextTutorialStep() }
-            tutorialBackground.onMonitoredViewClickedListener = viewModel::performClickOnMonitoredView
-        }
-
-        instructionsViewBinding = IncludeTutorialInstructionsBinding.inflate(layoutInflater)
-
-        return viewBinding.root
+    override fun onCreateView(layoutInflater: LayoutInflater): View = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@TutorialFullscreenOverlay.Content() } }
     }
 
-    override fun onViewCreated() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.uiState.collect(::updateUiState) }
-            }
-        }
-    }
+    override fun onViewCreated() = Unit
 
     private fun onSkipAllClicked() {
         overlayManager.restoreVisibility()
@@ -75,111 +64,103 @@ class TutorialFullscreenOverlay : FullscreenOverlay(theme = R.style.AppTheme) {
         finish()
     }
 
-    private fun updateUiState(uiState: TutorialFullscreenUiState?) {
-        uiState ?: return
+    @Composable
+    private fun Content() {
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+        Box(Modifier.fillMaxSize()) {
+            AndroidView(
+                factory = { context ->
+                    TutorialFullscreenView(context).apply {
+                        onMonitoredViewClickedListener = viewModel::performClickOnMonitoredView
+                    }
+                },
+                update = { background ->
+                    background.expectedViewPosition =
+                        (uiState?.exitButton as? TutorialExitButtonUiState.MonitoredView)?.position
+                },
+                modifier = Modifier.fillMaxSize(),
+            )
 
-        when(uiState.exitButton) {
-            TutorialExitButtonUiState.Next -> updateUiStateWithNextButton(uiState)
-            is TutorialExitButtonUiState.MonitoredView -> updateUiStateWithMonitoredViewHole(uiState)
-            else -> updateUiStateWithoutButton(uiState)
-        }
-    }
+            IconButton(
+                onClick = ::onSkipAllClicked,
+                modifier = Modifier.align(Alignment.TopStart).padding(start = 16.dp, top = 8.dp).size(48.dp),
+            ) {
+                Icon(
+                    painterResource(R.drawable.ic_cancel),
+                    contentDescription = null,
+                    tint = Color.White,
+                )
+            }
 
-    private fun updateUiStateWithNextButton(uiState: TutorialFullscreenUiState) {
-        viewBinding.apply {
-            buttonNext.visibility = View.VISIBLE
-            tutorialBackground.expectedViewPosition = null
-        }
-
-        // Next button is in the bottom of the screen, always display instructions on top
-        setInstructions(uiState)
-    }
-
-    private fun updateUiStateWithMonitoredViewHole(uiState: TutorialFullscreenUiState) {
-        val exitButton = uiState.exitButton as TutorialExitButtonUiState.MonitoredView
-
-        viewBinding.apply {
-            buttonNext.visibility = View.GONE
-            tutorialBackground.expectedViewPosition = exitButton.position
-        }
-
-        // Depending on the monitored view position, use the correct instructions position
-        setInstructions(uiState)
-    }
-
-    private fun updateUiStateWithoutButton(uiState: TutorialFullscreenUiState) {
-        viewBinding.apply {
-            buttonNext.visibility = View.GONE
-            tutorialBackground.expectedViewPosition = null
-        }
-
-        // No buttons is shown, always display instructions on top
-        setInstructions(uiState)
-    }
-
-    private fun setInstructions(uiState: TutorialFullscreenUiState) {
-        instructionsViewBinding.apply {
-            textInstructions.setText(uiState.instructionsResId)
-
-            if (uiState.image != null) {
-                layoutImageInstructions.visibility = View.VISIBLE
-                imageInstructions.setImageResource(uiState.image.imageResId)
-                textImageInstructionsDescription.setText(uiState.image.imageDescResId)
-            } else {
-                layoutImageInstructions.visibility = View.GONE
+            uiState?.let { state ->
+                InstructionPosition(state)
+                if (state.exitButton == TutorialExitButtonUiState.Next) {
+                    Button(
+                        onClick = viewModel::toNextTutorialStep,
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                            .fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp),
+                    ) {
+                        Text(stringResource(R.string.button_text_tutorial_next))
+                    }
+                }
             }
         }
-
-        addInstructionViewIfNeeded()
-
-        if (uiState.isDisplayedInTopHalf) setInstructionsToTopPosition()
-        else setInstructionsToBottomPosition()
     }
 
-    private fun addInstructionViewIfNeeded() {
-        if (viewBinding.root.contains(instructionsViewBinding.root)) return
-
-        val margin = context.resources.getDimensionPixelSize(R.dimen.tutorial_instructions_horizontal_margin)
-        viewBinding.root.addView(
-            instructionsViewBinding.root,
-            ConstraintLayout.LayoutParams(
-                ConstraintLayout.LayoutParams.MATCH_PARENT,
-                ConstraintLayout.LayoutParams.WRAP_CONTENT,
-            ).apply { setMargins(margin, 0, margin, 0) },
-        )
-    }
-
-    private fun setInstructionsToTopPosition() {
-        ConstraintSet().apply {
-            clone(viewBinding.root)
-            connectTopToBottom(instructionsViewBinding.cardInstructions.id, viewBinding.buttonSkipAll.id)
-            connectBottomToTop(instructionsViewBinding.cardInstructions.id, viewBinding.guidelineVerticalCenter.id)
-            connectStartEndToParent(instructionsViewBinding.cardInstructions.id)
-            applyTo(viewBinding.root)
+    @Composable
+    private fun InstructionPosition(state: TutorialFullscreenUiState) {
+        Column(Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier.weight(1f).fillMaxWidth().padding(top = 56.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (state.isDisplayedInTopHalf) InstructionCard(state)
+            }
+            Box(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (!state.isDisplayedInTopHalf) InstructionCard(state)
+            }
         }
     }
 
-    private fun setInstructionsToBottomPosition() {
-        ConstraintSet().apply {
-            clone(viewBinding.root)
-            connectTopToBottom(instructionsViewBinding.cardInstructions.id, viewBinding.guidelineVerticalCenter.id)
-            connectBottomToParentBottom(instructionsViewBinding.cardInstructions.id)
-            connectStartEndToParent(instructionsViewBinding.cardInstructions.id)
-            applyTo(viewBinding.root)
+    @Composable
+    private fun InstructionCard(state: TutorialFullscreenUiState) {
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp),
+            elevation = CardDefaults.elevatedCardElevation(),
+            border = BorderStroke(2.dp, colorResource(R.color.tutorial_header_card_border)),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    stringResource(state.instructionsResId),
+                    modifier = Modifier.fillMaxWidth(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center,
+                )
+                state.image?.let { image ->
+                    Spacer(Modifier.height(8.dp))
+                    HorizontalDivider(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 4.dp))
+                    Image(
+                        painter = painterResource(image.imageResId),
+                        contentDescription = stringResource(image.imageDescResId),
+                        modifier = Modifier.padding(vertical = 8.dp)
+                            .sizeIn(minWidth = 48.dp, minHeight = 48.dp, maxWidth = 144.dp, maxHeight = 82.dp),
+                        contentScale = ContentScale.Fit,
+                    )
+                    Text(
+                        stringResource(image.imageDescResId),
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall.copy(fontStyle = androidx.compose.ui.text.font.FontStyle.Italic),
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
         }
-    }
-    
-    private fun ConstraintSet.connectTopToBottom(@IdRes startId: Int, @IdRes endInd: Int): Unit =
-        connect(startId, ConstraintSet.TOP, endInd, ConstraintSet.BOTTOM)
-
-    private fun ConstraintSet.connectBottomToTop(@IdRes startId: Int, @IdRes endInd: Int): Unit =
-        connect(startId, ConstraintSet.BOTTOM, endInd, ConstraintSet.TOP)
-
-    private fun ConstraintSet.connectBottomToParentBottom(@IdRes viewId: Int): Unit =
-        connect(viewId, ConstraintSet.BOTTOM, 0, ConstraintSet.BOTTOM)
-
-    private fun ConstraintSet.connectStartEndToParent(@IdRes viewId: Int) {
-        connect(viewId, ConstraintSet.START, 0, ConstraintSet.START)
-        connect(viewId, ConstraintSet.END, 0, ConstraintSet.END)
     }
 }
