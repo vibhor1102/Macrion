@@ -60,7 +60,6 @@ import io.github.vibhor1102.macrion.core.common.navigation.TutorialNavigator
 import io.github.vibhor1102.macrion.core.common.navigation.getTutorialNavigator
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
-import io.github.vibhor1102.macrion.databinding.FragmentScenariosBinding
 import io.github.vibhor1102.macrion.feature.backup.ui.BackupDialogFragment
 import io.github.vibhor1102.macrion.feature.backup.ui.BackupDialogFragment.Companion.FRAGMENT_TAG_BACKUP_DIALOG
 import io.github.vibhor1102.macrion.scenarios.migration.ConditionsMigrationFragment
@@ -97,8 +96,7 @@ class ScenarioListFragment : Fragment() {
     /** ViewModel providing the scenarios data to the UI. */
     private val scenarioListViewModel: ScenarioListViewModel by viewModels()
 
-    /** ViewBinding containing the views for this fragment. */
-    private lateinit var viewBinding: FragmentScenariosBinding
+    private lateinit var views: ScenarioListViews
     /** Adapter displaying the click scenarios as a list. */
     private lateinit var scenariosAdapter: ScenarioAdapter
 
@@ -107,8 +105,8 @@ class ScenarioListFragment : Fragment() {
     private var dialog: AlertDialog? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        viewBinding = FragmentScenariosBinding.inflate(inflater, container, false)
-        return viewBinding.root
+        views = ScenarioListViews(requireContext(), ::onCreateClicked)
+        return views.root
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -131,10 +129,9 @@ class ScenarioListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewBinding.apply {
+        views.apply {
             list.adapter = scenariosAdapter
 
-            emptyCreateButton.setOnClickListener { onCreateClicked() }
             add.setOnClickListener { onCreateClicked() }
 
             appBarLayout.statusBarForeground = MaterialShapeDrawable.createWithElevationOverlay(context)
@@ -197,7 +194,7 @@ class ScenarioListFragment : Fragment() {
      * @param menuState the new ui state for the menu.
      */
     private fun updateMenu(menuState: ScenarioListUiState.Menu) {
-        viewBinding.topAppBar.menu.apply {
+        views.topAppBar.menu.apply {
             findItem(R.id.action_select_all)?.bind(menuState.selectAllItemState)
             findItem(R.id.action_cancel)?.bind(menuState.cancelItemState)
             findItem(R.id.action_import_export)?.bind(menuState.importExportItemState)
@@ -236,18 +233,18 @@ class ScenarioListFragment : Fragment() {
      * Will update the list/empty view according to the current click scenarios
      */
     private fun updateScenarioList(uiState: ScenarioListUiState) {
-        viewBinding.apply {
-            loading.visibility = View.GONE
+        views.apply {
+            loadingVisible.value = false
             if (uiState.listContent.isEmpty() && uiState.type == ScenarioListUiState.Type.SELECTION) {
                 list.visibility = View.GONE
                 add.visibility = View.GONE
-                layoutEmpty.visibility = View.VISIBLE
+                emptyVisible.value = true
             } else {
                 list.visibility = View.VISIBLE
                 add.visibility =
                     if (uiState.type == ScenarioListUiState.Type.SELECTION) View.VISIBLE
                     else View.GONE
-                layoutEmpty.visibility = View.GONE
+                emptyVisible.value = false
             }
         }
 
