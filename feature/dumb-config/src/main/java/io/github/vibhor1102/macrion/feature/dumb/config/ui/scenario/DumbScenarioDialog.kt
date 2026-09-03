@@ -24,11 +24,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 
 import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonEnabledState
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialog
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonVisibility
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.scenario.actionlist.DumbActionListContent
@@ -53,7 +51,7 @@ class DumbScenarioDialog(
     override fun onCreateView(): ViewGroup {
         return super.onCreateView().also {
             topBarBinding.setButtonVisibility(DialogNavigationButton.SAVE, View.VISIBLE)
-            topBarBinding.dialogTitle.setText(R.string.dialog_overlay_title_dumb_scenario_config)
+            topBarBinding.setTitle(R.string.dialog_overlay_title_dumb_scenario_config)
         }
     }
 

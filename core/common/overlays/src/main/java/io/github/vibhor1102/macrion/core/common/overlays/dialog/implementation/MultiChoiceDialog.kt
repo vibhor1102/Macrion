@@ -57,7 +57,8 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
-import io.github.vibhor1102.macrion.core.ui.databinding.IncludeDialogNavigationTopBarBinding
+import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
+import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.TopBarNavigationView
 
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
@@ -84,12 +85,12 @@ open class MultiChoiceDialog<T : DialogChoice>(
 
     override fun onCreateView(): ViewGroup {
         val inflater = LayoutInflater.from(context)
-        val topBarBinding = IncludeDialogNavigationTopBarBinding.inflate(inflater).apply {
-            dialogTitle.setText(dialogTitleText)
-            buttonDismiss.setDebouncedOnClickListener {
+        val topBarBinding = TopBarNavigationView(context).apply {
+            setTitle(dialogTitleText)
+            setButtonClickListener(DialogNavigationButton.DISMISS) { debounceUserInteraction {
                 onCanceled?.invoke()
                 back()
-            }
+            } }
         }
         list = RecyclerView(context).apply {
             layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)

@@ -19,16 +19,16 @@ package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.br
 import android.content.res.Configuration
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.Button
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
@@ -36,11 +36,16 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.recyclerview.widget.RecyclerView
+import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.databinding.OverlayViewActionBriefLandBinding
 import io.github.vibhor1102.macrion.core.common.overlays.databinding.OverlayViewActionBriefPortBinding
 import io.github.vibhor1102.macrion.core.ui.views.gesturerecord.GestureRecordView
@@ -52,19 +57,25 @@ class ItemsBriefOverlayViewBinding private constructor(
     val root: View,
     val viewBrief: ItemBriefView,
     val viewRecorder: GestureRecordView,
-    val layoutInstructions: View,
-    val recordingIcon: ImageView,
+    val layoutInstructions: ComposeView,
     val layoutActionList: View,
     val listActions: RecyclerView,
-    val textActionIndex: TextView,
-    val buttonMovePrevious: Button,
-    val buttonMoveNext: Button,
-    val buttonDelete: Button,
-    val buttonPlay: Button,
     val emptyScenarioCard: View,
+    private val controlPanel: ComposeView,
+    private val orientation: Int,
 ) {
 
+    val recordingIcon = ImageView(root.context).apply {
+        setImageResource(UiR.drawable.ic_recording)
+    }
     private val emptyText = mutableIntStateOf(0)
+    private val controlState = mutableStateOf(ItemBriefControlsState())
+
+    private var onMovePrevious: () -> Unit = {}
+    private var onDelete: () -> Unit = {}
+    private var onPosition: () -> Unit = {}
+    private var onPlay: () -> Unit = {}
+    private var onMoveNext: () -> Unit = {}
 
     companion object {
 
@@ -80,19 +91,16 @@ class ItemsBriefOverlayViewBinding private constructor(
         viewBrief = binding.viewBrief,
         viewRecorder = binding.viewRecord,
         layoutInstructions = binding.layoutInstructions,
-        recordingIcon = binding.iconRecording,
         layoutActionList = binding.layoutActionList,
         listActions = binding.listActions,
-        textActionIndex = binding.textActionIndex,
-        buttonMovePrevious = binding.buttonMovePrevious,
-        buttonMoveNext = binding.buttonMoveNext,
-        buttonDelete = binding.buttonDelete,
-        buttonPlay = binding.buttonPlayAction,
         emptyScenarioCard = binding.emptyScenarioCard,
+        controlPanel = binding.controlPanel,
+        orientation = Configuration.ORIENTATION_PORTRAIT,
     ) {
-        binding.backgroundInstructions.setFade(FadeDirection.TOP)
         binding.backgroundList.setFade(FadeDirection.BOTTOM)
         binding.emptyScenarioCard.setEmptyContent(emptyText)
+        setInstructionsContent(isPortrait = true)
+        setControlPanelContent()
     }
 
     constructor(binding: OverlayViewActionBriefLandBinding) : this(
@@ -100,23 +108,167 @@ class ItemsBriefOverlayViewBinding private constructor(
         viewBrief = binding.viewBrief,
         viewRecorder = binding.viewRecord,
         layoutInstructions = binding.layoutInstructions,
-        recordingIcon = binding.iconRecording,
         layoutActionList = binding.layoutActionList,
         listActions = binding.listActions,
-        textActionIndex = binding.textActionIndex,
-        buttonMovePrevious = binding.buttonMovePrevious,
-        buttonMoveNext = binding.buttonMoveNext,
-        buttonDelete = binding.buttonDelete,
-        buttonPlay = binding.buttonPlayAction,
         emptyScenarioCard = binding.emptyScenarioCard,
+        controlPanel = binding.controlPanel,
+        orientation = Configuration.ORIENTATION_LANDSCAPE,
     ) {
-        binding.backgroundInstructions.setFade(FadeDirection.TOP)
         binding.backgroundList.setFade(FadeDirection.LEFT)
         binding.emptyScenarioCard.setEmptyContent(emptyText)
+        setInstructionsContent(isPortrait = false)
+        setControlPanelContent()
     }
 
     fun setEmptyText(textRes: Int) {
         emptyText.intValue = textRes
+    }
+
+    fun setControlCallbacks(
+        onMovePrevious: () -> Unit,
+        onDelete: () -> Unit,
+        onPosition: () -> Unit,
+        onPlay: () -> Unit,
+        onMoveNext: () -> Unit,
+    ) {
+        this.onMovePrevious = onMovePrevious
+        this.onDelete = onDelete
+        this.onPosition = onPosition
+        this.onPlay = onPlay
+        this.onMoveNext = onMoveNext
+    }
+
+    fun updateControls(state: ItemBriefControlsState) {
+        controlState.value = state
+    }
+
+    private fun setControlPanelContent() {
+        controlPanel.setContent {
+            MacrionTheme {
+                ItemBriefControls(
+                    state = controlState.value,
+                    isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT,
+                    onMovePrevious = { onMovePrevious() },
+                    onDelete = { onDelete() },
+                    onPosition = { onPosition() },
+                    onPlay = { onPlay() },
+                    onMoveNext = { onMoveNext() },
+                )
+            }
+        }
+    }
+
+    private fun setInstructionsContent(isPortrait: Boolean) {
+        layoutInstructions.setContent {
+            val colors = arrayOf(
+                0f to Color.Black,
+                0.7f to Color.Black.copy(alpha = 0.53f),
+                1f to Color.Transparent,
+            )
+            MacrionTheme {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Brush.verticalGradient(colorStops = colors))
+                        .padding(
+                            start = 32.dp,
+                            top = if (isPortrait) 12.dp else 8.dp,
+                            end = 32.dp,
+                            bottom = 24.dp,
+                        ),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    AndroidView(factory = { recordingIcon }, modifier = Modifier.size(24.dp))
+                    Spacer(Modifier.width(if (isPortrait) 8.dp else 16.dp))
+                    Text(
+                        text = stringResource(R.string.overlay_instructions_gesture_record),
+                        color = colorResource(UiR.color.overlayViewPrimary),
+                        style = MaterialTheme.typography.headlineSmall,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Immutable
+data class ItemBriefControlsState(
+    val indexText: String = "",
+    val canMovePrevious: Boolean = false,
+    val canDelete: Boolean = false,
+    val canSelectPosition: Boolean = false,
+    val canPlay: Boolean = false,
+    val canMoveNext: Boolean = false,
+)
+
+@androidx.compose.runtime.Composable
+private fun ItemBriefControls(
+    state: ItemBriefControlsState,
+    isPortrait: Boolean,
+    onMovePrevious: () -> Unit,
+    onDelete: () -> Unit,
+    onPosition: () -> Unit,
+    onPlay: () -> Unit,
+    onMoveNext: () -> Unit,
+) {
+    if (isPortrait) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 32.dp, end = 32.dp, top = 8.dp, bottom = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            BriefIconButton(UiR.drawable.ic_move_left, state.canMovePrevious, onMovePrevious)
+            Spacer(Modifier.width(16.dp))
+            BriefIconButton(UiR.drawable.ic_delete, state.canDelete, onDelete)
+            Spacer(Modifier.width(32.dp))
+            PositionCard(state, onPosition, Modifier.weight(1f).height(48.dp))
+            Spacer(Modifier.width(32.dp))
+            BriefIconButton(UiR.drawable.ic_play_arrow, state.canPlay, onPlay)
+            Spacer(Modifier.width(16.dp))
+            BriefIconButton(UiR.drawable.ic_move_right, state.canMoveNext, onMoveNext)
+        }
+    } else {
+        Column(
+            modifier = Modifier.fillMaxHeight().padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            BriefIconButton(UiR.drawable.ic_move_up, state.canMovePrevious, onMovePrevious)
+            Spacer(Modifier.height(16.dp))
+            BriefIconButton(UiR.drawable.ic_delete, state.canDelete, onDelete)
+            Spacer(Modifier.height(28.dp))
+            PositionCard(state, onPosition, Modifier.width(48.dp))
+            Spacer(Modifier.height(28.dp))
+            BriefIconButton(UiR.drawable.ic_play_arrow, state.canPlay, onPlay)
+            Spacer(Modifier.height(16.dp))
+            BriefIconButton(UiR.drawable.ic_move_down, state.canMoveNext, onMoveNext)
+        }
+    }
+}
+
+@androidx.compose.runtime.Composable
+private fun BriefIconButton(icon: Int, enabled: Boolean, onClick: () -> Unit) {
+    FilledTonalIconButton(onClick = onClick, enabled = enabled) {
+        Icon(painterResource(icon), contentDescription = null, modifier = Modifier.size(24.dp))
+    }
+}
+
+@androidx.compose.runtime.Composable
+private fun PositionCard(state: ItemBriefControlsState, onClick: () -> Unit, modifier: Modifier) {
+    ElevatedCard(onClick = onClick, enabled = state.canSelectPosition, modifier = modifier) {
+        Box(Modifier.fillMaxSize().padding(vertical = if (state.indexText.contains('\n')) 8.dp else 0.dp), contentAlignment = Alignment.Center) {
+            Text(
+                text = state.indexText,
+                color = colorResource(UiR.color.overlayViewPrimary).copy(
+                    alpha = if (state.canSelectPosition) 1f else 0.38f,
+                ),
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                maxLines = if (state.indexText.contains('\n')) 3 else 1,
+            )
+        }
     }
 }
 

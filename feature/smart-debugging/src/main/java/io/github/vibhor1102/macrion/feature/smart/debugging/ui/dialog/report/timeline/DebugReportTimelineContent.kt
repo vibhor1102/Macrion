@@ -87,15 +87,14 @@ class DebugReportTimelineContent(appContext: Context) : NavBarDialogContent(appC
     }
 
     override fun onStop() {
-        dialogController.floatingActionButtons.primaryBadge.visibility = View.GONE
+        dialogController.floatingActionButtons.setBadge(null)
     }
 
     private fun updateFiltersBadge(count: Int) {
-        dialogController.floatingActionButtons.primaryBadge.apply {
-            visibility = if (count > 0) View.VISIBLE else View.GONE
-            text = count.toString()
-            contentDescription = context.getString(R.string.content_desc_timeline_filters_active, count)
-        }
+        dialogController.floatingActionButtons.setBadge(
+            text = count.takeIf { it > 0 }?.toString(),
+            description = context.getString(R.string.content_desc_timeline_filters_active, count),
+        )
     }
 
     private fun DebugReportTimelineUiState.activeFilterCount() = when (this) {

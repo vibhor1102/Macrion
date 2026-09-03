@@ -27,7 +27,6 @@ import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialog
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonVisibility
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import io.github.vibhor1102.macrion.feature.smart.debugging.di.DebuggingViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.overview.DebugReportOverviewContent
@@ -53,7 +52,7 @@ class DebugReportDialog : NavBarDialog(R.style.AppTheme) {
             topBarBinding.apply {
                 setButtonVisibility(DialogNavigationButton.DELETE, View.GONE)
                 setButtonVisibility(DialogNavigationButton.SAVE, View.GONE)
-                dialogTitle.setText(R.string.dialog_overlay_title_debug_report)
+                setTitle(R.string.dialog_overlay_title_debug_report)
             }
         }
     }

@@ -30,7 +30,6 @@ import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.n
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.report.DebugReportEventOccurrence
 import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonVisibility
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import io.github.vibhor1102.macrion.feature.smart.debugging.di.DebuggingViewModelsEntryPoint
@@ -143,7 +142,7 @@ class DebugReportEventOccurrenceDetailsDialog(
 
     private fun updateUiState(uiState: DebugReportEventOccurrenceUiState?) {
         uiState ?: return
-        topBarBinding.dialogTitle.text = uiState.dialogTitle
+        topBarBinding.setTitle(uiState.dialogTitle)
     }
 }
 

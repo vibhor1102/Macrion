@@ -120,9 +120,7 @@ class TriggerEventListContent(appContext: Context) : NavBarDialogContent(appCont
     }
 
     private fun updateCopyButtonVisibility(isVisible: Boolean) {
-        dialogController.floatingActionButtons.secondary.apply {
-            if (isVisible) show() else hide()
-        }
+        dialogController.floatingActionButtons.setSecondaryVisible(isVisible)
     }
 
     /** Opens the dialog allowing the user to copy an event. */

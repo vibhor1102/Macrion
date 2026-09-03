@@ -144,8 +144,6 @@ class DumbActionListContent(appContext: Context) : NavBarDialogContent(appContex
     }
 
     private fun updateCopyButtonState(enabled: Boolean) {
-        dialogController.floatingActionButtons.secondary.apply {
-            if (enabled) show() else hide()
-        }
+        dialogController.floatingActionButtons.setSecondaryVisible(enabled)
     }
 }

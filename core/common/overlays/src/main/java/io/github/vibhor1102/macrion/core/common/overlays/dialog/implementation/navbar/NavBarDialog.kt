@@ -38,8 +38,8 @@ import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.NavBarDialogScaffold
 import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
-import io.github.vibhor1102.macrion.core.ui.databinding.IncludeDialogNavigationTopBarBinding
-import io.github.vibhor1102.macrion.core.ui.databinding.IncludeFloatingActionButtonsBinding
+import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.TopBarNavigationView
+import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.FloatingActionButtonsView
 
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -60,8 +60,8 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
     private lateinit var persistentHeader: FrameLayout
     private lateinit var contentContainer: FrameLayout
     protected lateinit var navBarView: NavigationBarView
-    lateinit var floatingActionButtons: IncludeFloatingActionButtonsBinding
-    lateinit var topBarBinding: IncludeDialogNavigationTopBarBinding
+    lateinit var floatingActionButtons: FloatingActionButtonsView
+    lateinit var topBarBinding: TopBarNavigationView
 
     abstract fun inflateMenu(navBarView: NavigationBarView)
 
@@ -73,10 +73,10 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
 
     override fun onCreateView(): ViewGroup {
         val inflater = LayoutInflater.from(context)
-        topBarBinding = IncludeDialogNavigationTopBarBinding.inflate(inflater).apply {
-            buttonSave.setDebouncedOnClickListener { handleButtonClick(DialogNavigationButton.SAVE) }
-            buttonDismiss.setDebouncedOnClickListener { handleButtonClick(DialogNavigationButton.DISMISS) }
-            buttonDelete.setDebouncedOnClickListener { handleButtonClick(DialogNavigationButton.DELETE) }
+        topBarBinding = TopBarNavigationView(context).apply {
+            setButtonClickListener(DialogNavigationButton.SAVE) { debounceUserInteraction { handleButtonClick(DialogNavigationButton.SAVE) } }
+            setButtonClickListener(DialogNavigationButton.DISMISS) { debounceUserInteraction { handleButtonClick(DialogNavigationButton.DISMISS) } }
+            setButtonClickListener(DialogNavigationButton.DELETE) { debounceUserInteraction { handleButtonClick(DialogNavigationButton.DELETE) } }
         }
         persistentHeader = FrameLayout(context).apply {
             id = View.generateViewId()
@@ -93,13 +93,13 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
                 id = View.generateViewId()
                 translationZ = 100 * resources.displayMetrics.density
             }
-            floatingActionButtons = IncludeFloatingActionButtonsBinding.inflate(inflater)
+            floatingActionButtons = FloatingActionButtonsView(context)
         } else {
             navBarView = NavigationRailView(context).apply {
                 id = View.generateViewId()
                 labelVisibilityMode = NavigationBarView.LABEL_VISIBILITY_UNLABELED
             }
-            floatingActionButtons = IncludeFloatingActionButtonsBinding.inflate(inflater)
+            floatingActionButtons = FloatingActionButtonsView(context)
         }
 
         // Generic setup of the navigation
