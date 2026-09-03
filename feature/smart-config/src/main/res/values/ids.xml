@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 Vibhor Goel -->
+<resources>
+    <item name="btn_confirm" type="id" />
+    <item name="btn_cancel" type="id" />
+    <item name="btn_help" type="id" />
+    <item name="btn_save" type="id" />
+    <item name="btn_add" type="id" />
+    <item name="btn_copy" type="id" />
+    <item name="btn_back" type="id" />
+    <item name="btn_record" type="id" />
+    <item name="btn_add_other" type="id" />
+</resources>

@@ -21,6 +21,7 @@ import android.graphics.PointF
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -29,7 +30,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
 import io.github.vibhor1102.macrion.core.ui.views.pixelselector.PixelSelectorView
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.OverlayColorCaptureMenuBinding
+import io.github.vibhor1102.macrion.feature.smart.config.ui.createColorCaptureOverlayToolbar
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.core.ui.utils.updateColorIndicatorDrawableColor
 import io.github.vibhor1102.macrion.feature.smart.config.databinding.IncludeCardZoomedViewBinding
@@ -52,8 +53,8 @@ class ColorCaptureMenu (
         creator = { colorCaptureViewModel() },
     )
 
-    /** The view binding for the overlay menu. */
-    private lateinit var viewBinding: OverlayColorCaptureMenuBinding
+    private lateinit var menuView: ViewGroup
+    private val confirmButton get() = menuView.findViewById<ImageButton>(R.id.btn_confirm)
     /** The view binding for the zoomed view. */
     private lateinit var overlayView: OverlayColorCaptureZoomViewBinding
     /** The view displaying the screenshot and the selector for the capture. */
@@ -64,7 +65,7 @@ class ColorCaptureMenu (
 
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
-        viewBinding = OverlayColorCaptureMenuBinding.inflate(layoutInflater)
+        menuView = createColorCaptureOverlayToolbar(context)
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -72,7 +73,7 @@ class ColorCaptureMenu (
             }
         }
 
-        return viewBinding.root
+        return menuView
     }
 
     override fun onCreateOverlayView(): View {
@@ -135,9 +136,9 @@ class ColorCaptureMenu (
     private fun updateMenu(uiState: ColorCaptureUiState) {
         setMenuVisibility(if (uiState.menuVisibility) View.VISIBLE else View.GONE)
 
-        viewBinding.btnConfirm.setImageResource(uiState.topButtonIcon)
-        setMenuItemViewEnabled(viewBinding.btnConfirm, uiState.topButtonEnabled)
-        setMenuItemViewEnabled(viewBinding.btnHideOverlay, uiState.showHideButtonEnabled)
+        confirmButton.setImageResource(uiState.topButtonIcon)
+        setMenuItemViewEnabled(confirmButton, uiState.topButtonEnabled)
+        setMenuItemViewEnabled(menuView.findViewById(R.id.btn_hide_overlay), uiState.showHideButtonEnabled)
     }
 
     private fun updateOverlay(uiState: PixelSelectionUiState) {

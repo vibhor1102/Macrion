@@ -32,7 +32,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.bri
 import io.github.vibhor1102.macrion.core.domain.model.action.Action
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.OverlayActionsBriefMenuBinding
+import io.github.vibhor1102.macrion.feature.smart.config.ui.createActionsOverlayToolbar
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.UiAction
 
@@ -54,7 +54,7 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
         creator = { smartActionsBriefViewModel() }
     )
 
-    private lateinit var viewBinding: OverlayActionsBriefMenuBinding
+    private lateinit var menuView: ViewGroup
 
     /**
      * Tells if this service has handled onKeyEvent with ACTION_DOWN for a key in order to return
@@ -78,8 +78,8 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
     }
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
-        viewBinding = OverlayActionsBriefMenuBinding.inflate(layoutInflater)
-        return viewBinding.root
+        menuView = createActionsOverlayToolbar(context)
+        return menuView
     }
 
     override fun onCreateBriefItemViewHolder(parent: ViewGroup, orientation: Int): SmartActionBriefViewHolder =
@@ -95,8 +95,8 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
     override fun onStart() {
         super.onStart()
         viewModel.monitorViews(
-            createMenuButton = viewBinding.btnAddOther,
-            saveMenuButton = viewBinding.btnBack,
+            createMenuButton = menuView.findViewById(R.id.btn_add_other),
+            saveMenuButton = menuView.findViewById(R.id.btn_back),
         )
     }
 
@@ -141,7 +141,7 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
 
     override fun onScreenOverlayVisibilityChanged(isVisible: Boolean) {
         super.onScreenOverlayVisibilityChanged(isVisible)
-        setMenuItemViewEnabled(viewBinding.btnRecord, isVisible)
+        setMenuItemViewEnabled(menuView.findViewById(R.id.btn_record), isVisible)
     }
 
     override fun onMoveItemClicked(from: Int, to: Int) {
@@ -188,27 +188,27 @@ class SmartActionsBriefMenu(initialItemIndex: Int) : ItemBriefMenu(
 
     private fun updateRecordingState(isRecording: Boolean) {
         if (isRecording) {
-            setMenuItemViewEnabled(viewBinding.btnBack, true)
-            setMenuItemViewEnabled(viewBinding.btnAddOther, false)
-            setMenuItemViewEnabled(viewBinding.btnHideOverlay, false)
-            setMenuItemViewEnabled(viewBinding.btnMove, true)
-            setMenuItemViewEnabled(viewBinding.btnRecord, false)
+            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_back), true)
+            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_add_other), false)
+            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_hide_overlay), false)
+            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_move), true)
+            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_record), false)
         } else {
-            setMenuItemViewEnabled(viewBinding.btnBack, true)
-            setMenuItemViewEnabled(viewBinding.btnAddOther, true)
-            setMenuItemViewEnabled(viewBinding.btnHideOverlay, true)
-            setMenuItemViewEnabled(viewBinding.btnMove, true)
-            setMenuItemViewEnabled(viewBinding.btnRecord, true)
+            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_back), true)
+            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_add_other), true)
+            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_hide_overlay), true)
+            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_move), true)
+            setMenuItemViewEnabled(menuView.findViewById(R.id.btn_record), true)
         }
     }
 
     private fun updateReplayingState(isReplaying: Boolean) {
         setOverlayViewVisibility(!isReplaying)
-        setMenuItemViewEnabled(viewBinding.btnBack, !isReplaying)
-        setMenuItemViewEnabled(viewBinding.btnAddOther, !isReplaying)
-        setMenuItemViewEnabled(viewBinding.btnHideOverlay, !isReplaying)
-        setMenuItemViewEnabled(viewBinding.btnMove, !isReplaying)
-        setMenuItemViewEnabled(viewBinding.btnRecord, !isReplaying)
+        setMenuItemViewEnabled(menuView.findViewById(R.id.btn_back), !isReplaying)
+        setMenuItemViewEnabled(menuView.findViewById(R.id.btn_add_other), !isReplaying)
+        setMenuItemViewEnabled(menuView.findViewById(R.id.btn_hide_overlay), !isReplaying)
+        setMenuItemViewEnabled(menuView.findViewById(R.id.btn_move), !isReplaying)
+        setMenuItemViewEnabled(menuView.findViewById(R.id.btn_record), !isReplaying)
     }
 
     private fun updateActionVisualisation(visualization: ItemBriefDescription?) {

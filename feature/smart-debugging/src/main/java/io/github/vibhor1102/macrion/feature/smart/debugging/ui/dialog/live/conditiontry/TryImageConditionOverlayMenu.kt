@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.viewinterop.AndroidView
@@ -91,6 +93,7 @@ class TryImageConditionOverlayMenu(
     @Composable private fun ResultPanel() {
         val textColor = colorResource(R.color.textTitle)
         val controlColor = colorResource(R.color.overlayMenuButtons)
+        val dividerColor = MaterialTheme.colorScheme.outlineVariant
         Column(Modifier.width(287.dp).height(152.dp).padding(start = 8.dp, end = 4.dp, top = 12.dp, bottom = 4.dp)) {
             Box(Modifier.fillMaxWidth().weight(1f)) {
                 Row(Modifier.fillMaxWidth().fillMaxHeight()) {
@@ -104,7 +107,7 @@ class TryImageConditionOverlayMenu(
                         .fillMaxHeight()
                         .padding(vertical = 8.dp)
                         .width(1.dp)
-                        .background(controlColor),
+                        .background(dividerColor),
                 )
             }
             Box(Modifier.fillMaxWidth().height(52.dp).padding(top = 4.dp)) {
@@ -136,15 +139,27 @@ class TryImageConditionOverlayMenu(
                 color = color,
                 maxLines = 1,
                 textAlign = TextAlign.Center,
-                style = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Medium, fontSize = 16.sp),
+                style = TextStyle(
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp,
+                    platformStyle = PlatformTextStyle(includeFontPadding = true),
+                ),
             )
-            Text(
-                value,
-                color = color,
-                maxLines = 1,
-                textAlign = TextAlign.Center,
-                style = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Medium, fontSize = 26.sp),
-            )
+            Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                Text(
+                    value,
+                    color = color,
+                    maxLines = 1,
+                    textAlign = TextAlign.Center,
+                    style = TextStyle(
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 26.sp,
+                        platformStyle = PlatformTextStyle(includeFontPadding = true),
+                    ),
+                )
+            }
         }
     }
 }

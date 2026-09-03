@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,7 +63,7 @@ class TryEventOverlayMenu(
     private var result by mutableStateOf<EventResultUiState?>(null)
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup =
-        createDebugOverlayMenu(context, contentWidthDp = 200, contentHeightDp = 140) { ResultPanel(result) }
+        createDebugOverlayMenu(context, contentWidthDp = 200, contentHeightDp = 152) { ResultPanel(result) }
     override fun onCreateOverlayView(): View = DebugOverlayView(context)
 
     override fun onStart() {
@@ -90,54 +92,75 @@ class TryEventOverlayMenu(
     @Composable private fun ResultPanel(state: EventResultUiState?) {
         val textColor = colorResource(R.color.overlayViewPrimary)
         val iconColor = colorResource(R.color.overlayMenuButtons)
+        val dividerColor = textColor.copy(alpha = 19f / 255f)
         val textStyle = TextStyle(
             fontFamily = FontFamily.SansSerif,
             fontWeight = FontWeight.Medium,
             fontSize = 14.sp,
+            platformStyle = PlatformTextStyle(includeFontPadding = true),
         )
-        Column(Modifier.width(200.dp).height(140.dp).padding(vertical = 8.dp)) {
-            Row(
-                Modifier.fillMaxWidth().weight(1f).padding(horizontal = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                state?.let { Icon(painterResource(it.eventIcon), null, Modifier.size(24.dp), tint = iconColor) }
-                Text(
-                    state?.eventName.orEmpty(),
-                    Modifier.weight(1f).padding(start = 8.dp).basicMarquee(),
-                    color = textColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Clip,
-                    style = textStyle,
-                )
-            }
-            HorizontalDivider(thickness = 2.dp, color = textColor)
-            Row(Modifier.fillMaxWidth().weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    state?.eventConditionOperator.orEmpty(),
-                    Modifier.weight(1f).padding(start = 8.dp),
-                    color = textColor,
-                    style = textStyle,
-                )
-                Spacer(Modifier.fillMaxHeight().width(2.dp).background(textColor))
-                Row(Modifier.weight(1f).padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    if (state != null) Icon(painterResource(R.drawable.ic_duration), null, Modifier.size(20.dp), tint = iconColor)
+        Box(Modifier.width(200.dp).height(152.dp)) {
+            Box(
+                Modifier
+                    .align(Alignment.CenterStart)
+                    .width(2.dp)
+                    .height(140.dp)
+                    .background(dividerColor),
+            )
+            Column(Modifier.fillMaxWidth().height(140.dp).align(Alignment.Center)) {
+                Row(
+                    Modifier.fillMaxWidth().weight(1f).padding(start = 8.dp, end = 8.dp, top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    state?.let { Icon(painterResource(it.eventIcon), null, Modifier.size(24.dp), tint = iconColor) }
                     Text(
-                        state?.eventDuration.orEmpty(),
-                        Modifier.padding(start = 4.dp),
+                        state?.eventName.orEmpty(),
+                        Modifier.weight(1f).padding(start = 8.dp).basicMarquee(),
                         color = textColor,
                         maxLines = 1,
+                        overflow = TextOverflow.Clip,
                         style = textStyle,
                     )
                 }
-            }
-            HorizontalDivider(thickness = 2.dp, color = textColor)
-            Row(
-                Modifier.fillMaxWidth().weight(1f).padding(horizontal = 4.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                state?.actions?.forEach { action ->
-                    Icon(painterResource(action.icon), null, Modifier.width(32.dp).height(24.dp).padding(horizontal = 4.dp), tint = textColor)
+                HorizontalDivider(thickness = 2.dp, color = dividerColor)
+                Row(Modifier.fillMaxWidth().weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        state?.eventConditionOperator.orEmpty(),
+                        Modifier.weight(1f).padding(start = 12.dp),
+                        color = textColor,
+                        style = textStyle,
+                    )
+                    Spacer(Modifier.fillMaxHeight().width(2.dp).background(dividerColor))
+                    Row(Modifier.weight(1f).padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        if (state != null) Icon(
+                            painterResource(R.drawable.ic_duration),
+                            null,
+                            Modifier.size(20.dp),
+                            tint = iconColor,
+                        )
+                        Text(
+                            state?.eventDuration.orEmpty(),
+                            Modifier.padding(start = 4.dp),
+                            color = textColor,
+                            maxLines = 1,
+                            style = textStyle,
+                        )
+                    }
+                }
+                HorizontalDivider(thickness = 2.dp, color = dividerColor)
+                Row(
+                    Modifier.fillMaxWidth().weight(1f).padding(start = 4.dp, end = 4.dp, bottom = 8.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    state?.actions?.forEach { action ->
+                        Icon(
+                            painterResource(action.icon),
+                            null,
+                            Modifier.width(32.dp).height(24.dp).padding(horizontal = 4.dp),
+                            tint = textColor,
+                        )
+                    }
                 }
             }
         }
