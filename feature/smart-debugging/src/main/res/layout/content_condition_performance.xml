@@ -47,8 +47,7 @@
         android:paddingBottom="88dp"
         android:clipToPadding="false"
         android:visibility="gone"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:listitem="@layout/item_condition_performance" />
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
     <io.github.vibhor1102.macrion.core.ui.views.fastscroll.VerticalFastScrollerView
         android:id="@+id/fast_scroller"

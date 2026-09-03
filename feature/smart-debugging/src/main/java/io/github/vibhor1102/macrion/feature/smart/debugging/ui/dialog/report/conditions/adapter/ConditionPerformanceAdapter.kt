@@ -17,19 +17,18 @@
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.adapter
 
 import android.graphics.Bitmap
-import android.graphics.Color
-import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
-import io.github.vibhor1102.macrion.core.domain.model.condition.TriggerCondition
-import io.github.vibhor1102.macrion.core.ui.utils.setColorIndicatorDrawable
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ItemConditionPerformanceBinding
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ItemConditionPerformanceFooterBinding
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.ConditionPerformanceEntry
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.formatAverageDuration
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.conditions.formatCount
@@ -51,14 +50,14 @@ internal class ConditionPerformanceAdapter(
     }
 
     override fun getItemViewType(position: Int): Int = when (getItem(position)) {
-        is ConditionPerformanceListItem.Condition -> R.layout.item_condition_performance
-        ConditionPerformanceListItem.Footer -> R.layout.item_condition_performance_footer
+        is ConditionPerformanceListItem.Condition -> VIEW_TYPE_CONDITION
+        ConditionPerformanceListItem.Footer -> VIEW_TYPE_FOOTER
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
         when (viewType) {
-            R.layout.item_condition_performance -> ConditionViewHolder(parent, bitmapProvider)
-            R.layout.item_condition_performance_footer -> FooterViewHolder(parent)
+            VIEW_TYPE_CONDITION -> ConditionViewHolder(parent, bitmapProvider)
+            VIEW_TYPE_FOOTER -> FooterViewHolder(parent)
             else -> error("Unknown condition performance view type $viewType")
         }
 
@@ -74,59 +73,56 @@ internal class ConditionPerformanceAdapter(
     }
 }
 
-private class ConditionViewHolder private constructor(
-    private val binding: ItemConditionPerformanceBinding,
+private class ConditionViewHolder(
+    parent: ViewGroup,
     private val bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job,
-) : RecyclerView.ViewHolder(binding.root) {
-
-    constructor(
-        parent: ViewGroup,
-        bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job,
-    ) : this(
-        ItemConditionPerformanceBinding.inflate(LayoutInflater.from(parent.context), parent, false),
-        bitmapProvider,
-    )
+) : RecyclerView.ViewHolder(ComposeView(parent.context)) {
 
     private var bitmapLoadingJob: Job? = null
+    private var rowState by mutableStateOf<ConditionPerformanceRowState?>(null)
 
-    fun bind(entry: ConditionPerformanceEntry) = binding.apply {
+    init {
+        (itemView as ComposeView).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
+            setContent { MacrionTheme { rowState?.let { ConditionPerformanceRow(it) } } }
+        }
+    }
+
+    fun bind(entry: ConditionPerformanceEntry) {
         bitmapLoadingJob?.cancel()
         bitmapLoadingJob = null
-        conditionImage.setImageDrawable(null)
-        conditionNameText.text = entry.condition.name
-        eventNameText.text = entry.eventName
-        totalTimeText.text = root.context.getString(
+        val context = itemView.context
+        val totalTime = context.getString(
             R.string.item_condition_performance_total_time,
             formatTotalDuration(entry.totalDurationNs),
         )
-
         val fulfilledCount = formatCount(entry.fulfilledCount)
         val checkCount = formatCount(entry.checkCount)
-        fulfilledText.text = root.context.getString(
+        val fulfilled = context.getString(
             R.string.item_condition_performance_fulfilled,
             fulfilledCount,
-            root.resources.getQuantityString(R.plurals.item_condition_performance_time, entry.fulfilledCount.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()),
+            context.resources.getQuantityString(R.plurals.item_condition_performance_time, entry.fulfilledCount.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()),
             checkCount,
-            root.resources.getQuantityString(R.plurals.item_condition_performance_check, entry.checkCount.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()),
+            context.resources.getQuantityString(R.plurals.item_condition_performance_check, entry.checkCount.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()),
         )
-        averageText.text = formatAverageDuration(entry.totalDurationNs, entry.checkCount)?.let { average ->
-            root.context.getString(R.string.item_condition_performance_average, average)
-        } ?: root.context.getString(R.string.item_condition_performance_average_unavailable)
-        percentageText.text = formatPercentage(entry.totalDurationNs, entry.totalMeasuredDurationNs)
+        val average = formatAverageDuration(entry.totalDurationNs, entry.checkCount)?.let { value ->
+            context.getString(R.string.item_condition_performance_average, value)
+        } ?: context.getString(R.string.item_condition_performance_average_unavailable)
+        rowState = ConditionPerformanceRowState(
+            entry = entry,
+            totalTime = totalTime,
+            fulfilled = fulfilled,
+            average = average,
+            percentage = formatPercentage(entry.totalDurationNs, entry.totalMeasuredDurationNs),
+        )
 
-        when (val condition = entry.condition) {
-            is ScreenCondition.Color -> conditionImage.setColorIndicatorDrawable(condition.color)
-            is ScreenCondition.Image -> bitmapLoadingJob = bitmapProvider(condition) { bitmap ->
-                if (bitmap != null) conditionImage.setImageBitmap(bitmap)
-                else conditionImage.setImageDrawable(ContextCompat.getDrawable(root.context, R.drawable.ic_cancel)?.apply {
-                    setTint(Color.RED)
-                })
+        val condition = entry.condition
+        if (condition is ScreenCondition.Image) {
+            bitmapLoadingJob = bitmapProvider(condition) { bitmap ->
+                if (rowState?.entry?.condition?.id == condition.id) {
+                    rowState = rowState?.copy(bitmap = bitmap, bitmapFailed = bitmap == null)
+                }
             }
-            is ScreenCondition.Number -> conditionImage.setImageResource(R.drawable.ic_number_condition)
-            is ScreenCondition.Text -> conditionImage.setImageResource(R.drawable.ic_text_condition)
-            is TriggerCondition.OnBroadcastReceived -> conditionImage.setImageResource(R.drawable.ic_broadcast_received)
-            is TriggerCondition.OnCounterCountReached -> conditionImage.setImageResource(R.drawable.ic_counter_reached)
-            is TriggerCondition.OnTimerReached -> conditionImage.setImageResource(R.drawable.ic_timer_reached)
         }
     }
 
@@ -136,9 +132,13 @@ private class ConditionViewHolder private constructor(
     }
 }
 
-private class FooterViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(
-    ItemConditionPerformanceFooterBinding.inflate(LayoutInflater.from(parent.context), parent, false).root,
-)
+private class FooterViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(ComposeView(parent.context).apply {
+    setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
+    setContent { MacrionTheme { ConditionPerformanceFooter() } }
+})
+
+private const val VIEW_TYPE_CONDITION = 0
+private const val VIEW_TYPE_FOOTER = 1
 
 private object DiffCallback : DiffUtil.ItemCallback<ConditionPerformanceListItem>() {
     override fun areItemsTheSame(
