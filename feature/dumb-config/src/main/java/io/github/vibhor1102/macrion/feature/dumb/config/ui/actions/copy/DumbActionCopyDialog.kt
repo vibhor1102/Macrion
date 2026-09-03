@@ -22,7 +22,6 @@ import androidx.lifecycle.repeatOnLifecycle
 
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
 import io.github.vibhor1102.macrion.core.ui.bindings.lists.newDividerWithoutHeader
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.updateState
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.CopyDialog
 import io.github.vibhor1102.macrion.feature.dumb.config.R
@@ -62,7 +61,7 @@ class DumbActionCopyDialog(
             }
         }
 
-        loadableListBinding.list.apply {
+        loadableListViews.list.apply {
             addItemDecoration(newDividerWithoutHeader(context))
             adapter = actionCopyAdapter
         }
@@ -81,7 +80,7 @@ class DumbActionCopyDialog(
     override fun onCopyClicked() = Unit
 
     private fun updateActionList(newList: List<DumbActionCopyItem>) {
-        loadableListBinding.updateState(newList)
+        loadableListViews.updateState(newList)
         actionCopyAdapter.submitList(ArrayList(newList))
     }
 }

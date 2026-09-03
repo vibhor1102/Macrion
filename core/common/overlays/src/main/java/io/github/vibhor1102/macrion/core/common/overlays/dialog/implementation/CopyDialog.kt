@@ -16,27 +16,52 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
 
 import androidx.annotation.StyleRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.shadow
 
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
-import io.github.vibhor1102.macrion.core.ui.databinding.IncludeDialogSearchTopBarBinding
-import io.github.vibhor1102.macrion.core.ui.databinding.IncludeLoadableListBinding
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.setEmptyText
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setOnDismissClickedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setOnTextChangedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setup
+import io.github.vibhor1102.macrion.core.ui.bindings.lists.LoadableListViews
+import io.github.vibhor1102.macrion.core.ui.R as UiR
 
 abstract class CopyDialog(
     @StyleRes theme: Int,
 ) : OverlayDialog(theme) {
 
     /** List content retained as a RecyclerView for large copy sources. */
-    protected lateinit var loadableListBinding: IncludeLoadableListBinding
+    protected lateinit var loadableListViews: LoadableListViews
     /** The resource id for the dialog title. */
     protected abstract val titleRes: Int
     /** The resource id for the search hint text. */
@@ -45,23 +70,31 @@ abstract class CopyDialog(
     protected abstract val emptyRes: Int
 
     final override fun onCreateView(): ViewGroup {
-        val inflater = LayoutInflater.from(context)
-        val topBarBinding = IncludeDialogSearchTopBarBinding.inflate(inflater).apply {
-            setup(titleRes, searchHintRes)
-            setOnDismissClickedListener { debounceUserInteraction { back() } }
-            setOnTextChangedListener(::onSearchQueryChanged)
-            buttonCopy.setOnClickListener { onCopyClicked() }
+        val topBar = ComposeView(context).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                resources.getDimensionPixelSize(UiR.dimen.dialog_top_bar_height),
+            )
+            setContent {
+                MacrionTheme {
+                    CopySearchTopBar(
+                        titleRes = titleRes,
+                        searchHintRes = searchHintRes,
+                        onDismiss = { debounceUserInteraction { back() } },
+                        onQueryChanged = ::onSearchQueryChanged,
+                        onCopy = ::onCopyClicked,
+                    )
+                }
+            }
         }
-        loadableListBinding = IncludeLoadableListBinding.inflate(inflater).apply {
-            setEmptyText(emptyRes)
-        }
+        loadableListViews = LoadableListViews(context, emptyRes)
 
         return ComposeView(context).apply {
             setContent {
                 MacrionTheme {
                     ListDialogScaffold(
-                        topBar = topBarBinding.root,
-                        list = loadableListBinding.root,
+                        topBar = topBar,
+                        list = loadableListViews.root,
                         enforceMinimumHeight = true,
                         listBottomPadding = true,
                     )
@@ -72,4 +105,98 @@ abstract class CopyDialog(
 
     abstract fun onSearchQueryChanged(newText: String?)
     abstract fun onCopyClicked()
+}
+
+@Composable
+private fun CopySearchTopBar(
+    @androidx.annotation.StringRes titleRes: Int,
+    @androidx.annotation.StringRes searchHintRes: Int,
+    onDismiss: () -> Unit,
+    onQueryChanged: (String) -> Unit,
+    onCopy: () -> Unit,
+) {
+    var searching by remember { mutableStateOf(false) }
+    var query by remember { mutableStateOf("") }
+    val focusRequester = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
+    val foreground = colorResource(UiR.color.overlayViewPrimary)
+
+    LaunchedEffect(searching) {
+        if (searching) {
+            focusRequester.requestFocus()
+            keyboard?.show()
+        } else {
+            keyboard?.hide()
+        }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .shadow(3.dp)
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (searching) {
+            Icon(
+                painter = painterResource(UiR.drawable.ic_search),
+                contentDescription = null,
+                modifier = Modifier.padding(start = 12.dp),
+                tint = foreground,
+            )
+            BasicTextField(
+                value = query,
+                onValueChange = {
+                    query = it
+                    onQueryChanged(it)
+                },
+                modifier = Modifier.weight(1f).padding(horizontal = 16.dp).focusRequester(focusRequester),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = foreground),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
+                decorationBox = { inner ->
+                    if (query.isEmpty()) {
+                        Text(
+                            text = stringResource(searchHintRes),
+                            color = foreground.copy(alpha = 0.7f),
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    }
+                    inner()
+                },
+            )
+        } else {
+            IconButton(onClick = onDismiss) {
+                Icon(painterResource(UiR.drawable.ic_cancel), contentDescription = null, tint = foreground)
+            }
+            Text(
+                text = stringResource(titleRes),
+                modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                style = MaterialTheme.typography.titleLarge,
+                color = foreground,
+                maxLines = 1,
+            )
+        }
+        IconButton(onClick = {
+            searching = !searching
+            if (!searching) {
+                query = ""
+                onQueryChanged("")
+            }
+        }) {
+            Icon(
+                painter = painterResource(if (searching) UiR.drawable.ic_cancel else UiR.drawable.ic_search),
+                contentDescription = null,
+                tint = foreground,
+            )
+        }
+        if (!searching) {
+            FilledIconButton(onClick = onCopy) {
+                Icon(painterResource(UiR.drawable.ic_copy), contentDescription = null)
+            }
+        }
+    }
 }

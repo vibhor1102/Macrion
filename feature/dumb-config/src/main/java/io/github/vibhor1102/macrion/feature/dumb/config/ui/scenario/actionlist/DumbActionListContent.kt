@@ -17,7 +17,6 @@
 package io.github.vibhor1102.macrion.feature.dumb.config.ui.scenario.actionlist
 
 import android.content.Context
-import android.view.LayoutInflater
 import android.view.ViewGroup
 
 import androidx.lifecycle.Lifecycle
@@ -28,9 +27,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.setEmptyText
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.updateState
-import io.github.vibhor1102.macrion.core.ui.databinding.IncludeLoadableListBinding
+import io.github.vibhor1102.macrion.core.ui.bindings.lists.LoadableListViews
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbActionCreator
@@ -51,7 +48,7 @@ class DumbActionListContent(appContext: Context) : NavBarDialogContent(appContex
     )
 
     /** View binding for all views in this content. */
-    private lateinit var viewBinding: IncludeLoadableListBinding
+    private lateinit var listViews: LoadableListViews
     /** Adapter for the list of actions. */
     private lateinit var dumbActionsAdapter: DumbActionListAdapter
 
@@ -70,11 +67,11 @@ class DumbActionListContent(appContext: Context) : NavBarDialogContent(appContex
             actionReorderListener = viewModel::updateDumbActionOrder,
         )
 
-        viewBinding = IncludeLoadableListBinding.inflate(LayoutInflater.from(context), container, false).apply {
-            setEmptyText(
-                id = R.string.message_empty_dumb_action_list,
-                secondaryId = R.string.message_empty_secondary_dumb_action_list,
-            )
+        listViews = LoadableListViews(
+            context = context,
+            emptyText = R.string.message_empty_dumb_action_list,
+            emptySecondaryText = R.string.message_empty_secondary_dumb_action_list,
+        ).apply {
             list.apply {
                 addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
                 itemTouchHelper.attachToRecyclerView(this)
@@ -82,7 +79,7 @@ class DumbActionListContent(appContext: Context) : NavBarDialogContent(appContex
             }
         }
 
-        return viewBinding.root
+        return listViews.root
     }
 
     override fun onViewCreated() {
@@ -142,7 +139,7 @@ class DumbActionListContent(appContext: Context) : NavBarDialogContent(appContex
     }
 
     private fun updateDumbActionList(newList: List<DumbActionDetails>) {
-        viewBinding.updateState(newList)
+        listViews.updateState(newList)
         dumbActionsAdapter.submitList(newList)
     }
 

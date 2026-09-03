@@ -21,8 +21,9 @@ import android.content.Context
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.RecyclerView
 
-import io.github.vibhor1102.macrion.core.ui.R
 import io.github.vibhor1102.macrion.core.ui.utils.ConditionalDividerItemDecoration
 
+const val LIST_HEADER_VIEW_TYPE = -10
+
 fun newDividerWithoutHeader(context: Context): RecyclerView.ItemDecoration =
-    ConditionalDividerItemDecoration(context, DividerItemDecoration.VERTICAL, setOf(R.layout.item_list_header))
+    ConditionalDividerItemDecoration(context, DividerItemDecoration.VERTICAL, setOf(LIST_HEADER_VIEW_TYPE))
