@@ -16,19 +16,18 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.ImageView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.ItemLiveDebuggingActionBinding
+import io.github.vibhor1102.macrion.feature.smart.config.R
 
 class LiveDebuggingActionsAdapter : ListAdapter<LiveDebuggingActionsItem, LiveActionViewHolder>(LiveActionDiffUtilCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LiveActionViewHolder =
-        LiveActionViewHolder(
-            ItemLiveDebuggingActionBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        )
+        LiveActionViewHolder(parent)
 
     override fun onBindViewHolder(holder: LiveActionViewHolder, position: Int) {
         holder.onBind(getItem(position))
@@ -45,10 +44,16 @@ object LiveActionDiffUtilCallback: DiffUtil.ItemCallback<LiveDebuggingActionsIte
 }
 
 class LiveActionViewHolder(
-    private val viewBinding: ItemLiveDebuggingActionBinding,
-) : RecyclerView.ViewHolder(viewBinding.root) {
+    parent: ViewGroup,
+) : RecyclerView.ViewHolder(ImageView(parent.context).apply {
+    val density = resources.displayMetrics.density
+    layoutParams = ViewGroup.LayoutParams((32 * density).toInt(), (24 * density).toInt())
+    setPadding((4 * density).toInt(), 0, (4 * density).toInt(), 0)
+    scaleType = ImageView.ScaleType.FIT_CENTER
+    imageTintList = ContextCompat.getColorStateList(context, R.color.overlayViewPrimary)
+}) {
 
     fun onBind(item: LiveDebuggingActionsItem) {
-        viewBinding.actionIcon.setImageResource(item.icon)
+        (itemView as ImageView).setImageResource(item.icon)
     }
 }
