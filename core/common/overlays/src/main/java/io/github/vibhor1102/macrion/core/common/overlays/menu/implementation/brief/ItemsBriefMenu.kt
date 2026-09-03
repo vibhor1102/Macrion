@@ -117,7 +117,7 @@ abstract class ItemBriefMenu(
                 false,
             )
 
-            emptyScenarioText.setText(noItemText)
+            setEmptyText(noItemText)
 
             root.setOnClickListener {
                 briefPanelAnimationController.showOrResetTimer()

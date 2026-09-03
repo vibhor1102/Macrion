@@ -123,9 +123,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@id/card_action_index"/>
 
-        <com.google.android.material.card.MaterialCardView
+        <androidx.compose.ui.platform.ComposeView
             android:id="@+id/empty_scenario_card"
-            style="@style/AppTheme.Widget.Card"
             android:layout_width="@dimen/overlay_brief_item_width_land"
             android:layout_height="0dp"
             android:layout_marginVertical="64dp"
@@ -134,20 +133,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@id/card_action_index"
             android:visibility="gone"
-            tools:visibility="visible">
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/text_empty_scenario"
-                style="@style/AppTheme.TextAppearance.EmptyTextSecondary"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="@dimen/margin_horizontal_default"
-                android:layout_marginVertical="@dimen/margin_vertical_default"
-                android:layout_gravity="center"
-                android:gravity="center"
-                tools:text="Empty"/>
-
-        </com.google.android.material.card.MaterialCardView>
+            tools:visibility="visible"/>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/list_actions"

@@ -25,15 +25,28 @@ import android.widget.TextView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.recyclerview.widget.RecyclerView
 import io.github.vibhor1102.macrion.core.common.overlays.databinding.OverlayViewActionBriefLandBinding
 import io.github.vibhor1102.macrion.core.common.overlays.databinding.OverlayViewActionBriefPortBinding
 import io.github.vibhor1102.macrion.core.ui.views.gesturerecord.GestureRecordView
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefView
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.R as UiR
 
 class ItemsBriefOverlayViewBinding private constructor(
     val root: View,
@@ -49,8 +62,9 @@ class ItemsBriefOverlayViewBinding private constructor(
     val buttonDelete: Button,
     val buttonPlay: Button,
     val emptyScenarioCard: View,
-    val emptyScenarioText: TextView,
 ) {
+
+    private val emptyText = mutableIntStateOf(0)
 
     companion object {
 
@@ -75,10 +89,10 @@ class ItemsBriefOverlayViewBinding private constructor(
         buttonDelete = binding.buttonDelete,
         buttonPlay = binding.buttonPlayAction,
         emptyScenarioCard = binding.emptyScenarioCard,
-        emptyScenarioText = binding.textEmptyScenario,
     ) {
         binding.backgroundInstructions.setFade(FadeDirection.TOP)
         binding.backgroundList.setFade(FadeDirection.BOTTOM)
+        binding.emptyScenarioCard.setEmptyContent(emptyText)
     }
 
     constructor(binding: OverlayViewActionBriefLandBinding) : this(
@@ -95,10 +109,14 @@ class ItemsBriefOverlayViewBinding private constructor(
         buttonDelete = binding.buttonDelete,
         buttonPlay = binding.buttonPlayAction,
         emptyScenarioCard = binding.emptyScenarioCard,
-        emptyScenarioText = binding.textEmptyScenario,
     ) {
         binding.backgroundInstructions.setFade(FadeDirection.TOP)
         binding.backgroundList.setFade(FadeDirection.LEFT)
+        binding.emptyScenarioCard.setEmptyContent(emptyText)
+    }
+
+    fun setEmptyText(textRes: Int) {
+        emptyText.intValue = textRes
     }
 }
 
@@ -121,5 +139,28 @@ private fun ComposeView.setFade(direction: FadeDirection) {
             Brush.verticalGradient(colorStops = colors)
         }
         Box(Modifier.fillMaxSize().background(brush))
+    }
+}
+
+private fun ComposeView.setEmptyContent(textState: androidx.compose.runtime.MutableIntState) {
+    setContent {
+        MacrionTheme {
+            ElevatedCard(Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (textState.intValue != 0) {
+                        Text(
+                            text = stringResource(textState.intValue),
+                            color = colorResource(UiR.color.overlayViewPrimary).copy(alpha = 0.7f),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontStyle = FontStyle.Italic,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+            }
+        }
     }
 }
