@@ -1,174 +1,332 @@
-/*
- * Copyright (C) 2024 Kevin Buzeau
- * Copyright (C) 2026 Vibhor Goel
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.scenarios.list.adapter
 
-import android.content.Context
 import android.graphics.Bitmap
-import android.view.View
+import android.view.ViewGroup
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.recyclerview.widget.RecyclerView
 import io.github.vibhor1102.macrion.R
-import io.github.vibhor1102.macrion.scenarios.list.model.ScenarioListUiState
-import io.github.vibhor1102.macrion.core.base.extensions.setLeftCompoundDrawable
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
-import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbScenario
-import io.github.vibhor1102.macrion.databinding.ItemDumbScenarioBinding
-import io.github.vibhor1102.macrion.databinding.ItemEmptyScenarioBinding
-import io.github.vibhor1102.macrion.databinding.ItemSmartScenarioBinding
+import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbScenario as DumbScenarioModel
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toEffectDescription
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
+import io.github.vibhor1102.macrion.scenarios.list.model.ScenarioListUiState
 import io.github.vibhor1102.macrion.scenarios.list.model.getTimeSinceString
 import kotlinx.coroutines.Job
 
-import java.util.Locale
+private typealias ScenarioItem = ScenarioListUiState.Item.ScenarioItem
+private typealias ValidScenario = ScenarioListUiState.Item.ScenarioItem.Valid
+private typealias EmptyScenario = ScenarioListUiState.Item.ScenarioItem.Empty
+private typealias DumbScenarioItem = ScenarioListUiState.Item.ScenarioItem.Valid.Dumb
+private typealias SmartScenarioItem = ScenarioListUiState.Item.ScenarioItem.Valid.Smart
+private typealias EventItem = ScenarioListUiState.Item.ScenarioItem.Valid.Smart.EventItem
 
-class EmptyScenarioHolder(
-    private val viewBinding: ItemEmptyScenarioBinding,
-    private val launchScenarioListener: ((ScenarioListUiState.Item.ScenarioItem.Empty) -> Unit),
-    private val deleteScenarioListener: ((ScenarioListUiState.Item.ScenarioItem.Empty) -> Unit),
-): RecyclerView.ViewHolder(viewBinding.root) {
-
-    fun onBind(scenarioItem: ScenarioListUiState.Item.ScenarioItem.Empty) = viewBinding.apply {
-        scenarioName.text = scenarioItem.displayName
-        scenarioName.setLeftCompoundDrawable(
-            if (scenarioItem.scenario is DumbScenario) R.drawable.ic_dumb
-            else R.drawable.ic_smart
-        )
-
-        buttonStart.setOnClickListener { launchScenarioListener(scenarioItem) }
-        buttonDelete.setOnClickListener { deleteScenarioListener(scenarioItem) }
-    }
-}
-
-/** ViewHolder for the [ScenarioAdapter]. */
-class DumbScenarioViewHolder(
-    private val viewBinding: ItemDumbScenarioBinding,
-    private val launchScenarioListener: ((ScenarioListUiState.Item.ScenarioItem.Valid) -> Unit),
-    private val expandCollapseListener: ((ScenarioListUiState.Item.ScenarioItem.Valid) -> Unit),
-    private val exportClickListener: ((ScenarioListUiState.Item.ScenarioItem.Valid) -> Unit),
-    private val copyClickedListener: ((ScenarioListUiState.Item.ScenarioItem.Valid) -> Unit),
-    private val deleteScenarioListener: ((ScenarioListUiState.Item.ScenarioItem.Valid) -> Unit),
-) : RecyclerView.ViewHolder(viewBinding.root) {
-
-    fun onBind(scenarioItem: ScenarioListUiState.Item.ScenarioItem.Valid.Dumb) = viewBinding.apply {
-        scenarioName.text = scenarioItem.displayName
-
-        if (scenarioItem.showExportCheckbox) {
-            buttonExpandCollapse.visibility = View.INVISIBLE
-            buttonExpandCollapse.isEnabled = false
-            buttonExport.apply {
-                visibility = View.VISIBLE
-                isChecked = scenarioItem.checkedForExport
-            }
-            topDivider.visibility = View.GONE
-            root.setOnClickListener { exportClickListener(scenarioItem) }
-
-        } else {
-            buttonExpandCollapse.visibility = View.VISIBLE
-            buttonExpandCollapse.isEnabled = true
-            buttonExport.visibility = View.GONE
-            topDivider.visibility = View.VISIBLE
-            root.setOnClickListener { launchScenarioListener(scenarioItem) }
-        }
-
-        if (!scenarioItem.showExportCheckbox && scenarioItem.expanded) {
-            scenarioDetails.visibility = View.VISIBLE
-            buttonExpandCollapse.setIconResource(R.drawable.ic_chevron_up)
-
-            executionCount.text = String.format(Locale.getDefault(), "%d", scenarioItem.startCount)
-            lastExecution.text = root.context.getTimeSinceString(scenarioItem.lastStartTimestamp)
-            clickCount.text = String.format(Locale.getDefault(), "%d", scenarioItem.clickCount)
-            swipeCount.text = String.format(Locale.getDefault(), "%d", scenarioItem.swipeCount)
-            pauseCount.text = String.format(Locale.getDefault(), "%d", scenarioItem.pauseCount)
-
-            repeatLimit.text = scenarioItem.repeatText
-            durationLimit.text = scenarioItem.maxDurationText
-        } else {
-            buttonExpandCollapse.setIconResource(R.drawable.ic_chevron_down)
-            scenarioDetails.visibility = View.GONE
-        }
-
-        buttonCopy.setOnClickListener { copyClickedListener(scenarioItem) }
-        buttonExpandCollapse.setOnClickListener { expandCollapseListener(scenarioItem) }
-        buttonDelete.setOnClickListener { deleteScenarioListener(scenarioItem) }
-        buttonExport.setOnClickListener { exportClickListener(scenarioItem) }
-    }
-}
-
-/** ViewHolder for the [ScenarioAdapter]. */
-class SmartScenarioViewHolder(
-    private val viewBinding: ItemSmartScenarioBinding,
-    bitmapProvider: (ScreenCondition.Image, onBitmapLoaded: (Bitmap?) -> Unit) -> Job?,
-    private val launchScenarioListener: ((ScenarioListUiState.Item.ScenarioItem.Valid) -> Unit),
-    private val expandCollapseListener: ((ScenarioListUiState.Item.ScenarioItem.Valid) -> Unit),
-    private val exportClickListener: ((ScenarioListUiState.Item.ScenarioItem.Valid) -> Unit),
-    private val copyClickedListener: ((ScenarioListUiState.Item.ScenarioItem.Valid) -> Unit),
-    private val deleteScenarioListener: ((ScenarioListUiState.Item.ScenarioItem.Valid) -> Unit),
-) : RecyclerView.ViewHolder(viewBinding.root) {
-
-    private val eventsAdapter = ScenarioEventsAdapter(bitmapProvider)
+abstract class ScenarioComposeViewHolder<T : ScenarioItem>(parent: ViewGroup) :
+    RecyclerView.ViewHolder(ComposeView(parent.context)) {
+    private var item by mutableStateOf<T?>(null)
 
     init {
-        viewBinding.listEvent.adapter = eventsAdapter
+        (itemView as ComposeView).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
+            setContent { MacrionTheme { item?.let { Content(it) } } }
+        }
     }
 
-    fun onBind(scenarioItem: ScenarioListUiState.Item.ScenarioItem.Valid.Smart) = viewBinding.apply {
-        scenarioName.text = scenarioItem.displayName
+    fun onBind(value: T) { item = value }
 
-        if (scenarioItem.showExportCheckbox) {
-            buttonExpandCollapse.visibility = View.INVISIBLE
-            buttonExpandCollapse.isEnabled = false
-            buttonExport.apply {
-                visibility = View.VISIBLE
-                isChecked = scenarioItem.checkedForExport
+    @Composable protected abstract fun Content(item: T)
+}
+
+class EmptyScenarioHolder(
+    parent: ViewGroup,
+    private val launch: (EmptyScenario) -> Unit,
+    private val delete: (EmptyScenario) -> Unit,
+) : ScenarioComposeViewHolder<EmptyScenario>(parent) {
+    @Composable override fun Content(item: EmptyScenario) {
+        ScenarioCard(onClick = { launch(item) }) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painterResource(if (item.scenario is DumbScenarioModel) R.drawable.ic_dumb else R.drawable.ic_smart),
+                    null,
+                    Modifier.size(24.dp),
+                )
+                Spacer(Modifier.width(8.dp))
+                ScenarioTitle(item.displayName, Modifier.weight(1f))
+                IconButton(onClick = { delete(item) }) {
+                    Icon(painterResource(R.drawable.ic_delete), null)
+                }
+                FilledIconButton(onClick = { launch(item) }) {
+                    Icon(painterResource(R.drawable.ic_play_arrow), null)
+                }
             }
-            topDivider.visibility = View.GONE
-            root.setOnClickListener { exportClickListener(scenarioItem) }
-        } else {
-            buttonExpandCollapse.visibility = View.VISIBLE
-            buttonExpandCollapse.isEnabled = true
-            buttonExport.visibility = View.GONE
-            topDivider.visibility = View.VISIBLE
-            root.setOnClickListener { launchScenarioListener(scenarioItem) }
         }
+    }
+}
 
-        if (!scenarioItem.showExportCheckbox && scenarioItem.expanded) {
-            scenarioDetails.visibility = View.VISIBLE
-            buttonExpandCollapse.setIconResource(R.drawable.ic_chevron_up)
+class DumbScenarioViewHolder(
+    parent: ViewGroup,
+    private val launch: (ValidScenario) -> Unit,
+    private val expand: (ValidScenario) -> Unit,
+    private val export: (ValidScenario) -> Unit,
+    private val copy: (ValidScenario) -> Unit,
+    private val delete: (ValidScenario) -> Unit,
+) : ScenarioComposeViewHolder<DumbScenarioItem>(parent) {
+    @Composable override fun Content(item: DumbScenarioItem) {
+        ValidScenarioCard(item, R.drawable.ic_dumb, { launch(item) }, { expand(item) }, { export(item) }) {
+            DumbDetails(item, { copy(item) }, { delete(item) })
+        }
+    }
+}
 
-            executionCount.text = String.format(Locale.getDefault(), "%d", scenarioItem.startCount)
-            lastExecution.text = root.context.getTimeSinceString(scenarioItem.lastStartTimestamp)
-            detectionQuality.text = String.format(Locale.getDefault(), "%d", scenarioItem.detectionQuality)
-            triggerEventCount.text = String.format(Locale.getDefault(), "%d", scenarioItem.triggerEventCount)
+class SmartScenarioViewHolder(
+    parent: ViewGroup,
+    private val bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job?,
+    private val launch: (ValidScenario) -> Unit,
+    private val expand: (ValidScenario) -> Unit,
+    private val export: (ValidScenario) -> Unit,
+    private val copy: (ValidScenario) -> Unit,
+    private val delete: (ValidScenario) -> Unit,
+) : ScenarioComposeViewHolder<SmartScenarioItem>(parent) {
+    @Composable override fun Content(item: SmartScenarioItem) {
+        ValidScenarioCard(item, R.drawable.ic_smart, { launch(item) }, { expand(item) }, { export(item) }) {
+            SmartDetails(item, bitmapProvider, { copy(item) }, { delete(item) })
+        }
+    }
+}
 
-            eventsAdapter.submitList(scenarioItem.eventsItems)
-            if (scenarioItem.eventsItems.isEmpty()) {
-                listEvent.visibility = View.GONE
-                noImageEvents.visibility = View.VISIBLE
+@Composable
+private fun ScenarioCard(onClick: () -> Unit, content: @Composable () -> Unit) {
+    ElevatedCard(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
+        elevation = CardDefaults.elevatedCardElevation(),
+    ) {
+        Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) { content() }
+    }
+}
+
+@Composable
+private fun ScenarioTitle(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text,
+        modifier,
+        style = MaterialTheme.typography.titleMedium,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+    )
+}
+
+@Composable
+private fun ValidScenarioCard(
+    item: ValidScenario,
+    typeIcon: Int,
+    onLaunch: () -> Unit,
+    onExpand: () -> Unit,
+    onExport: () -> Unit,
+    details: @Composable () -> Unit,
+) {
+    ScenarioCard(onClick = if (item.showExportCheckbox) onExport else onLaunch) {
+        Column(Modifier.fillMaxWidth()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(painterResource(typeIcon), null, Modifier.size(24.dp))
+                Spacer(Modifier.width(8.dp))
+                ScenarioTitle(item.displayName, Modifier.weight(1f))
+                if (item.showExportCheckbox) {
+                    RadioButton(selected = item.checkedForExport, onClick = onExport)
+                } else {
+                    VerticalDivider(Modifier.height(32.dp).padding(horizontal = 8.dp))
+                    IconButton(onClick = onExpand) {
+                        Icon(
+                            painterResource(if (item.expanded) R.drawable.ic_chevron_up else R.drawable.ic_chevron_down),
+                            null,
+                        )
+                    }
+                }
+            }
+            if (!item.showExportCheckbox && item.expanded) details()
+        }
+    }
+}
+
+@Composable
+private fun DumbDetails(item: DumbScenarioItem, onCopy: () -> Unit, onDelete: () -> Unit) {
+    val context = LocalContext.current
+    Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Stat(R.drawable.ic_most_used, item.startCount.toString(), Modifier.width(72.dp))
+                Spacer(Modifier.width(8.dp))
+                Stat(R.drawable.ic_sort_recent, context.getTimeSinceString(item.lastStartTimestamp))
+            }
+            Row(Modifier.padding(vertical = 4.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Stat(R.drawable.ic_click_small, item.clickCount.toString())
+                Stat(R.drawable.ic_swipe_small, item.swipeCount.toString())
+                Stat(R.drawable.ic_wait_small, item.pauseCount.toString())
+            }
+            Text(item.repeatText, style = MaterialTheme.typography.bodyLarge)
+            Text(item.maxDurationText, style = MaterialTheme.typography.bodyLarge)
+        }
+        ActionButtons(onCopy, onDelete)
+    }
+}
+
+@Composable
+private fun SmartDetails(
+    item: SmartScenarioItem,
+    bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job?,
+    onCopy: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val context = LocalContext.current
+    Column(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Stat(R.drawable.ic_most_used, item.startCount.toString(), Modifier.width(72.dp))
+            Spacer(Modifier.width(8.dp))
+            Stat(R.drawable.ic_sort_recent, context.getTimeSinceString(item.lastStartTimestamp))
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Stat(R.drawable.ic_detection_quality, item.detectionQuality.toString(), Modifier.width(72.dp))
+            Spacer(Modifier.width(8.dp))
+            Stat(R.drawable.ic_trigger_event, item.triggerEventCount.toString())
+        }
+        Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (item.eventsItems.isEmpty()) {
+                Text(
+                    stringResource(R.string.message_empty_image_events_scenario_list),
+                    Modifier.weight(1f),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
             } else {
-                listEvent.visibility = View.VISIBLE
-                noImageEvents.visibility = View.GONE
+                LazyRow(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    items(item.eventsItems, key = { it.id }) { EventCard(it, bitmapProvider) }
+                }
             }
-        } else {
-            buttonExpandCollapse.setIconResource(R.drawable.ic_chevron_down)
-            scenarioDetails.visibility = View.GONE
+            Spacer(Modifier.width(16.dp))
+            ActionButtons(onCopy, onDelete)
         }
-
-        buttonCopy.setOnClickListener { copyClickedListener(scenarioItem) }
-        buttonExpandCollapse.setOnClickListener { expandCollapseListener(scenarioItem) }
-        buttonDelete.setOnClickListener { deleteScenarioListener(scenarioItem) }
-        buttonExport.setOnClickListener { exportClickListener(scenarioItem) }
     }
+}
+
+@Composable
+private fun ActionButtons(onCopy: () -> Unit, onDelete: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        FilledTonalIconButton(onClick = onCopy) { Icon(painterResource(R.drawable.ic_copy), null) }
+        FilledTonalIconButton(onClick = onDelete) { Icon(painterResource(R.drawable.ic_delete), null) }
+    }
+}
+
+@Composable
+private fun Stat(icon: Int, text: String, modifier: Modifier = Modifier) {
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        Icon(painterResource(icon), null, Modifier.size(18.dp))
+        Spacer(Modifier.width(4.dp))
+        Text(text, maxLines = 1, style = MaterialTheme.typography.bodyLarge)
+    }
+}
+
+@Composable
+private fun EventCard(
+    item: EventItem,
+    bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job?,
+) {
+    OutlinedCard(Modifier.width(128.dp).height(160.dp)) {
+        ConditionPreview(item.firstCondition, bitmapProvider, Modifier.fillMaxWidth().weight(1f))
+        HorizontalDivider()
+        Text(
+            item.eventName,
+            Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.bodySmall,
+        )
+        Row(Modifier.fillMaxWidth().padding(bottom = 4.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+            Stat(R.drawable.ic_click_small, item.actionsCount.toString())
+            Stat(R.drawable.ic_condition, item.conditionsCount.toString())
+        }
+    }
+}
+
+@Composable
+private fun ConditionPreview(
+    condition: ScreenCondition?,
+    bitmapProvider: (ScreenCondition.Image, (Bitmap?) -> Unit) -> Job?,
+    modifier: Modifier,
+) {
+    val context = LocalContext.current
+    Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant).padding(2.dp), Alignment.Center) {
+        when (condition) {
+            is ScreenCondition.Color -> Spacer(Modifier.fillMaxSize().background(Color(condition.color)))
+            is ScreenCondition.Image -> {
+                var bitmap by remember(condition) { mutableStateOf<Bitmap?>(null) }
+                var loaded by remember(condition) { mutableStateOf(false) }
+                DisposableEffect(condition) {
+                    val job = bitmapProvider(condition) { bitmap = it; loaded = true }
+                    onDispose { job?.cancel() }
+                }
+                if (bitmap != null) Image(bitmap!!.asImageBitmap(), null, Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+                else if (loaded) ErrorPreview()
+            }
+            is ScreenCondition.Number -> Text(
+                condition.comparisonOperation.toEffectDescription(
+                    context,
+                    operand = condition.counterValue.toNaturalDisplayString(),
+                ),
+                textAlign = TextAlign.Center,
+            )
+            is ScreenCondition.Text -> Text(condition.text, textAlign = TextAlign.Center)
+            null -> ErrorPreview()
+        }
+    }
+}
+
+@Composable private fun ErrorPreview() {
+    Icon(painterResource(R.drawable.ic_cancel), null, Modifier.size(32.dp), tint = Color.Red)
 }

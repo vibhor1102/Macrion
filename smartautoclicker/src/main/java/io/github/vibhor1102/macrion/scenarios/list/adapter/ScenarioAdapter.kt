@@ -18,18 +18,12 @@
 package io.github.vibhor1102.macrion.scenarios.list.adapter
 
 import android.graphics.Bitmap
-import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
-import io.github.vibhor1102.macrion.R
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
-import io.github.vibhor1102.macrion.databinding.ItemDumbScenarioBinding
-import io.github.vibhor1102.macrion.databinding.ItemEmptyScenarioBinding
-import io.github.vibhor1102.macrion.databinding.ItemOrderingAndFilteringBinding
-import io.github.vibhor1102.macrion.databinding.ItemSmartScenarioBinding
 import io.github.vibhor1102.macrion.scenarios.list.model.ScenarioListUiState
 import io.github.vibhor1102.macrion.core.settings.domain.model.ScenarioSortType
 
@@ -55,43 +49,50 @@ class ScenarioAdapter(
     private val onSortOrderClicked: (Boolean) -> Unit,
 ) : ListAdapter<ScenarioListUiState.Item, RecyclerView.ViewHolder>(ScenarioDiffUtilCallback) {
 
+    private companion object {
+        const val TYPE_EMPTY = 0
+        const val TYPE_DUMB = 1
+        const val TYPE_SMART = 2
+        const val TYPE_SORT = 3
+    }
+
     override fun getItemViewType(position: Int): Int =
         when (getItem(position)) {
-            is ScenarioListUiState.Item.ScenarioItem.Empty -> R.layout.item_empty_scenario
-            is ScenarioListUiState.Item.ScenarioItem.Valid.Dumb -> R.layout.item_dumb_scenario
-            is ScenarioListUiState.Item.ScenarioItem.Valid.Smart -> R.layout.item_smart_scenario
-            is ScenarioListUiState.Item.SortItem -> R.layout.item_ordering_and_filtering
+            is ScenarioListUiState.Item.ScenarioItem.Empty -> TYPE_EMPTY
+            is ScenarioListUiState.Item.ScenarioItem.Valid.Dumb -> TYPE_DUMB
+            is ScenarioListUiState.Item.ScenarioItem.Valid.Smart -> TYPE_SMART
+            is ScenarioListUiState.Item.SortItem -> TYPE_SORT
         }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
         when (viewType) {
-            R.layout.item_empty_scenario -> EmptyScenarioHolder(
-                viewBinding = ItemEmptyScenarioBinding.inflate(LayoutInflater.from(parent.context), parent, false),
-                launchScenarioListener = launchScenarioListener,
-                deleteScenarioListener = deleteScenarioListener,
+            TYPE_EMPTY -> EmptyScenarioHolder(
+                parent = parent,
+                launch = launchScenarioListener,
+                delete = deleteScenarioListener,
             )
 
-            R.layout.item_dumb_scenario -> DumbScenarioViewHolder(
-                viewBinding = ItemDumbScenarioBinding.inflate(LayoutInflater.from(parent.context), parent, false),
-                launchScenarioListener = launchScenarioListener,
-                expandCollapseListener = expandCollapseListener,
-                exportClickListener = exportClickListener,
-                copyClickedListener = copyClickedListener,
-                deleteScenarioListener = deleteScenarioListener,
+            TYPE_DUMB -> DumbScenarioViewHolder(
+                parent = parent,
+                launch = launchScenarioListener,
+                expand = expandCollapseListener,
+                export = exportClickListener,
+                copy = copyClickedListener,
+                delete = deleteScenarioListener,
             )
 
-            R.layout.item_smart_scenario -> SmartScenarioViewHolder(
-                viewBinding = ItemSmartScenarioBinding.inflate(LayoutInflater.from(parent.context), parent, false),
-                bitmapProvider= bitmapProvider,
-                launchScenarioListener = launchScenarioListener,
-                expandCollapseListener = expandCollapseListener,
-                exportClickListener = exportClickListener,
-                copyClickedListener = copyClickedListener,
-                deleteScenarioListener = deleteScenarioListener,
+            TYPE_SMART -> SmartScenarioViewHolder(
+                parent = parent,
+                bitmapProvider = bitmapProvider,
+                launch = launchScenarioListener,
+                expand = expandCollapseListener,
+                export = exportClickListener,
+                copy = copyClickedListener,
+                delete = deleteScenarioListener,
             )
 
-            R.layout.item_ordering_and_filtering -> SortViewHolder(
-                viewBinding = ItemOrderingAndFilteringBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+            TYPE_SORT -> SortViewHolder(
+                parent = parent,
                 onSortTypeClicked = onSortTypeClicked,
                 onSmartChipClicked = onSmartChipClicked,
                 onDumbChipClicked = onDumbChipClicked,
