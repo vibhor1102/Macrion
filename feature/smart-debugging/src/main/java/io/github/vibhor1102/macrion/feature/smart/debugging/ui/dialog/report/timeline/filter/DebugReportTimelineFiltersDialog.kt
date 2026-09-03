@@ -50,7 +50,7 @@ class DebugReportTimelineFiltersDialog(
         viewModel.setupUserValues(context, reportDurationMs, currentFilters)
         return ComposeView(context).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent { MacrionTheme { Content() } }
+            setContent { MacrionTheme { this@DebugReportTimelineFiltersDialog.Content() } }
         }
     }
     override fun onDialogCreated(dialog: BottomSheetDialog) = Unit

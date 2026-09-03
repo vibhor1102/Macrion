@@ -40,7 +40,7 @@ class FilteredEventsSelectorDialog(
         viewModel.setEventFilter(eventsFilter)
         return ComposeView(context).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-            setContent { MacrionTheme { Content() } }
+            setContent { MacrionTheme { this@FilteredEventsSelectorDialog.Content() } }
         }
     }
 

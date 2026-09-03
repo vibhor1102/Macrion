@@ -47,7 +47,7 @@ class EventActivityDialog : OverlayDialog(R.style.AppTheme) {
 
     override fun onCreateView(): ViewGroup = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        setContent { MacrionTheme { Content() } }
+        setContent { MacrionTheme { this@EventActivityDialog.Content() } }
     }
     override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
     override fun onStop() { sortPopup?.dismiss(); sortPopup = null; super.onStop() }

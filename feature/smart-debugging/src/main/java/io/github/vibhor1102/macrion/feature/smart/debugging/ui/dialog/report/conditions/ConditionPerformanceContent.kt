@@ -42,7 +42,7 @@ class ConditionPerformanceContent(appContext: Context) : NavBarDialogContent(app
     override fun primaryFloatingActionButtonIcon() = R.drawable.ic_sort
     override fun onCreateView(container: ViewGroup): ViewGroup = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        setContent { MacrionTheme { Content() } }
+        setContent { MacrionTheme { this@ConditionPerformanceContent.Content() } }
     }
     override fun onViewCreated() = Unit
     override fun onStart() {

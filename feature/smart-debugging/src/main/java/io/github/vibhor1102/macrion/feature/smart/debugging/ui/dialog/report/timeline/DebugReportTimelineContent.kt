@@ -42,7 +42,7 @@ class DebugReportTimelineContent(appContext: Context) : NavBarDialogContent(appC
 
     override fun onCreateView(container: ViewGroup): ViewGroup = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        setContent { MacrionTheme { Content() } }
+        setContent { MacrionTheme { this@DebugReportTimelineContent.Content() } }
     }
     override fun onViewCreated() = Unit
 
