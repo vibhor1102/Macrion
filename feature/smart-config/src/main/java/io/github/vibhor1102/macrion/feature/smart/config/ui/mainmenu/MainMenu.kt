@@ -31,7 +31,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 
-import io.github.vibhor1102.macrion.core.base.extensions.setLeftCompoundDrawable
 import io.github.vibhor1102.macrion.core.base.isStopScenarioKey
 import io.github.vibhor1102.macrion.core.common.navigation.TutorialNavigator
 import io.github.vibhor1102.macrion.core.common.navigation.getTutorialNavigator
@@ -43,12 +42,10 @@ import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring
 import io.github.vibhor1102.macrion.core.ui.utils.AnimatedStatesImageButtonController
 import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.OverlayMenuBinding
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters.newRestartMediaProjectionStarterOverlay
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.AlphabetActivity
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.required.RequiredAlphabetFragment
-import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.LiveDebuggingActionsAdapter
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.LiveDebuggingUiState
 import io.github.vibhor1102.macrion.feature.smart.config.ui.mainmenu.debugging.LiveDebuggingViewModel
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.ScenarioDialog
@@ -58,6 +55,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 /**
  * [OverlayMenu] implementation for displaying the main menu overlay.
@@ -96,13 +96,10 @@ class MainMenu(
     private var isHiddenForPaywall: Boolean = false
     private var hasReceivedSwitchVisibility = false
 
-    /** View binding for the content of the overlay. */
-    private lateinit var viewBinding: OverlayMenuBinding
+    private lateinit var viewBinding: MainMenuViews
+    private var liveDebugUiState by mutableStateOf<LiveDebuggingUiState?>(null)
     /** Controls the animations of the play/pause button. */
     private lateinit var playPauseButtonController: AnimatedStatesImageButtonController
-    /** Adapter upon actions being executed while in live debugging. */
-    private val debugLiveActionsAdapter: LiveDebuggingActionsAdapter = LiveDebuggingActionsAdapter()
-
     /** The coroutine job for the observable used in debug mode. Null when not in debug mode. */
     private var debugObservableJob: Job? = null
 
@@ -144,7 +141,7 @@ class MainMenu(
             state1to2AnimationRes = R.drawable.anim_play_pause,
             state2to1AnimationRes = R.drawable.anim_pause_play,
         )
-        viewBinding = OverlayMenuBinding.inflate(layoutInflater)
+        viewBinding = createMainOverlayMenu(context) { MainLiveDebugPanel(liveDebugUiState) }
         viewBinding.btnSwitchScenario.isVisible = isSwitchButtonInitiallyVisible
         playPauseButtonController.attachView(viewBinding.btnPlay)
 
@@ -160,9 +157,6 @@ class MainMenu(
 
         // Ensure the debug view state is correct
         viewBinding.layoutDebug.visibility = View.GONE
-        viewBinding.actionList.adapter = debugLiveActionsAdapter
-        viewBinding.actionList.itemAnimator = null
-
         setOverlayViewVisibility(false)
 
         lifecycleScope.launch {
@@ -397,24 +391,7 @@ class MainMenu(
     }
 
     private fun updateLiveDebugUiState(uiState: LiveDebuggingUiState?) {
-        viewBinding.apply {
-            debugEventName.apply {
-                text = uiState?.eventName
-                setLeftCompoundDrawable(uiState?.eventIcon)
-            }
-
-            debugEventFulfilledCount.apply {
-                text = uiState?.eventFulfilledCount
-                setLeftCompoundDrawable(if (uiState != null) R.drawable.ic_confirm else null)
-            }
-
-            debugEventConditionComputeTime.apply {
-                text = uiState?.eventDuration
-                setLeftCompoundDrawable(if (uiState != null) R.drawable.ic_duration else null)
-            }
-
-            debugLiveActionsAdapter.submitList(uiState?.actions)
-        }
+        liveDebugUiState = uiState
     }
 
     private fun showScenarioConfigDialog() =
