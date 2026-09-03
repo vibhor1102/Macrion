@@ -29,10 +29,10 @@ class DebugReportTimelineAdapter(
 ) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemTimelineEventViewHolder =
-        ItemTimelineEventViewHolder(parent)
+        ItemTimelineEventViewHolder(parent, onItemClicked)
 
     override fun onBindViewHolder(holder: ItemTimelineEventViewHolder, position: Int) {
-        holder.bind(getItem(position), onItemClicked)
+        holder.bind(getItem(position))
     }
 }
 

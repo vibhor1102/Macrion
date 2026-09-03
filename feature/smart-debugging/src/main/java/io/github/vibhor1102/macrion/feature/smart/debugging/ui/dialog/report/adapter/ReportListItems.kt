@@ -29,9 +29,17 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import io.github.vibhor1102.macrion.feature.smart.debugging.R
+
+private val reportPrimaryColor
+    @Composable get() = colorResource(R.color.overlayViewPrimary)
+
+private val reportSecondaryColor
+    @Composable get() = colorResource(R.color.overlayViewPrimary).copy(alpha = 0.7f)
 
 @Composable
 internal fun ReportSectionHeader(
@@ -52,12 +60,13 @@ internal fun ReportSectionHeader(
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
+                color = reportPrimaryColor,
             )
             Image(
                 painter = painterResource(iconRes),
                 contentDescription = null,
                 modifier = Modifier.padding(start = 16.dp).size(24.dp),
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
+                colorFilter = ColorFilter.tint(reportPrimaryColor),
             )
         }
     }
@@ -77,12 +86,14 @@ internal fun ReportKeyValueCard(title: String, value: String) {
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
+                color = reportPrimaryColor,
             )
             Text(
                 text = value,
                 modifier = Modifier.padding(start = 16.dp),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
+                color = reportPrimaryColor,
             )
         }
     }
@@ -107,9 +118,10 @@ internal fun ReportNameValueRow(
                 fontWeight = FontWeight.Bold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
+                color = reportPrimaryColor,
             )
             if (valueContent == null) {
-                Text(text = value, style = MaterialTheme.typography.bodyLarge)
+                Text(text = value, style = MaterialTheme.typography.bodyLarge, color = reportPrimaryColor)
             } else {
                 valueContent()
             }
@@ -130,7 +142,7 @@ internal fun ReportIconTransition(
     ) {
         startIcon?.let {
             ReportStateIcon(it)
-            Text(separator, style = MaterialTheme.typography.bodyLarge)
+            Text(separator, style = MaterialTheme.typography.bodyLarge, color = reportPrimaryColor)
         }
         ReportStateIcon(endIcon)
     }
@@ -142,7 +154,7 @@ private fun ReportStateIcon(@DrawableRes iconRes: Int) {
         painter = painterResource(iconRes),
         contentDescription = null,
         modifier = Modifier.size(24.dp),
-        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
+        colorFilter = ColorFilter.tint(reportPrimaryColor),
     )
 }
 
@@ -185,11 +197,13 @@ internal fun ReportTriggerConditionCard(
                     text = name,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
+                    color = reportPrimaryColor,
                 )
                 Text(
                     text = description,
                     modifier = Modifier.padding(top = 4.dp),
                     style = MaterialTheme.typography.bodySmall,
+                    color = reportSecondaryColor,
                 )
             }
         }
