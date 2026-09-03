@@ -37,10 +37,8 @@
             android:layout_height="match_parent"
             android:scrollbars="vertical"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            tools:listitem="@layout/item_multi_choice"
             tools:visibility="visible" />
 
     </LinearLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
