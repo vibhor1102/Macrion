@@ -17,82 +17,131 @@
 package io.github.vibhor1102.macrion.feature.dumb.config.ui.brief
 
 import android.content.res.Configuration
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.viewbinding.ViewBinding
 
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBriefViewHolder
-import io.github.vibhor1102.macrion.feature.dumb.config.databinding.ItemDumbActionBriefLandBinding
-import io.github.vibhor1102.macrion.feature.dumb.config.databinding.ItemDumbActionBriefPortBinding
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.ActionText
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActionDetails
-import com.google.android.material.card.MaterialCardView
 
 
 class DumbActionBriefViewHolder(
-    layoutInflater: LayoutInflater,
     orientation: Int,
     parent: ViewGroup,
-) : ItemBriefViewHolder<ItemDumbActionBriefBinding>(ItemDumbActionBriefBinding.inflate(layoutInflater, orientation, parent)) {
+) : ItemBriefViewHolder<ComposeBriefBinding>(ComposeBriefBinding(parent)) {
 
-    override fun onBind(item: ItemBrief, itemClickedListener: (Int, ItemBrief) -> Unit) {
-        viewBinding.apply {
-            card.setOnClickListener { itemClickedListener(bindingAdapterPosition, item) }
+    private val details = mutableStateOf<DumbActionDetails?>(null)
+    private var boundItem: ItemBrief? = null
+    private var itemClickedListener: ((Int, ItemBrief) -> Unit)? = null
 
-            val details = item.data as DumbActionDetails
-            name.visibility = View.VISIBLE
-            icon.setImageResource(details.icon)
-            name.text = details.name
-            duration.text = details.detailsText
-
-            if (details.repeatCountText != null) {
-                repeat.text = details.repeatCountText
-                repeat.visibility = View.VISIBLE
-            } else {
-                repeat.visibility = View.GONE
+    init {
+        viewBinding.rootView.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
+            setContent {
+                MacrionTheme {
+                    details.value?.let { current ->
+                        DumbActionBriefItem(current, orientation) {
+                            boundItem?.let { item ->
+                                itemClickedListener?.invoke(bindingAdapterPosition, item)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
+
+    override fun onBind(item: ItemBrief, itemClickedListener: (Int, ItemBrief) -> Unit) {
+        boundItem = item
+        this.itemClickedListener = itemClickedListener
+        details.value = item.data as DumbActionDetails
+    }
 }
 
-class ItemDumbActionBriefBinding private constructor(
-    val viewRoot: View,
-    val card: MaterialCardView,
-    val name: TextView,
-    val duration: TextView,
-    val repeat: TextView,
-    val icon: ImageView,
-) : ViewBinding {
-
-    companion object {
-        fun inflate(layoutInflater: LayoutInflater, orientation: Int, parent: ViewGroup) =
-            if (orientation == Configuration.ORIENTATION_PORTRAIT)
-                ItemDumbActionBriefBinding(ItemDumbActionBriefPortBinding.inflate(layoutInflater, parent, false))
-            else
-                ItemDumbActionBriefBinding(ItemDumbActionBriefLandBinding.inflate(layoutInflater, parent, false))
+class ComposeBriefBinding(parent: ViewGroup) : ViewBinding {
+    val rootView = ComposeView(parent.context).apply {
+        layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+        )
     }
 
-    constructor(binding: ItemDumbActionBriefPortBinding) : this(
-        viewRoot = binding.root,
-        card = binding.itemCard,
-        name = binding.actionName,
-        duration = binding.actionDuration,
-        repeat = binding.actionRepeat,
-        icon = binding.actionTypeIcon,
-    )
+    override fun getRoot() = rootView
+}
 
-    constructor(binding: ItemDumbActionBriefLandBinding) : this(
-        viewRoot = binding.root,
-        card = binding.itemCard,
-        name = binding.actionName,
-        duration = binding.actionDuration,
-        repeat = binding.actionRepeat,
-        icon = binding.actionTypeIcon,
-    )
-
-    override fun getRoot(): View = viewRoot
+@Composable
+private fun DumbActionBriefItem(details: DumbActionDetails, orientation: Int, onClick: () -> Unit) {
+    if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+        Box(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+            contentAlignment = Alignment.BottomCenter,
+        ) {
+            ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth().height(80.dp)) {
+                androidx.compose.foundation.layout.Row(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    ActionText(
+                        details = details,
+                        modifier = Modifier.weight(1f).padding(start = 16.dp),
+                        horizontalAlignment = Alignment.Start,
+                        titleMaxLines = 1,
+                        textAlign = TextAlign.Start,
+                    )
+                    Image(
+                        painter = painterResource(details.icon),
+                        contentDescription = null,
+                        modifier = Modifier.padding(end = 16.dp).size(32.dp),
+                    )
+                }
+            }
+        }
+    } else {
+        Box(
+            modifier = Modifier.fillMaxSize().padding(vertical = 12.dp),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            ElevatedCard(onClick = onClick, modifier = Modifier.width(124.dp).fillMaxHeight()) {
+                androidx.compose.foundation.layout.Column(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    ActionText(
+                        details = details,
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        titleMaxLines = 2,
+                        textAlign = TextAlign.Center,
+                    )
+                    Image(
+                        painter = painterResource(details.icon),
+                        contentDescription = null,
+                        modifier = Modifier.padding(bottom = 12.dp).size(32.dp),
+                    )
+                }
+            }
+        }
+    }
 }

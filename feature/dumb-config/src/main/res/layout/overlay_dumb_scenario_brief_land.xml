@@ -93,7 +93,6 @@
             app:layout_constraintTop_toTopOf="parent"
             android:orientation="vertical"
             android:scrollbars="none"
-            tools:listitem="@layout/item_dumb_action_brief_land"
             tools:itemCount="12"/>
 
         <com.google.android.material.card.MaterialCardView

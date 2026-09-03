@@ -19,14 +19,17 @@ package io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy
 import android.view.LayoutInflater
 import android.view.ViewGroup
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
 import io.github.vibhor1102.macrion.core.ui.databinding.ItemListHeaderBinding
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.dumb.config.R
-import io.github.vibhor1102.macrion.feature.dumb.config.databinding.ItemDumbActionBinding
-import io.github.vibhor1102.macrion.feature.dumb.config.ui.bindings.onBind
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbActionListItem
 
 /**
  * Adapter displaying all actions in a list.
@@ -39,15 +42,14 @@ class DumbActionCopyAdapter(
     override fun getItemViewType(position: Int): Int =
         when(getItem(position)) {
             is DumbActionCopyItem.HeaderItem -> R.layout.item_list_header
-            is DumbActionCopyItem.DumbActionItem -> R.layout.item_dumb_action
+            is DumbActionCopyItem.DumbActionItem -> VIEW_TYPE_ACTION
         }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
         when (viewType) {
             R.layout.item_list_header -> HeaderViewHolder(
                 ItemListHeaderBinding.inflate(LayoutInflater.from(parent.context), parent, false))
-            R.layout.item_dumb_action -> DumbActionViewHolder(
-                ItemDumbActionBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+            VIEW_TYPE_ACTION -> DumbActionViewHolder(parent)
             else -> throw IllegalArgumentException("Unsupported view type !")
         }
 
@@ -58,6 +60,8 @@ class DumbActionCopyAdapter(
         }
     }
 }
+
+private const val VIEW_TYPE_ACTION = 1
 
 /** DiffUtil Callback comparing two items when updating the [DumbActionCopyAdapter] list. */
 object DiffUtilCallback: DiffUtil.ItemCallback<DumbActionCopyItem>(){
@@ -90,7 +94,25 @@ class HeaderViewHolder(
  * View holder displaying an action in the [DumbActionCopyAdapter].
  * @param viewBinding the view binding for this item.
  */
-class DumbActionViewHolder(private val viewBinding: ItemDumbActionBinding) : RecyclerView.ViewHolder(viewBinding.root) {
+class DumbActionViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(ComposeView(parent.context)) {
+
+    private val item = mutableStateOf<DumbActionCopyItem.DumbActionItem?>(null)
+    private var actionClickedListener: ((DumbActionCopyItem.DumbActionItem) -> Unit)? = null
+
+    init {
+        (itemView as ComposeView).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
+            setContent {
+                MacrionTheme {
+                    item.value?.let { current ->
+                        DumbActionListItem(current.dumbActionDetails, showHandle = false) {
+                            actionClickedListener?.invoke(current)
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Bind this view holder as a action item.
@@ -99,8 +121,7 @@ class DumbActionViewHolder(private val viewBinding: ItemDumbActionBinding) : Rec
      * @param actionClickedListener listener notified upon user click on this item.
      */
     fun onBind(item: DumbActionCopyItem.DumbActionItem, actionClickedListener: (DumbActionCopyItem.DumbActionItem) -> Unit) {
-        viewBinding.onBind(item.dumbActionDetails, showHandles = false) {
-            actionClickedListener(item)
-        }
+        this.item.value = item
+        this.actionClickedListener = actionClickedListener
     }
 }

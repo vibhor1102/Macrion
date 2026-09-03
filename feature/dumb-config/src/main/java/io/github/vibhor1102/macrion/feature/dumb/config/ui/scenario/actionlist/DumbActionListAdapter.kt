@@ -16,17 +16,19 @@
  */
 package io.github.vibhor1102.macrion.feature.dumb.config.ui.scenario.actionlist
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.recyclerview.widget.DiffUtil
 
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
-import io.github.vibhor1102.macrion.feature.dumb.config.databinding.ItemDumbActionBinding
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbActionListItem
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.copy.DumbActionDetails
-import io.github.vibhor1102.macrion.feature.dumb.config.ui.bindings.onBind
 
 import java.util.Collections
 
@@ -36,7 +38,7 @@ class DumbActionListAdapter(
 ) : ListAdapter<DumbActionDetails, DumbActionViewHolder>(DumbActionDiffUtilCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DumbActionViewHolder =
-        DumbActionViewHolder(ItemDumbActionBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        DumbActionViewHolder(parent)
 
     override fun onBindViewHolder(holder: DumbActionViewHolder, position: Int) {
         holder.onBind(getItem(position), actionClickedListener)
@@ -78,7 +80,25 @@ object DumbActionDiffUtilCallback: DiffUtil.ItemCallback<DumbActionDetails>() {
  * View holder displaying an action in the [DumbActionListAdapter].
  * @param viewBinding the view binding for this item.
  */
-class DumbActionViewHolder(private val viewBinding: ItemDumbActionBinding) : RecyclerView.ViewHolder(viewBinding.root) {
+class DumbActionViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(ComposeView(parent.context)) {
+
+    private val details = mutableStateOf<DumbActionDetails?>(null)
+    private var actionClickedListener: ((DumbActionDetails) -> Unit)? = null
+
+    init {
+        (itemView as ComposeView).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
+            setContent {
+                MacrionTheme {
+                    details.value?.let { item ->
+                        DumbActionListItem(item, showHandle = true) {
+                            actionClickedListener?.invoke(item)
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Bind this view holder as a action item.
@@ -87,7 +107,8 @@ class DumbActionViewHolder(private val viewBinding: ItemDumbActionBinding) : Rec
      * @param actionClickedListener listener notified upon user click on this item.
      */
     fun onBind(details: DumbActionDetails, actionClickedListener: (DumbActionDetails) -> Unit) {
-        viewBinding.onBind(details, true, actionClickedListener)
+        this.details.value = details
+        this.actionClickedListener = actionClickedListener
     }
 }
 
