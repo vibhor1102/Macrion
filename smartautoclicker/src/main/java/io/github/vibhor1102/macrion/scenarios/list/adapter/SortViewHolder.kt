@@ -165,9 +165,10 @@ class SortViewHolder(
                 checked = state.changeOrderChecked,
                 onCheckedChange = onSortOrderClicked,
                 colors = IconButtonDefaults.outlinedIconToggleButtonColors(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent,
                     contentColor = MaterialTheme.colorScheme.onSurface,
-                    checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                    checkedContainerColor = MaterialTheme.colorScheme.primary,
                 ),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             ) {
@@ -175,7 +176,7 @@ class SortViewHolder(
                     painterResource(R.drawable.ic_sort_order),
                     null,
                     tint = if (state.changeOrderChecked) {
-                        MaterialTheme.colorScheme.onSecondaryContainer
+                        MaterialTheme.colorScheme.onPrimary
                     } else {
                         MaterialTheme.colorScheme.onSurface
                     },

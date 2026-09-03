@@ -139,6 +139,5 @@ object ScenarioDiffUtilCallback: DiffUtil.ItemCallback<ScenarioListUiState.Item>
         }
 
     override fun areContentsTheSame(oldItem: ScenarioListUiState.Item, newItem: ScenarioListUiState.Item): Boolean =
-        if (oldItem is ScenarioListUiState.Item.SortItem && newItem is ScenarioListUiState.Item.SortItem) true
-        else oldItem == newItem
+        oldItem == newItem
 }
