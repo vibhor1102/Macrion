@@ -17,77 +17,46 @@
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.condition.adapter
 
 import android.graphics.Bitmap
-import android.graphics.Color
-import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.recyclerview.widget.RecyclerView
-
-import io.github.vibhor1102.macrion.core.base.extensions.setRightCompoundDrawable
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
-import io.github.vibhor1102.macrion.core.ui.utils.setColorIndicatorDrawable
-import io.github.vibhor1102.macrion.feature.smart.debugging.R
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ItemConditionResultImageBinding
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.condition.EventOccurrenceItem
 
 import kotlinx.coroutines.Job
 
 
-class EventOccurrenceConditionScreenViewHolder private constructor(
-    private val viewBinding: ItemConditionResultImageBinding,
+class EventOccurrenceConditionScreenViewHolder(
+    parent: ViewGroup,
     private val bitmapProvider: (ScreenCondition.Image, onBitmapLoaded: (Bitmap?) -> Unit) -> Job?,
-) : RecyclerView.ViewHolder(viewBinding.root) {
+) : RecyclerView.ViewHolder(ComposeView(parent.context)) {
 
     /** Job for the loading of the condition bitmap. Null until bound. */
     private var bitmapLoadingJob: Job? = null
 
-    constructor(parent: ViewGroup, bitmapProvider: (ScreenCondition.Image, onBitmapLoaded: (Bitmap?) -> Unit) -> Job?) : this(
-        bitmapProvider = bitmapProvider,
-        viewBinding = ItemConditionResultImageBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
-    )
+    private var rowState by mutableStateOf<ScreenConditionResultState?>(null)
+
+    init {
+        (itemView as ComposeView).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
+            setContent { MacrionTheme { rowState?.let { ScreenConditionResultRow(it) } } }
+        }
+    }
 
     fun bind(item: EventOccurrenceItem.Screen) {
-        viewBinding.apply {
-            conditionNameText.text = item.conditionName
-            conditionDurationText.text = item.durationText
-
-            conditionConfidenceText.apply {
-                text = item.confidenceText
-                setRightCompoundDrawable(
-                    if (item.confidenceValid) R.drawable.ic_debug_confirm else R.drawable.ic_debug_cancel
-                )
-            }
-            conditionShouldBeDetectedText.setRightCompoundDrawable(
-                if (item.shouldDetectedValue) R.drawable.ic_debug_confirm else R.drawable.ic_debug_cancel
-            )
-            conditionFulfilledText.setRightCompoundDrawable(
-                if (item.isFulfilledValue) R.drawable.ic_debug_confirm else R.drawable.ic_debug_cancel
-            )
-
-            when (item.condition) {
-                is ScreenCondition.Color -> {
-                    conditionImage.setColorIndicatorDrawable(item.condition.color)
-                }
-
-                is ScreenCondition.Image -> {
-                    bitmapLoadingJob?.cancel()
-                    bitmapLoadingJob = bitmapProvider(item.condition) { bitmap ->
-                        if (bitmap != null) conditionImage.setImageBitmap(bitmap)
-                        else conditionImage.setImageDrawable(
-                            ContextCompat.getDrawable(root.context, R.drawable.ic_cancel)?.apply {
-                                setTint(Color.RED)
-                            }
-                        )
-                    }
-                }
-
-                is ScreenCondition.Number ->
-                    conditionImage.setImageResource(R.drawable.ic_number_condition)
-
-                is ScreenCondition.Text -> {
-                    conditionImage.setImageResource(R.drawable.ic_text_condition)
+        bitmapLoadingJob?.cancel()
+        bitmapLoadingJob = null
+        rowState = ScreenConditionResultState(item)
+        val condition = item.condition
+        if (condition is ScreenCondition.Image) {
+            bitmapLoadingJob = bitmapProvider(condition) { bitmap ->
+                if (rowState?.item?.id == item.id) {
+                    rowState = rowState?.copy(bitmap = bitmap, bitmapFailed = bitmap == null)
                 }
             }
         }
