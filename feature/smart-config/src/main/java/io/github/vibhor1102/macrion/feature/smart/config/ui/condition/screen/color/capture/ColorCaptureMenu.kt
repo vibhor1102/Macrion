@@ -22,6 +22,34 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -29,11 +57,11 @@ import androidx.lifecycle.repeatOnLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
 import io.github.vibhor1102.macrion.core.ui.views.pixelselector.PixelSelectorView
+import io.github.vibhor1102.macrion.core.ui.views.zoomedView.ZoomedImageView
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.ui.createColorCaptureOverlayToolbar
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
-import io.github.vibhor1102.macrion.core.ui.utils.updateColorIndicatorDrawableColor
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.IncludeCardZoomedViewBinding
 
 import kotlinx.coroutines.launch
 import kotlin.getValue
@@ -55,10 +83,9 @@ class ColorCaptureMenu (
 
     private lateinit var menuView: ViewGroup
     private val confirmButton get() = menuView.findViewById<ImageButton>(R.id.btn_confirm)
-    /** The view binding for the zoomed view. */
-    private lateinit var overlayView: OverlayColorCaptureZoomViewBinding
     /** The view displaying the screenshot and the selector for the capture. */
     private lateinit var selectorView: PixelSelectorView
+    private var pixelSelectionState by mutableStateOf<PixelSelectionUiState?>(null)
 
     /** Orientation of the device. */
     private var orientation: Int = Configuration.ORIENTATION_PORTRAIT
@@ -84,18 +111,10 @@ class ColorCaptureMenu (
         )
 
         orientation = displayConfigManager.displayConfig.orientation
-        overlayView = OverlayColorCaptureZoomViewBinding.inflate(LayoutInflater.from(context), orientation).apply {
-            root.addView(selectorView)
-
-            zoomCardPrimary.viewZoom.onPixelSelected = { x, y ->
-                viewModel.updateSelectedPosition(PointF(x, y))
-            }
-            zoomCardSecondary.viewZoom.onPixelSelected = { x, y ->
-                viewModel.updateSelectedPosition(PointF(x, y))
-            }
+        return ComposeView(context).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent { MacrionTheme { this@ColorCaptureMenu.ColorCaptureOverlay() } }
         }
-
-        return overlayView.root
     }
 
     override fun onMenuItemClicked(viewId: Int) {
@@ -142,40 +161,86 @@ class ColorCaptureMenu (
     }
 
     private fun updateOverlay(uiState: PixelSelectionUiState) {
-        selectorView.updateCapture(uiState.screenshot)
-        uiState.selectedPosition?.let { selectorView.updatePixelPosition(it.x, it.y) }
-
-        val visibleZoomLayout = getVisibleZoomView(uiState.selectedPosition)
-        if (visibleZoomLayout == null) {
-            overlayView.zoomCardPrimary.root.visibility = View.GONE
-            overlayView.zoomCardSecondary.root.visibility = View.GONE
-            return
-        }
-
-        overlayView.zoomCardPrimary.root.visibility =
-            if (visibleZoomLayout == overlayView.zoomCardPrimary) View.VISIBLE else View.GONE
-        overlayView.zoomCardSecondary.root.visibility =
-            if (visibleZoomLayout == overlayView.zoomCardSecondary) View.VISIBLE else View.GONE
-
-        visibleZoomLayout.viewZoom.setImageBitmap(uiState.screenshot)
-        visibleZoomLayout.viewZoom.setZoomPosition(uiState.selectedPosition!!)
-        visibleZoomLayout.textColorValue.text = uiState.selectedColorDisplayText
-        visibleZoomLayout.iconColorValue.updateColorIndicatorDrawableColor(uiState.selectedColor ?: 0)
+        pixelSelectionState = uiState
     }
 
-    private fun getVisibleZoomView(selectedPosition: PointF?): IncludeCardZoomedViewBinding? {
-        if (selectedPosition == null) return null
+    @Composable
+    private fun ColorCaptureOverlay() {
+        var overlaySize by androidx.compose.runtime.remember { mutableStateOf(Size.Zero) }
+        val uiState = pixelSelectionState
+        Box(Modifier.fillMaxSize().onSizeChanged { overlaySize = Size(it.width.toFloat(), it.height.toFloat()) }) {
+            AndroidView(
+                factory = { selectorView },
+                update = { view ->
+                    uiState?.let { state ->
+                        view.updateCapture(state.screenshot)
+                        state.selectedPosition?.let { view.updatePixelPosition(it.x, it.y) }
+                    }
+                },
+                modifier = Modifier.fillMaxSize(),
+            )
 
-        return when (orientation) {
-            Configuration.ORIENTATION_LANDSCAPE ->
-                if (selectedPosition.x < overlayView.root.width / 2) overlayView.zoomCardSecondary
-                else overlayView.zoomCardPrimary
+            val position = uiState?.selectedPosition
+            if (uiState != null && position != null && overlaySize != Size.Zero) {
+                ZoomCard(
+                    uiState = uiState,
+                    modifier = Modifier.align(zoomCardAlignment(position, overlaySize)).padding(
+                        horizontal = 16.dp,
+                        vertical = if (orientation == Configuration.ORIENTATION_PORTRAIT) 48.dp else 0.dp,
+                    ),
+                )
+            }
+        }
+    }
 
-            Configuration.ORIENTATION_PORTRAIT ->
-                if (selectedPosition.y < overlayView.root.height / 2) overlayView.zoomCardSecondary
-                else overlayView.zoomCardPrimary
+    private fun zoomCardAlignment(position: PointF, overlaySize: Size): Alignment =
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            if (position.x < overlaySize.width / 2f) Alignment.CenterEnd else Alignment.CenterStart
+        } else {
+            if (position.y < overlaySize.height / 2f) Alignment.BottomCenter else Alignment.TopCenter
+        }
 
-            else -> null
+    @Composable
+    private fun ZoomCard(uiState: PixelSelectionUiState, modifier: Modifier) {
+        ElevatedCard(
+            modifier = modifier,
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 6.dp),
+        ) {
+            Box(Modifier.width(266.dp).height(266.dp).padding(horizontal = 8.dp)) {
+                AndroidView(
+                    factory = { context ->
+                        ZoomedImageView(context).apply {
+                            onPixelSelected = { x, y -> viewModel.updateSelectedPosition(PointF(x, y)) }
+                        }
+                    },
+                    update = { view ->
+                        view.setImageBitmap(uiState.screenshot)
+                        uiState.selectedPosition?.let(view::setZoomPosition)
+                    },
+                    modifier = Modifier.align(Alignment.Center).size(250.dp),
+                )
+                OutlinedCard(
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        ColorIndicator(uiState.selectedColor ?: 0)
+                        Spacer(Modifier.width(8.dp))
+                        Text(uiState.selectedColorDisplayText.orEmpty(), style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun ColorIndicator(color: Int) {
+        val border = MaterialTheme.colorScheme.onSurfaceVariant
+        Canvas(Modifier.size(24.dp)) {
+            drawCircle(Color(color), radius = 10.dp.toPx(), center = center)
+            drawCircle(border, radius = 11.dp.toPx(), center = center, style = Stroke(2.dp.toPx()))
         }
     }
 }
