@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageButton
@@ -46,23 +47,31 @@ internal fun createDebugOverlayMenu(
     buttons.addView(button(R.id.btn_hide_overlay, R.drawable.ic_visible_on, R.string.content_desc_go_back))
     buttons.addView(button(R.id.btn_move, R.drawable.ic_move, R.string.content_desc_move_menu))
 
-    val compose = ComposeView(context).apply {
-        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+    val contentContainer = FrameLayout(context).apply {
         var contentInstalled = false
-        addOnAttachStateChangeListener(object : android.view.View.OnAttachStateChangeListener {
-            override fun onViewAttachedToWindow(view: android.view.View) {
+        addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(view: View) {
                 if (contentInstalled) return
                 contentInstalled = true
-                setContent { MacrionTheme { content() } }
+                addView(
+                    ComposeView(context).apply {
+                        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                        setContent { MacrionTheme { content() } }
+                    },
+                    FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                    ),
+                )
             }
-            override fun onViewDetachedFromWindow(view: android.view.View) = Unit
+            override fun onViewDetachedFromWindow(view: View) = Unit
         })
     }
     val row = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         addView(buttons)
-        addView(compose, LinearLayout.LayoutParams(dp(contentWidthDp), dp(contentHeightDp)))
+        addView(contentContainer, LinearLayout.LayoutParams(dp(contentWidthDp), dp(contentHeightDp)))
     }
     val card = MaterialCardView(context).apply {
         id = R.id.menu_background
