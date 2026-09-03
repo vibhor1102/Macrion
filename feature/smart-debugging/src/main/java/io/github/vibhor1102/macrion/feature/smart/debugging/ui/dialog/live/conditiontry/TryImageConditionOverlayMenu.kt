@@ -17,13 +17,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
@@ -37,6 +37,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.slider.Slider
 import io.github.vibhor1102.macrion.core.base.isStopScenarioKey
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
@@ -93,7 +94,13 @@ class TryImageConditionOverlayMenu(
     @Composable private fun ResultPanel() {
         val textColor = colorResource(R.color.textTitle)
         val controlColor = colorResource(R.color.overlayMenuButtons)
-        val dividerColor = MaterialTheme.colorScheme.outlineVariant
+        val dividerColor = Color(
+            MaterialColors.getColor(
+                context,
+                com.google.android.material.R.attr.colorOutlineVariant,
+                android.graphics.Color.TRANSPARENT,
+            ),
+        )
         Column(Modifier.width(287.dp).height(152.dp).padding(start = 8.dp, end = 4.dp, top = 12.dp, bottom = 4.dp)) {
             Box(Modifier.fillMaxWidth().weight(1f)) {
                 Row(Modifier.fillMaxWidth().fillMaxHeight()) {
