@@ -14,9 +14,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -77,5 +79,47 @@ internal fun MoveToDialogScaffold(field: View) {
             },
             modifier = Modifier.fillMaxWidth(),
         )
+    }
+}
+
+@Composable
+internal fun NavBarDialogScaffold(
+    topBar: View,
+    persistentHeader: View,
+    content: View,
+    navBar: View?,
+    floatingActions: View?,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .heightIn(min = dimensionResource(R.dimen.bottom_sheet_min_height))
+            .background(MaterialTheme.colorScheme.surfaceContainerLowest),
+    ) {
+        AndroidView(factory = { topBar }, modifier = Modifier.fillMaxWidth())
+
+        if (navBar == null) {
+            AndroidView(factory = { persistentHeader }, modifier = Modifier.fillMaxWidth())
+            AndroidView(
+                factory = { content },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(bottom = dimensionResource(R.dimen.android_bottom_navigation_height)),
+            )
+        } else {
+            Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                AndroidView(factory = { navBar }, modifier = Modifier.fillMaxHeight())
+                Box(modifier = Modifier.weight(1f).fillMaxSize()) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        AndroidView(factory = { persistentHeader }, modifier = Modifier.fillMaxWidth())
+                        AndroidView(factory = { content }, modifier = Modifier.fillMaxWidth().weight(1f))
+                    }
+                    floatingActions?.let { actions ->
+                        AndroidView(factory = { actions }, modifier = Modifier.align(androidx.compose.ui.Alignment.BottomEnd))
+                    }
+                }
+            }
+        }
     }
 }
