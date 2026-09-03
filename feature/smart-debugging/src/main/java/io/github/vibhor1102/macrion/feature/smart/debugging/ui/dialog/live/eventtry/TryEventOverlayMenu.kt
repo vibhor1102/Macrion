@@ -57,7 +57,7 @@ class TryEventOverlayMenu(
     private var result by mutableStateOf<EventResultUiState?>(null)
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup =
-        createDebugOverlayMenu(context) { ResultPanel(result) }
+        createDebugOverlayMenu(context, contentWidthDp = 200, contentHeightDp = 140) { ResultPanel(result) }
     override fun onCreateOverlayView(): View = DebugOverlayView(context)
 
     override fun onStart() {

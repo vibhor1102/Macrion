@@ -56,7 +56,7 @@ class TryImageConditionOverlayMenu(
     private var thresholdText by mutableStateOf("")
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup =
-        createDebugOverlayMenu(context) { ResultPanel() }
+        createDebugOverlayMenu(context, contentWidthDp = 287, contentHeightDp = 152) { ResultPanel() }
     override fun onCreateOverlayView(): View = DebugOverlayView(context)
 
     override fun onStart() {

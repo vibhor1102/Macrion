@@ -20,6 +20,8 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.R
 
 internal fun createDebugOverlayMenu(
     context: Context,
+    contentWidthDp: Int,
+    contentHeightDp: Int,
     content: @Composable () -> Unit,
 ): ViewGroup {
     val density = context.resources.displayMetrics.density
@@ -46,16 +48,21 @@ internal fun createDebugOverlayMenu(
 
     val compose = ComposeView(context).apply {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
-        setContent { MacrionTheme { content() } }
+        var contentInstalled = false
+        addOnAttachStateChangeListener(object : android.view.View.OnAttachStateChangeListener {
+            override fun onViewAttachedToWindow(view: android.view.View) {
+                if (contentInstalled) return
+                contentInstalled = true
+                setContent { MacrionTheme { content() } }
+            }
+            override fun onViewDetachedFromWindow(view: android.view.View) = Unit
+        })
     }
     val row = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         addView(buttons)
-        addView(compose, LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-        ))
+        addView(compose, LinearLayout.LayoutParams(dp(contentWidthDp), dp(contentHeightDp)))
     }
     val card = MaterialCardView(context).apply {
         id = R.id.menu_background
