@@ -64,25 +64,6 @@ internal fun ListDialogScaffold(
 }
 
 @Composable
-internal fun MoveToDialogScaffold(field: View) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                horizontal = dimensionResource(R.dimen.margin_horizontal_default),
-                vertical = dimensionResource(R.dimen.margin_vertical_extra_large),
-            ),
-    ) {
-        AndroidView(
-            factory = {
-                field.apply { setBackgroundResource(R.color.listBackground) }
-            },
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-}
-
-@Composable
 internal fun NavBarDialogScaffold(
     topBar: View,
     persistentHeader: View,
