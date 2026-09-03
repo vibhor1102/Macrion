@@ -83,7 +83,7 @@
             app:layout_constraintBottom_toTopOf="@id/button_buy"
             android:text="@string/button_text_visit_github"/>
 
-        <include layout="@layout/include_loadable_button"
+        <io.github.vibhor1102.macrion.core.ui.bindings.buttons.LoadableButtonView
             android:id="@+id/button_buy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

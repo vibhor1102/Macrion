@@ -8,75 +8,86 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 package io.github.vibhor1102.macrion.core.ui.bindings.buttons
 
-import android.view.View
+import android.content.Context
+import android.util.AttributeSet
+import android.widget.FrameLayout
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 
-import io.github.vibhor1102.macrion.core.ui.databinding.IncludeLoadableButtonBinding
-import io.github.vibhor1102.macrion.core.ui.databinding.IncludeLoadableButtonOutlinedBinding
-
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.progressindicator.CircularProgressIndicator
-
-/** Configuration for the button represented by [IncludeLoadableButtonBinding] & [IncludeLoadableButtonOutlinedBinding]. */
 sealed class LoadableButtonState {
-
-    /** The text of the button. */
     abstract val text: String
-
-    /** The button is in loading state, the text is hidden and the progress spinner is shown. */
     data class Loading(override val text: String = "") : LoadableButtonState()
-
-    /** The button is in loaded state, the text is shown and the progress spinner is hidden. */
     sealed class Loaded : LoadableButtonState() {
-
-        /** The button can be clicked. */
         data class Enabled(override val text: String) : Loaded()
-        /** The button can't be clicked and the text is dimmed. */
         data class Disabled(override val text: String) : Loaded()
     }
 }
 
+class LoadableButtonView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+) : FrameLayout(context, attrs) {
 
-fun IncludeLoadableButtonBinding.setState(state: LoadableButtonState): Unit =
-    setState(button, loading, state)
+    internal val state = mutableStateOf<LoadableButtonState>(LoadableButtonState.Loading())
+    internal var onButtonClick: () -> Unit = {}
 
-fun IncludeLoadableButtonBinding.setOnClickListener(onClick: () -> Unit): Unit =
-    button.setOnClickListener { onClick() }
-fun IncludeLoadableButtonOutlinedBinding.setOnClickListener(onClick: () -> Unit): Unit =
-    button.setOnClickListener { onClick() }
+    init {
+        addView(
+            ComposeView(context).apply {
+                setContent {
+                    MacrionTheme {
+                        val currentState = state.value
+                        val enabled = currentState is LoadableButtonState.Loaded.Enabled
 
-private fun setState(button: MaterialButton, progress: CircularProgressIndicator, state: LoadableButtonState): Unit =
-    when (state) {
-        is LoadableButtonState.Loading -> {
-            button.alpha = DISABLED_ITEM_ALPHA
-            button.text = state.text
-            progress.show()
-        }
+                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Button(
+                                onClick = { onButtonClick() },
+                                enabled = enabled,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .alpha(if (enabled) 1f else 0.5f),
+                            ) {
+                                Text(currentState.text)
+                            }
 
-        is LoadableButtonState.Loaded -> {
-            button.text = state.text
-            progress.visibility = View.GONE
-
-            when (state) {
-                is LoadableButtonState.Loaded.Enabled -> {
-                    button.alpha = ENABLED_ITEM_ALPHA
-                    button.isEnabled = true
+                            if (currentState is LoadableButtonState.Loading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.width(20.dp),
+                                    strokeWidth = 2.dp,
+                                )
+                            }
+                        }
+                    }
                 }
-
-                is LoadableButtonState.Loaded.Disabled -> {
-                    button.alpha = DISABLED_ITEM_ALPHA
-                    button.isEnabled = false
-                }
-            }
-        }
+            },
+            LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT),
+        )
     }
+}
 
-private const val ENABLED_ITEM_ALPHA = 1f
-private const val DISABLED_ITEM_ALPHA = 0.5f
+fun LoadableButtonView.setState(state: LoadableButtonState) {
+    this.state.value = state
+}
+
+fun LoadableButtonView.setOnClickListener(onClick: () -> Unit) {
+    onButtonClick = onClick
+}
