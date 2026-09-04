@@ -30,7 +30,7 @@ import io.github.vibhor1102.macrion.core.domain.model.event.toDomain
 /** @return the entity equivalent of this scenario. */
 internal fun Scenario.toEntity() = ScenarioEntity(
     id = id.databaseId,
-    name = name,
+    name = name.trim(),
     detectionQuality = detectionQuality,
     randomize = randomize,
     keepScreenOn = keepScreenOn,

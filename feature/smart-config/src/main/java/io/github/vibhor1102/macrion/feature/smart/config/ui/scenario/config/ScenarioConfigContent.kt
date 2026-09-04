@@ -25,6 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionAnimatedDescription
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
@@ -86,12 +87,12 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
         var focused by remember { mutableStateOf(false) }
         LaunchedEffect(repositoryName, focused) { if (!focused) name = repositoryName }
         val maxLength = context.resources.getInteger(R.integer.name_max_length)
-        OutlinedTextField(
-            name,
-            { value -> if (value.length <= maxLength) { name = value; viewModel.setScenarioName(value) } },
-            Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused },
-            label = { Text(stringResource(R.string.input_field_label_scenario_name)) },
-            singleLine = true,
+        MacrionTextField(
+            value = name,
+            onValueChange = { value -> name = value; viewModel.setScenarioName(value) },
+            modifier = Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused },
+            label = stringResource(R.string.input_field_label_scenario_name),
+            maxLength = maxLength,
         )
     }
 

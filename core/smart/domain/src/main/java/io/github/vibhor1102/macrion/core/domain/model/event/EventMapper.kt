@@ -36,7 +36,7 @@ internal fun Event.toEntity(): EventEntity =
 private fun ScreenEvent.toEntity() = EventEntity(
     id = id.databaseId,
     scenarioId = scenarioId.databaseId,
-    name = name,
+    name = name.trim(),
     conditionOperator = conditionOperator,
     priority = priority,
     keepDetecting = keepDetecting,
@@ -49,7 +49,7 @@ private fun TriggerEvent.toEntity() : EventEntity =
     EventEntity(
         id = id.databaseId,
         scenarioId = scenarioId.databaseId,
-        name = name,
+        name = name.trim(),
         conditionOperator = conditionOperator,
         enabledOnStart = enabledOnStart,
         priority = -1,

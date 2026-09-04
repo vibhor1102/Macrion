@@ -63,7 +63,9 @@ class NotificationDialog(
     private fun Content() {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val ui = state ?: return
-        var message by remember { mutableStateOf(TextFieldValue(ui.message)) }
+        var message by remember {
+            mutableStateOf(TextFieldValue(ui.message, TextRange(ui.message.length)))
+        }
         LaunchedEffect(ui.message) {
             if (message.text != ui.message) {
                 message = TextFieldValue(ui.message, TextRange(message.selection.end.coerceAtMost(ui.message.length)))

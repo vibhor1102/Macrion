@@ -11,6 +11,8 @@ package io.github.vibhor1102.macrion.core.ui.compose
 import android.os.Build
 import androidx.annotation.ColorRes
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.darkColorScheme
@@ -18,8 +20,12 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import io.github.vibhor1102.macrion.core.ui.R
 
@@ -39,7 +45,16 @@ fun MacrionTheme(content: @Composable () -> Unit) {
 /** Provides the Material content color expected by Compose content hosted in a legacy dialog surface. */
 @Composable
 fun MacrionDialogSurface(content: @Composable () -> Unit) {
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     Surface(
+        modifier = Modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+        ) {
+            focusManager.clearFocus()
+            keyboardController?.hide()
+        },
         color = Color.Transparent,
         contentColor = MaterialTheme.colorScheme.onSurface,
         content = content,

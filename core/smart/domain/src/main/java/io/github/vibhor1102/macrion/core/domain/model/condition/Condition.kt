@@ -29,7 +29,7 @@ sealed class Condition : Identifiable, Completable {
 
     @CallSuper
     override fun isComplete(): Boolean =
-        name.isNotEmpty()
+        name.isNotBlank()
 
     abstract fun hashCodeNoIds(): Int
 

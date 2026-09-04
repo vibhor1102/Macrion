@@ -64,7 +64,7 @@ sealed class Event: Identifiable, Completable {
 
     @CallSuper
     override fun isComplete(): Boolean =
-        name.isNotEmpty() && actions.isNotEmpty() && actions.areComplete() &&
+        name.isNotBlank() && actions.isNotEmpty() && actions.areComplete() &&
                 conditions.isNotEmpty() && conditions.areComplete()
 }
 

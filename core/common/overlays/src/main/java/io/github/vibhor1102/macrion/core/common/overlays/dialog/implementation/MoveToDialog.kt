@@ -17,12 +17,14 @@
 package io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation
 
 import android.view.KeyEvent
+import android.view.WindowManager
 
 import androidx.annotation.StyleRes
 import androidx.appcompat.app.AlertDialog
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -31,9 +33,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.ComposeView
@@ -41,6 +46,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
@@ -60,6 +67,7 @@ class MoveToDialog(
 ) : BaseOverlay(theme, recreateOnRotation = true) {
 
     private var currentValue by mutableStateOf(defaultValue.toString())
+    private var requestFieldFocus by mutableStateOf(false)
 
     /** Tells if the dialog is visible. */
     private var isShown = false
@@ -72,6 +80,7 @@ class MoveToDialog(
                     MoveToPositionField(
                         value = currentValue,
                         itemCount = itemCount,
+                        requestFocus = requestFieldFocus,
                         onValueChanged = { value ->
                             currentValue = value
                             updatePositiveButtonState()
@@ -100,7 +109,13 @@ class MoveToDialog(
             }
             .create()
 
-        dialog?.window?.setType(OverlayManager.OVERLAY_WINDOW_TYPE)
+        // Install AlertController's content before clearing its inferred no-editor flag.
+        // Its View-tree scan cannot see the text editor inside an unattached ComposeView.
+        dialog?.create()
+        dialog?.window?.apply {
+            setType(OverlayManager.OVERLAY_WINDOW_TYPE)
+            clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)
+        }
     }
 
     override fun onStart() {
@@ -108,6 +123,11 @@ class MoveToDialog(
 
         isShown = true
         dialog?.show()
+        dialog?.window?.setSoftInputMode(
+            WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE or
+                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
+        )
+        requestFieldFocus = true
         updatePositiveButtonState()
     }
 
@@ -115,6 +135,7 @@ class MoveToDialog(
         if (!isShown) return
 
         dialog?.hide()
+        requestFieldFocus = false
         isShown = false
     }
 
@@ -147,30 +168,47 @@ class MoveToDialog(
 private fun MoveToPositionField(
     value: String,
     itemCount: Int,
+    requestFocus: Boolean,
     onValueChanged: (String) -> Unit,
 ) {
-    val focusRequester = androidx.compose.runtime.remember { FocusRequester() }
+    val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
-    LaunchedEffect(Unit) {
+    val focusManager = LocalFocusManager.current
+    var fieldFocused by remember { mutableStateOf(false) }
+    var fieldValue by remember {
+        mutableStateOf(TextFieldValue(value, selection = TextRange(value.length)))
+    }
+    LaunchedEffect(value) {
+        if (fieldValue.text != value) {
+            fieldValue = TextFieldValue(value, selection = TextRange(value.length))
+        }
+    }
+    LaunchedEffect(requestFocus) {
+        if (!requestFocus) return@LaunchedEffect
         focusRequester.requestFocus()
+    }
+    LaunchedEffect(fieldFocused) {
+        if (!fieldFocused) return@LaunchedEffect
         androidx.compose.runtime.withFrameNanos { }
         keyboardController?.show()
     }
 
     OutlinedTextField(
-        value = value,
+        value = fieldValue,
         onValueChange = { candidate ->
-            if (candidate.isEmpty() || candidate.toIntOrNull()?.let { it in 1..itemCount } == true) {
-                onValueChanged(candidate)
+            if (candidate.text.isEmpty() || candidate.text.toIntOrNull()?.let { it in 1..itemCount } == true) {
+                fieldValue = candidate
+                onValueChanged(candidate.text)
             }
         },
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 16.dp)
-            .focusRequester(focusRequester),
+            .focusRequester(focusRequester)
+            .onFocusChanged { fieldFocused = it.isFocused },
         label = { Text(stringResource(R.string.dialog_move_to_position_label)) },
         placeholder = { Text("Max: $itemCount") },
-        trailingIcon = if (value.isNotEmpty()) {
+        trailingIcon = if (fieldValue.text.isNotEmpty()) {
             {
                 IconButton(onClick = { onValueChanged("") }) {
                     Icon(painterResource(UiR.drawable.ic_cancel), contentDescription = null)
@@ -182,5 +220,9 @@ private fun MoveToPositionField(
             keyboardType = KeyboardType.Number,
             imeAction = ImeAction.Done,
         ),
+        keyboardActions = KeyboardActions(onDone = {
+            focusManager.clearFocus()
+            keyboardController?.hide()
+        }),
     )
 }

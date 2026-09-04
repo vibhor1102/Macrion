@@ -33,6 +33,7 @@ import io.github.vibhor1102.macrion.core.database.migrations.Migration5to6
 import io.github.vibhor1102.macrion.core.database.migrations.Migration6to7
 import io.github.vibhor1102.macrion.core.database.migrations.Migration9to10
 import io.github.vibhor1102.macrion.core.database.migrations.Migration23to24
+import io.github.vibhor1102.macrion.core.database.migrations.Migration25to26
 
 import dagger.Module
 import dagger.Provides
@@ -66,6 +67,7 @@ internal object SmartDatabaseModule {
             Migration19to20,
             Migration21to22,
             Migration23to24,
+            Migration25to26,
         ).build()
 
 }

@@ -38,7 +38,7 @@ private fun DumbActionEntity.toDomainClick(asDomain: Boolean): DumbAction.DumbCl
     DumbAction.DumbClick(
         id = Identifier(id = id, asTemporary = asDomain),
         scenarioId = Identifier(id = dumbScenarioId, asTemporary = asDomain),
-        name = name,
+        name = name.trim(),
         priority = priority,
         position = Point(x!!, y!!),
         pressDurationMs = pressDuration!!,
@@ -51,7 +51,7 @@ private fun DumbActionEntity.toDomainSwipe(asDomain: Boolean): DumbAction.DumbSw
     DumbAction.DumbSwipe(
         id = Identifier(id = id, asTemporary = asDomain),
         scenarioId = Identifier(id = dumbScenarioId, asTemporary = asDomain),
-        name = name,
+        name = name.trim(),
         priority = priority,
         fromPosition = Point(fromX!!, fromY!!),
         toPosition = Point(toX!!, toY!!),
@@ -65,7 +65,7 @@ private fun DumbActionEntity.toDomainPause(asDomain: Boolean): DumbAction.DumbPa
     DumbAction.DumbPause(
         id = Identifier(id = id, asTemporary = asDomain),
         scenarioId = Identifier(id = dumbScenarioId, asTemporary = asDomain),
-        name = name,
+        name = name.trim(),
         priority = priority,
         pauseDurationMs = pauseDuration!!,
     )
@@ -76,7 +76,7 @@ private fun DumbAction.DumbClick.toClickEntity(scenarioDbId: Long): DumbActionEn
     return DumbActionEntity(
         id = id.databaseId,
         dumbScenarioId = if (scenarioDbId != DATABASE_ID_INSERTION) scenarioDbId else scenarioId.databaseId,
-        name = name,
+        name = name.trim(),
         priority = priority,
         type = DumbActionType.CLICK,
         repeatCount = repeatCount,
@@ -94,7 +94,7 @@ private fun DumbAction.DumbSwipe.toSwipeEntity(scenarioDbId: Long): DumbActionEn
     return DumbActionEntity(
         id = id.databaseId,
         dumbScenarioId = if (scenarioDbId != DATABASE_ID_INSERTION) scenarioDbId else scenarioId.databaseId,
-        name = name,
+        name = name.trim(),
         priority = priority,
         type = DumbActionType.SWIPE,
         repeatCount = repeatCount,
@@ -114,7 +114,7 @@ private fun DumbAction.DumbPause.toPauseEntity(scenarioDbId: Long): DumbActionEn
     return DumbActionEntity(
         id = id.databaseId,
         dumbScenarioId = if (scenarioDbId != DATABASE_ID_INSERTION) scenarioDbId else scenarioId.databaseId,
-        name = name,
+        name = name.trim(),
         priority = priority,
         type = DumbActionType.PAUSE,
         pauseDuration = pauseDurationMs,

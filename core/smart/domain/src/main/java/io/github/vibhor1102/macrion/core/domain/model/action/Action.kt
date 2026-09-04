@@ -31,7 +31,7 @@ sealed class Action : Identifiable, Completable, Prioritizable {
     abstract val name: String?
 
     /** @return true if this action is complete and can be transformed into its entity. */
-    override fun isComplete(): Boolean = !name.isNullOrEmpty()
+    override fun isComplete(): Boolean = !name.isNullOrBlank()
 
     abstract fun hashCodeNoIds(): Int
 

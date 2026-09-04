@@ -113,7 +113,7 @@ internal class DumbScenarioSerializer : ScenarioBackupSerializer<DumbScenarioBac
             version = version,
             screenWidth = jsonBackup.getInt("screenWidth") ?: 0,
             screenHeight = jsonBackup.getInt("screenHeight") ?: 0,
-            dumbScenario = scenario,
+            dumbScenario = scenario.normalizeUserEnteredNames(),
         )
     }
 
@@ -256,6 +256,11 @@ internal class DumbScenarioSerializer : ScenarioBackupSerializer<DumbScenarioBac
         )
     }
 }
+
+private fun DumbScenarioWithActions.normalizeUserEnteredNames(): DumbScenarioWithActions = copy(
+    scenario = scenario.copy(name = scenario.name.trim()),
+    dumbActions = dumbActions.map { action -> action.copy(name = action.name.trim()) },
+)
 
 /** The minimum value for all durations. */
 private const val DURATION_LOWER_BOUND = 1L

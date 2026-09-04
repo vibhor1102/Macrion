@@ -20,6 +20,7 @@ import android.content.Context
 import androidx.room.Room
 
 import io.github.vibhor1102.macrion.core.dumb.data.database.DumbDatabase
+import io.github.vibhor1102.macrion.core.dumb.data.database.Migration2to3
 import io.github.vibhor1102.macrion.core.dumb.domain.DumbRepository
 import io.github.vibhor1102.macrion.core.dumb.domain.IDumbRepository
 import dagger.Binds
@@ -43,7 +44,7 @@ internal object DumbDatabaseModule {
             context.applicationContext,
             DumbDatabase::class.java,
             "dumb_database"
-        ).build()
+        ).addMigrations(Migration2to3).build()
 }
 
 @Module

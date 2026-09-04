@@ -63,7 +63,9 @@ class SetTextDialog(
     private fun Content() {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val ui = state ?: return
-        var textFieldValue by remember { mutableStateOf(TextFieldValue(ui.textToWrite)) }
+        var textFieldValue by remember {
+            mutableStateOf(TextFieldValue(ui.textToWrite, TextRange(ui.textToWrite.length)))
+        }
         LaunchedEffect(ui.textToWrite) {
             if (ui.textToWrite != textFieldValue.text) {
                 textFieldValue = TextFieldValue(

@@ -22,6 +22,7 @@ import io.github.vibhor1102.macrion.core.base.extensions.getInt
 import io.github.vibhor1102.macrion.core.base.extensions.getJsonObject
 import io.github.vibhor1102.macrion.core.base.extensions.getString
 import io.github.vibhor1102.macrion.core.database.serialization.DeserializerFactory
+import io.github.vibhor1102.macrion.core.database.entity.normalizeUserEnteredNames
 import io.github.vibhor1102.macrion.feature.backup.data.base.BackupArchiveFormat
 import io.github.vibhor1102.macrion.feature.backup.data.base.withoutMacrionSubExtension
 import io.github.vibhor1102.macrion.feature.backup.data.base.MACRION_FORMAT_NAME
@@ -78,6 +79,7 @@ internal class ScenarioSerializer : ScenarioBackupSerializer<ScenarioBackup> {
         val scenario = jsonBackup.getJsonObject("scenario", true)?.let { scenario ->
             DeserializerFactory.create(version)?.deserializeCompleteScenario(scenario)
                 ?.withRestoredInternalPaths(format)
+                ?.normalizeUserEnteredNames()
         }
         if (scenario == null) {
             Log.w(TAG, "Can't deserialize scenario.")
