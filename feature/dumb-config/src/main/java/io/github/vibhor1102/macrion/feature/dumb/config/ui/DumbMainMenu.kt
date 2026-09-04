@@ -19,6 +19,7 @@ package io.github.vibhor1102.macrion.feature.dumb.config.ui
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.ImageButton
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -33,7 +34,6 @@ import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
 import io.github.vibhor1102.macrion.core.ui.utils.AnimatedStatesImageButtonController
 import io.github.vibhor1102.macrion.feature.dumb.config.R
-import io.github.vibhor1102.macrion.feature.dumb.config.databinding.OverlayDumbMainMenuBinding
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.brief.DumbScenarioBriefMenu
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.scenario.DumbScenarioDialog
@@ -55,8 +55,11 @@ class DumbMainMenu(
         context.getTutorialNavigator()
     }
 
-    /** View binding for the content of the overlay. */
-    private lateinit var viewBinding: OverlayDumbMainMenuBinding
+    private lateinit var menuView: ViewGroup
+    private val playButton get() = menuView.findViewById<ImageButton>(R.id.btn_play)
+    private val stopButton get() = menuView.findViewById<ImageButton>(R.id.btn_stop)
+    private val showActionsButton get() = menuView.findViewById<ImageButton>(R.id.btn_show_actions)
+    private val actionListButton get() = menuView.findViewById<ImageButton>(R.id.btn_action_list)
     /** Controls the animations of the play/pause button. */
     private lateinit var playPauseButtonController: AnimatedStatesImageButtonController
 
@@ -86,11 +89,10 @@ class DumbMainMenu(
             state2to1AnimationRes = R.drawable.anim_pause_play,
         )
 
-        viewBinding = OverlayDumbMainMenuBinding.inflate(layoutInflater).apply {
-            playPauseButtonController.attachView(btnPlay)
-        }
+        menuView = createDumbMainOverlayToolbar(context)
+        playPauseButtonController.attachView(playButton)
 
-        return viewBinding.root
+        return menuView
     }
 
     override fun onDestroy() {
@@ -123,21 +125,21 @@ class DumbMainMenu(
 
     /** Refresh the play menu item according to the scenario state. */
     private fun updatePlayPauseButtonEnabledState(canStartDetection: Boolean) =
-        setMenuItemViewEnabled(viewBinding.btnPlay, canStartDetection)
+        setMenuItemViewEnabled(playButton, canStartDetection)
 
     private fun updateMenuPlayingState(isPlaying: Boolean) {
-        val currentState = viewBinding.btnPlay.tag
+        val currentState = playButton.tag
         if (currentState == isPlaying) return
 
-        viewBinding.btnPlay.tag = isPlaying
+        playButton.tag = isPlaying
         if (isPlaying) {
             if (currentState == null) {
                 playPauseButtonController.toState2(false)
             } else {
                 animateLayoutChanges {
-                    setMenuItemVisibility(viewBinding.btnStop, false)
-                    setMenuItemVisibility(viewBinding.btnShowActions, false)
-                    setMenuItemVisibility(viewBinding.btnActionList, false)
+                    setMenuItemVisibility(stopButton, false)
+                    setMenuItemVisibility(showActionsButton, false)
+                    setMenuItemVisibility(actionListButton, false)
                     playPauseButtonController.toState2(true)
                 }
             }
@@ -146,9 +148,9 @@ class DumbMainMenu(
                 playPauseButtonController.toState1(false)
             } else {
                 animateLayoutChanges {
-                    setMenuItemVisibility(viewBinding.btnStop, true)
-                    setMenuItemVisibility(viewBinding.btnShowActions, true)
-                    setMenuItemVisibility(viewBinding.btnActionList, true)
+                    setMenuItemVisibility(stopButton, true)
+                    setMenuItemVisibility(showActionsButton, true)
+                    setMenuItemVisibility(actionListButton, true)
                     playPauseButtonController.toState1(true)
                 }
             }

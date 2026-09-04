@@ -1,305 +1,213 @@
-/*
- * Copyright (C) 2024 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.click
 
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import android.text.InputFilter
-import android.text.InputType
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.graphics.toPoint
 import androidx.core.graphics.toPointF
-import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.actions.GESTURE_DURATION_MAX_VALUE
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.PositionSelectorMenu
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
-import io.github.vibhor1102.macrion.core.ui.bindings.buttons.MultiStateButtonConfig
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonEnabledState
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setLabel
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnTextChangedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setText
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setError
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setButtonConfig
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setChecked
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setDescription
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setEnabled
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setIconBitmap
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setImageDrawable
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnCheckedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnClickListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setTitle
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setupDescriptions
-import io.github.vibhor1102.macrion.core.ui.utils.MinMaxInputFilter
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescription
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.DialogConfigActionClickBinding
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.OnActionConfigCompleteListener
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.click.offset.ClickOffsetDialog
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.selection.ScreenConditionSelectionDialog
-
-import com.google.android.material.bottomsheet.BottomSheetDialog
-
 import kotlinx.coroutines.launch
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 
-class ClickDialog(
-    private val listener: OnActionConfigCompleteListener,
-) : OverlayDialog(R.style.ScenarioConfigTheme) {
-
+class ClickDialog(private val listener: OnActionConfigCompleteListener) : OverlayDialog(R.style.ScenarioConfigTheme) {
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.CLICK.name
-
-    /** The view model for this dialog. */
     private val viewModel: ClickViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { clickViewModel() },
     )
+    private var conditionTypeAnchor: View? = null
+    private var selectorAnchor: View? = null
+    private var saveAnchor: View? = null
 
-    /** ViewBinding containing the views for this dialog. */
-    private lateinit var viewBinding: DialogConfigActionClickBinding
-
-    override fun onCreateView(): ViewGroup {
-        viewBinding = DialogConfigActionClickBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(R.string.dialog_title_click)
-
-                buttonDismiss.setDebouncedOnClickListener { back() }
-                buttonSave.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener { onSaveButtonClicked() }
-                }
-                buttonDelete.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener { onDeleteButtonClicked() }
-                }
-            }
-
-            fieldName.apply {
-                setLabel(R.string.generic_name)
-                setOnTextChangedListener { viewModel.setName(it.toString()) }
-                textField.filters = arrayOf<InputFilter>(
-                    InputFilter.LengthFilter(context.resources.getInteger(R.integer.name_max_length))
-                )
-            }
-            hideSoftInputOnFocusLoss(fieldName.textField)
-
-            fieldPressDuration.apply {
-                textField.filters = arrayOf(MinMaxInputFilter(1, GESTURE_DURATION_MAX_VALUE.toInt()))
-                setLabel(R.string.input_field_label_click_press_duration)
-                setOnTextChangedListener {
-                    viewModel.setPressDuration(if (it.isNotEmpty()) it.toString().toLong() else null)
-                }
-            }
-            hideSoftInputOnFocusLoss(fieldPressDuration.textField)
-
-            fieldClickType.apply {
-                setTitle(context.getString(R.string.field_click_type_title))
-                setupDescriptions(
-                    listOf(
-                        context.getString(R.string.field_click_type_desc_on_position),
-                        context.getString(R.string.field_click_type_desc_on_condition),
-                    )
-                )
-                setButtonConfig(
-                    MultiStateButtonConfig(
-                        icons = listOf(R.drawable.ic_click_on_condition, R.drawable.ic_condition),
-                        singleSelection = true,
-                        selectionRequired = true,
-                    )
-                )
-                setOnCheckedListener { checkedId ->
-                    viewModel.setClickOnCondition(
-                        if (checkedId == 0) Click.PositionType.USER_SELECTED
-                        else Click.PositionType.ON_DETECTED_CONDITION
-                    )
-                }
-            }
-
-            fieldClickOffset.apply {
-                setTitle(context.getString(R.string.field_click_offset_title))
-                setOnClickListener { showClickOffsetDialog() }
-            }
-        }
-
-        return viewBinding.root
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@ClickDialog.Content() } }
     }
-
     override fun onDialogCreated(dialog: BottomSheetDialog) {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                launch { viewModel.isEditingAction.collect(::onActionEditingStateChanged) }
-            }
-        }
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.uiState.collect(::updateUi) }
-            }
-        }
+        lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.CREATED) {
+            viewModel.isEditingAction.collect { if (!it) { Log.e(TAG, "Closing ClickDialog because there is no action edited"); finish() } }
+        } }
     }
-
     override fun onStart() {
-        super.onStart()
-        viewModel.monitorViews(
-            onConditionTypeView = viewBinding.fieldClickType.multiStateButton.buttonMiddle,
-            selectPositionFieldView = viewBinding.fieldClickSelection.root,
-            saveButton = viewBinding.layoutTopBar.buttonSave,
-        )
+        super.onStart(); viewModel.monitorConditionTypeView(conditionTypeAnchor)
+        viewModel.monitorSelectorView(selectorAnchor); viewModel.monitorSaveView(saveAnchor)
+    }
+    override fun onStop() { viewModel.detachMonitoredViews(); super.onStop() }
+
+    @Composable private fun Content() {
+        val ui by viewModel.uiState.collectAsStateWithLifecycle()
+        val state = ui ?: return
+        var name by rememberSaveable { mutableStateOf(state.name.orEmpty()) }
+        var duration by rememberSaveable { mutableStateOf(state.pressDuration.orEmpty()) }
+        LaunchedEffect(state.name) { if (state.name != name) name = state.name.orEmpty() }
+        LaunchedEffect(state.pressDuration) { if (state.pressDuration != duration) duration = state.pressDuration.orEmpty() }
+        Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            Column {
+                TopBar(state.canBeSaved)
+                Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    MacrionTextField(name, { name = it; viewModel.setName(it) }, context.getString(R.string.generic_name),
+                        isError = state.nameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
+                    OutlinedTextField(duration, { input ->
+                        val filtered = input.filter(Char::isDigit)
+                        if (filtered.isEmpty() || (filtered.toLongOrNull() ?: Long.MAX_VALUE) <= GESTURE_DURATION_MAX_VALUE) {
+                            duration = filtered; viewModel.setPressDuration(filtered.toLongOrNull())
+                        }
+                    }, Modifier.fillMaxWidth(), label = { Text(context.getString(R.string.input_field_label_click_press_duration)) },
+                        isError = state.pressDurationError, singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                    state.positionState?.let { PositionCard(it) }
+                }
+            }
+        }
     }
 
-    override fun onStop() {
-        super.onStop()
-        viewModel.stopViewMonitoring()
+    @Composable private fun TopBar(saveEnabled: Boolean) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
+            Text(context.getString(R.string.dialog_title_click), Modifier.weight(1f).padding(horizontal = 8.dp),
+                style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Clip)
+            FilledTonalIconButton(onClick = ::delete) { Icon(painterResource(R.drawable.ic_delete), null) }
+            Spacer(Modifier.width(8.dp))
+            Box {
+                FilledIconButton(onClick = ::save, enabled = saveEnabled) { Icon(painterResource(R.drawable.ic_save_filled), null) }
+                TutorialClickAnchor({ saveAnchor = it; viewModel.monitorSaveView(it) }, ::save, saveEnabled)
+            }
+        }
+    }
+
+    @Composable private fun PositionCard(state: ClickPositionUiState) {
+        ElevatedCard(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                if (state.isTypeFieldVisible) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(context.getString(R.string.field_click_type_title), style = MaterialTheme.typography.titleSmall)
+                            Text(context.getString(if (state.positionType == Click.PositionType.USER_SELECTED)
+                                R.string.field_click_type_desc_on_position else R.string.field_click_type_desc_on_condition),
+                                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        PositionTypeButtons(state.positionType)
+                    }
+                    HorizontalDivider(Modifier.padding(top = 8.dp))
+                }
+                SelectorField(state)
+                if (state.isClickOffsetVisible) {
+                    HorizontalDivider()
+                    SelectorRow(context.getString(R.string.field_click_offset_title), state.clickOffsetDescription,
+                        state.isClickOffsetEnabled, false, null, ::showClickOffsetDialog)
+                }
+            }
+        }
+    }
+
+    @Composable private fun PositionTypeButtons(positionType: Click.PositionType) {
+        val shape = RoundedCornerShape(20.dp)
+        Row(Modifier.height(32.dp).clip(shape).border(1.dp, MaterialTheme.colorScheme.outline, shape)) {
+            listOf(Click.PositionType.USER_SELECTED to R.drawable.ic_click_on_condition,
+                Click.PositionType.ON_DETECTED_CONDITION to R.drawable.ic_condition).forEachIndexed { index, item ->
+                if (index > 0) Box(Modifier.width(1.dp).fillMaxHeight().background(MaterialTheme.colorScheme.outline))
+                Box(Modifier.width(44.dp).fillMaxHeight().background(if (positionType == item.first)
+                    MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
+                    .clickable { viewModel.setClickOnCondition(item.first) }, contentAlignment = Alignment.Center) {
+                    Icon(painterResource(item.second), null, Modifier.size(18.dp))
+                    if (item.first == Click.PositionType.ON_DETECTED_CONDITION) TutorialClickAnchor(
+                        { conditionTypeAnchor = it; viewModel.monitorConditionTypeView(it) },
+                        { viewModel.setClickOnCondition(Click.PositionType.ON_DETECTED_CONDITION) })
+                }
+            }
+        }
+    }
+
+    @Composable private fun SelectorField(state: ClickPositionUiState) {
+        Box {
+            SelectorRow(state.selectorTitle, state.selectorDescription, state.isSelectorEnabled, state.isSelectorInError,
+                state.selectorVisualization, if (state.positionType == Click.PositionType.USER_SELECTED) ::showPositionSelector else ::showConditionSelector)
+            TutorialClickAnchor({ selectorAnchor = it; viewModel.monitorSelectorView(it) },
+                if (state.positionType == Click.PositionType.USER_SELECTED) ::showPositionSelector else ::showConditionSelector,
+                state.isSelectorEnabled)
+        }
+    }
+
+    @Composable private fun SelectorRow(title: String, description: String?, enabled: Boolean, error: Boolean,
+        visualization: Any?, onClick: () -> Unit) {
+        val contentColor = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+        Row(Modifier.fillMaxWidth().heightIn(min = 62.dp).clickable(enabled = enabled, onClick = onClick).padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            visualization?.let { value ->
+                val bitmap = remember(value) { when (value) { is Bitmap -> value; is Drawable -> value.toBitmap(); else -> null } }
+                bitmap?.let { Image(it.asImageBitmap(), null, Modifier.size(40.dp).padding(end = 8.dp), contentScale = ContentScale.Fit) }
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(title, style = MaterialTheme.typography.titleSmall, color = if (error) MaterialTheme.colorScheme.error else contentColor)
+                description?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = if (error)
+                    MaterialTheme.colorScheme.error else contentColor.copy(alpha = 0.75f)) }
+            }
+            Icon(painterResource(R.drawable.ic_chevron_right), null, tint = contentColor)
+        }
     }
 
     override fun back() {
-        if (viewModel.hasUnsavedModifications()) {
-            context.showCloseWithoutSavingDialog {
-                listener.onDismissClicked()
-                super.back()
-            }
-            return
-        }
-
-        listener.onDismissClicked()
-        super.back()
+        if (viewModel.hasUnsavedModifications()) { context.showCloseWithoutSavingDialog { listener.onDismissClicked(); super.back() }; return }
+        listener.onDismissClicked(); super.back()
     }
-
-    private fun onSaveButtonClicked() {
-        viewModel.saveLastConfig()
-        listener.onConfirmClicked()
-        super.back()
-    }
-
-    private fun onDeleteButtonClicked() {
-        listener.onDeleteClicked()
-        super.back()
-    }
-
-    private fun updateUi(state: ClickUiState?) {
-        state ?: return
-
-        viewBinding.apply {
-            layoutTopBar.setButtonEnabledState(DialogNavigationButton.SAVE, state.canBeSaved)
-            fieldName.setText(state.name)
-            fieldName.setError(state.nameError)
-            fieldPressDuration.setText(state.pressDuration, InputType.TYPE_CLASS_NUMBER)
-            fieldPressDuration.setError(state.pressDurationError)
-        }
-
-        updateClickPositionUiState(state.positionState)
-    }
-
-    private fun updateClickPositionUiState(state: ClickPositionUiState?) {
-        state ?: return
-
-        viewBinding.fieldClickType.apply {
-            val checkIndex = if (state.positionType == Click.PositionType.USER_SELECTED) 0 else 1
-            setChecked(checkIndex)
-            setDescription(checkIndex)
-
-            root.isVisible = state.isTypeFieldVisible
-            viewBinding.dividerClickTypeBottom.isVisible = state.isTypeFieldVisible
-        }
-
-        viewBinding.fieldClickSelection.apply {
-            setTitle(state.selectorTitle)
-            setDescription(state.selectorDescription)
-            setEnabled(state.isSelectorEnabled)
-            setError(state.isSelectorInError)
-
-            when (val visualization = state.selectorVisualization) {
-                is Drawable -> setImageDrawable(visualization)
-                is Bitmap -> setIconBitmap(visualization)
-                else -> setImageDrawable(null)
-            }
-
-            when (state.positionType) {
-                Click.PositionType.USER_SELECTED ->
-                    setOnClickListener { debounceUserInteraction { showPositionSelector() } }
-                Click.PositionType.ON_DETECTED_CONDITION ->
-                    setOnClickListener { debounceUserInteraction { showConditionSelector() } }
-            }
-        }
-
-        viewBinding.fieldClickOffset.apply {
-            setEnabled(state.isClickOffsetEnabled)
-            setDescription(state.clickOffsetDescription)
-
-            root.isVisible = state.isClickOffsetVisible
-            viewBinding.dividerClickOffset.isVisible = state.isClickOffsetVisible
-        }
-    }
-
-    private fun showPositionSelector() {
-        viewModel.getEditedClick()?.let { click ->
-            overlayManager.navigateTo(
-                context = context,
-                newOverlay = PositionSelectorMenu(
-                    tutorialMonitoringTag = MonitoredOverlayType.CLICK_POSITION.name,
-                    itemBriefDescription = ClickDescription(
-                        position = click.position?.toPointF(),
-                        pressDurationMs = click.pressDuration ?: 1L,
-                    ),
-                    onConfirm = { description ->
-                        (description as ClickDescription).position?.let {
-                            viewModel.setPosition(it.toPoint())
-                        }
-                    },
-                ),
-                hideCurrent = true,
-            )
-        }
-    }
-
-    private fun showConditionSelector() =
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = ScreenConditionSelectionDialog(
-                conditionList = viewModel.uiState.value?.availableConditions ?: emptyList(),
-                onConditionSelected = viewModel::setConditionToBeClicked,
-            ),
-            hideCurrent = false,
-        )
-
-    private fun showClickOffsetDialog() =
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = ClickOffsetDialog(),
-            hideCurrent = false,
-        )
-
-    private fun onActionEditingStateChanged(isEditingAction: Boolean) {
-        if (!isEditingAction) {
-            Log.e(TAG, "Closing ClickDialog because there is no action edited")
-            finish()
-        }
-    }
+    private fun save() { viewModel.saveLastConfig(); listener.onConfirmClicked(); super.back() }
+    private fun delete() { listener.onDeleteClicked(); super.back() }
+    private fun showPositionSelector() { viewModel.getEditedClick()?.let { click -> overlayManager.navigateTo(context,
+        PositionSelectorMenu(MonitoredOverlayType.CLICK_POSITION.name,
+            ClickDescription(pressDurationMs = click.pressDuration ?: 1L, position = click.position?.toPointF()), { description ->
+                (description as ClickDescription).position?.let { viewModel.setPosition(it.toPoint()) }
+            }), true) } }
+    private fun showConditionSelector() = overlayManager.navigateTo(context, ScreenConditionSelectionDialog(
+        viewModel.uiState.value?.availableConditions ?: emptyList(), viewModel::setConditionToBeClicked), false)
+    private fun showClickOffsetDialog() = overlayManager.navigateTo(context, ClickOffsetDialog(), false)
 }
 
 private const val TAG = "ClickDialog"

@@ -21,7 +21,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
-import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.event.DebugEventStateItem
 
 
@@ -29,14 +28,14 @@ class EventStateAdapter : ListAdapter<DebugEventStateItem, RecyclerView.ViewHold
 
     override fun getItemViewType(position: Int): Int =
         when (getItem(position)) {
-            is DebugEventStateItem.Header -> R.layout.item_event_state_header
-            is DebugEventStateItem.EventState -> R.layout.item_event_state_event
+            is DebugEventStateItem.Header -> VIEW_TYPE_HEADER
+            is DebugEventStateItem.EventState -> VIEW_TYPE_EVENT
         }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
         when (viewType) {
-            R.layout.item_event_state_header -> EventStateHeaderViewHolder(parent)
-            R.layout.item_event_state_event -> EventStateEventViewHolder(parent)
+            VIEW_TYPE_HEADER -> EventStateHeaderViewHolder(parent)
+            VIEW_TYPE_EVENT -> EventStateEventViewHolder(parent)
             else -> throw IllegalArgumentException("Unknown view type $viewType")
         }
 
@@ -47,6 +46,9 @@ class EventStateAdapter : ListAdapter<DebugEventStateItem, RecyclerView.ViewHold
         }
     }
 }
+
+private const val VIEW_TYPE_HEADER = 0
+private const val VIEW_TYPE_EVENT = 1
 
 private object EventStateDiffUtilCallback : DiffUtil.ItemCallback<DebugEventStateItem>() {
 

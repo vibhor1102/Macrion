@@ -1,19 +1,4 @@
-/*
- * Copyright (C) 2026 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2026 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.selection
 
 import android.content.DialogInterface
@@ -22,73 +7,49 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
-
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.updateState
-import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.DialogBaseListBinding
-import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.AlphabetDownloadUiState
-import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.AlphabetModelItemAdapter
-import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.AlphabetSelectionItem
-
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.AlphabetDownloadUiState
+import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.AlphabetModelSheet
+import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.AlphabetSelectionItem
 
 @AndroidEntryPoint
 class AlphabetSelectionFragment : BottomSheetDialogFragment() {
-
-    companion object {
-        const val FRAGMENT_TAG = "AlphabetSelectionFragment"
-    }
+    companion object { const val FRAGMENT_TAG = "AlphabetSelectionFragment" }
 
     private val viewModel: AlphabetSelectionViewModel by viewModels()
-    private val alphabetAdapter: AlphabetModelItemAdapter = AlphabetModelItemAdapter(::onItemClicked)
 
-    private lateinit var viewBinding: DialogBaseListBinding
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        viewBinding = DialogBaseListBinding.inflate(inflater, container, false).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(R.string.dialog_title_condition_selection)
-                buttonSave.visibility = View.GONE
-                buttonDelete.visibility = View.GONE
-                buttonDismiss.setOnClickListener { dismiss() }
-            }
-            layoutLoadableList.apply {
-                list.adapter = alphabetAdapter
-                list.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
+        ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MacrionTheme {
+                    val items = viewModel.items.collectAsStateWithLifecycle(initialValue = emptyList()).value
+                    val isEditing = viewModel.isEditingCondition.collectAsStateWithLifecycle(initialValue = true).value
+                    LaunchedEffect(isEditing) {
+                        if (!isEditing) {
+                            Log.e(TAG, "Closing AlphabetSelectionFragment because there is no condition edited")
+                            dismiss()
+                        }
+                    }
+                    AlphabetModelSheet(items, false, true, ::dismiss, ::onItemClicked)
+                }
             }
         }
-        return viewBinding.root
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         (dialog as? BottomSheetDialog)?.behavior?.apply {
             state = BottomSheetBehavior.STATE_EXPANDED
             isDraggable = false
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                launch { viewModel.isEditingCondition.collect(::onConditionEditingStateChanged) }
-            }
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.items.collect(::onItemsUpdated) }
-            }
         }
     }
 
@@ -99,24 +60,10 @@ class AlphabetSelectionFragment : BottomSheetDialogFragment() {
 
     private fun onItemClicked(item: AlphabetSelectionItem) {
         if (item !is AlphabetSelectionItem.Alphabet) return
-
         when (item.downloadState) {
             AlphabetDownloadUiState.Downloaded -> viewModel.selectModel(item.alphabet)
             AlphabetDownloadUiState.NotDownloaded -> viewModel.downloadModel(item.alphabet)
-            is AlphabetDownloadUiState.Downloading,
-            AlphabetDownloadUiState.Error -> Unit
-        }
-    }
-
-    private fun onItemsUpdated(items: List<AlphabetSelectionItem>) {
-        viewBinding.layoutLoadableList.updateState(items)
-        alphabetAdapter.submitList(items)
-    }
-
-    private fun onConditionEditingStateChanged(isEditing: Boolean) {
-        if (!isEditing) {
-            Log.e(TAG, "Closing AlphabetSelectionFragment because there is no condition edited")
-            dismiss()
+            is AlphabetDownloadUiState.Downloading, AlphabetDownloadUiState.Error -> Unit
         }
     }
 }

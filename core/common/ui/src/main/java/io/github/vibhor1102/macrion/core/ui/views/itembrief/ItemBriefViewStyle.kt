@@ -44,7 +44,7 @@ internal class ItemBriefViewStyle(
     val defaultStyle: DefaultBriefRendererStyle,
 )
 
-internal fun Context.getItemBriefStyle(attrs: AttributeSet, defStyleAttr: Int): ItemBriefViewStyle =
+internal fun Context.getItemBriefStyle(attrs: AttributeSet?, defStyleAttr: Int): ItemBriefViewStyle =
     obtainStyledAttributes(attrs, R.styleable.ItemBriefView, R.attr.itemBriefStyle, defStyleAttr).use { ta ->
 
         val thickness = ta.getDimensionPixelSize(R.styleable.ItemBriefView_thickness, 4).toFloat()

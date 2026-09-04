@@ -21,8 +21,16 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.marginStart
-import androidx.core.view.marginTop
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.IntOffset
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -31,13 +39,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
-import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
-import io.github.vibhor1102.macrion.feature.tutorial.R
-import io.github.vibhor1102.macrion.feature.tutorial.databinding.DialogTutorialSuccessBinding
-import io.github.vibhor1102.macrion.feature.tutorial.databinding.FragmentTimingGameBinding
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.feature.tutorial.ui.dialogs.createTutorialSuccessDialog
 import io.github.vibhor1102.macrion.feature.tutorial.ui.overlay.TutorialFullscreenOverlay
 
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -46,19 +51,29 @@ import javax.inject.Inject
 class TimingGameFragment : Fragment() {
 
     private val viewModel: TimingGameViewModel by viewModels()
-    private lateinit var viewBinding: FragmentTimingGameBinding
+    private var showOverlayMenuPlaceholder by mutableStateOf(true)
+    private var overlayMenuPosition: IntOffset? = null
+    private var completionDialog: AlertDialog? = null
 
     @Inject lateinit var overlayManager: OverlayManager
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        viewBinding = FragmentTimingGameBinding.inflate(inflater, container, false).apply {
-            buttonRetry.setOnClickListener { viewModel.resetGame() }
-            buttonTiming.setOnClickListener {
-                viewModel.onTimingButtonHit()
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MacrionTheme {
+                    Surface(Modifier.fillMaxSize()) {
+                        TimingGameScreen(
+                            uiStateFlow = viewModel.uiState,
+                            showOverlayMenuPlaceholder = showOverlayMenuPlaceholder,
+                            onOverlayMenuPositioned = ::onOverlayMenuPositioned,
+                            onTimingClick = viewModel::onTimingButtonHit,
+                            onRetryClick = viewModel::resetGame,
+                        )
+                    }
+                }
             }
         }
-
-        return viewBinding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -66,7 +81,6 @@ class TimingGameFragment : Fragment() {
 
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.uiState.collect(::updateUi) }
                 launch { viewModel.shouldDisplayStepOverlay.collect(::showHideStepOverlay) }
                 launch { viewModel.shouldDisplayFloatingUi.collect(::showHideFloatingUi) }
                 launch { viewModel.shouldDisplayCompletionDialog.collect(::showCompletionDialog) }
@@ -82,7 +96,7 @@ class TimingGameFragment : Fragment() {
     override fun onStart() {
         super.onStart()
 
-        lockMenuPosition()
+        overlayMenuPosition?.let(::lockMenuPosition)
         if (viewModel.shouldDisplayFloatingUi.value && overlayManager.isOverlayStackHidden()) {
             overlayManager.restoreVisibility()
         }
@@ -104,26 +118,14 @@ class TimingGameFragment : Fragment() {
         viewModel.stopTutorial()
     }
 
-    private fun updateUi(uiState: TimingGameUiState?) {
-        uiState ?: return
-
-        viewBinding.apply {
-            textInstructions.text = requireContext().getString(uiState.instructionsResId)
-            textScore.text = requireContext().getString(R.string.message_click_count, uiState.clickCount, uiState.targetClickCount)
-            textTargetDiff.text = requireContext().getString(R.string.message_target_diff, uiState.targetTotalDiffMs)
-            textTotalDiff.text = requireContext().getString(R.string.message_total_diff, uiState.cumulativeTimeDiffMs.toSignedString())
-            textLast.text = requireContext().getString(R.string.message_last_diff, uiState.lastTimeDiffMs.toSignedString())
-
-            buttonTiming.isEnabled = uiState.isWon == null
-        }
+    override fun onDestroyView() {
+        completionDialog?.dismiss()
+        completionDialog = null
+        super.onDestroyView()
     }
 
     private fun showHideStepOverlay(show: Boolean) {
-        if (overlayManager.isOverlayStackVisible()) {
-            viewBinding.spaceOverlayMenu.visibility = View.INVISIBLE
-        } else {
-            viewBinding.spaceOverlayMenu.visibility = View.VISIBLE
-        }
+        showOverlayMenuPlaceholder = !overlayManager.isOverlayStackVisible()
 
         overlayManager.apply {
             if (show) setTopOverlay(TutorialFullscreenOverlay())
@@ -139,37 +141,26 @@ class TimingGameFragment : Fragment() {
     }
 
     private fun showCompletionDialog(show: Boolean) {
-        if (!show) return
+        if (!show || completionDialog?.isShowing == true) return
 
-        val dialogContext = requireContext().getDynamicColorsContext(R.style.AppTheme)
-        val dialogViewBinding = DialogTutorialSuccessBinding.inflate(LayoutInflater.from(dialogContext))
-        val dialog = MaterialAlertDialogBuilder(dialogContext)
-            .setView(dialogViewBinding.root)
-            .create()
-
-        dialogViewBinding.apply {
-            buttonKeepPlaying.setOnClickListener { dialog.dismiss() }
-            buttonClose.setOnClickListener {
-                dialog.dismiss()
-                findNavController().navigateUp()
+        completionDialog = requireContext().createTutorialSuccessDialog {
+            if (isAdded) findNavController().navigateUp()
+        }.also { dialog ->
+            dialog.setOnDismissListener {
+                if (completionDialog === dialog) completionDialog = null
             }
+            dialog.show()
         }
-
-        dialog.show()
     }
 
-    private fun Long.toSignedString(): String =
-        if (this >= 0) "+$this" else "$this"
+    private fun onOverlayMenuPositioned(position: IntOffset) {
+        overlayMenuPosition = position
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) lockMenuPosition(position)
+    }
 
-    private fun lockMenuPosition() {
-        val location = IntArray(2)
-        viewBinding.spaceOverlayMenu.getLocationInWindow(location)
-
+    private fun lockMenuPosition(position: IntOffset) {
         overlayManager.lockMenuPosition(
-            Point(
-                viewBinding.spaceOverlayMenu.marginStart + location[0],
-                viewBinding.spaceOverlayMenu.marginTop + location[1],
-            )
+            Point(position.x, position.y)
         )
     }
 }

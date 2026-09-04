@@ -28,6 +28,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -39,16 +41,21 @@ class ScenarioCopyViewModel @Inject constructor(
     private val dumbRepository: DumbRepository,
 ) : ViewModel() {
 
-    private val copyName: MutableStateFlow<String?> = MutableStateFlow(null)
-    val copyNameError: Flow<Boolean> = copyName
+    private val _copyName: MutableStateFlow<String?> = MutableStateFlow(null)
+    val copyName: StateFlow<String?> = _copyName.asStateFlow()
+    val copyNameError: Flow<Boolean> = _copyName
         .map { it.isNullOrEmpty() }
 
+    fun initializeCopyName(name: String) {
+        if (_copyName.value == null) _copyName.value = name
+    }
+
     fun setCopyName(name: String) {
-        copyName.value = name
+        _copyName.value = name
     }
 
     fun copyScenario(scenarioId: Long, isSmart: Boolean, onCompleted: () -> Unit) {
-        val name = copyName.value
+        val name = _copyName.value
         if (name.isNullOrEmpty()) return
 
         if (isSmart) {

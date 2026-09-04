@@ -18,9 +18,10 @@ package io.github.vibhor1102.macrion.feature.review.ui
 
 import android.os.Bundle
 import android.util.Log
+import android.graphics.Color
+import android.widget.FrameLayout
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import io.github.vibhor1102.macrion.feature.review.R
 
 import com.google.android.gms.tasks.Task
 import com.google.android.play.core.review.ReviewInfo
@@ -46,7 +47,7 @@ class ReviewActivity : AppCompatActivity() {
             finish()
             return
         }
-        setContentView(R.layout.activity_review)
+        setContentView(FrameLayout(this).apply { setBackgroundColor(Color.TRANSPARENT) })
 
         Log.i(TAG, "Requesting ReviewInfo")
         reviewManager.requestReviewFlow()

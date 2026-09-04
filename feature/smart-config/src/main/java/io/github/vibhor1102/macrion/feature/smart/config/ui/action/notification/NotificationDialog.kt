@@ -1,56 +1,39 @@
-/*
- * Copyright (C) 2024 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.notification
 
-import android.text.InputFilter
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import io.github.vibhor1102.macrion.core.common.actions.text.appendCounterReference
-
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonEnabledState
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setLabel
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnTextChangedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setText
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.setItems
-import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.setSelectedItem
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnCheckboxClickedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setTextValue
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setup
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.DialogConfigActionNotificationBinding
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.OnActionConfigCompleteListener
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.starters.newNotificationSettingsStarterOverlay
 import io.github.vibhor1102.macrion.feature.smart.config.ui.counter.selection.CounterSelectionDialog
-
-import com.google.android.material.bottomsheet.BottomSheetDialog
-
 import kotlinx.coroutines.launch
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 
 class NotificationDialog(
     private val listener: OnActionConfigCompleteListener,
@@ -58,149 +41,160 @@ class NotificationDialog(
 
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.NOTIFICATION.name
 
-    /** The view model for this dialog. */
     private val viewModel: NotificationViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { notificationViewModel() },
     )
 
-    /** ViewBinding containing the views for this dialog. */
-    private lateinit var viewBinding: DialogConfigActionNotificationBinding
-
-    override fun onCreateView(): ViewGroup {
-        viewBinding = DialogConfigActionNotificationBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(R.string.dialog_title_notification)
-
-                buttonDismiss.setDebouncedOnClickListener { back() }
-                buttonSave.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener { onSaveButtonClicked() }
-                }
-                buttonDelete.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener { onDeleteButtonClicked() }
-                }
-            }
-
-            fieldName.apply {
-                setLabel(R.string.generic_name)
-                textField.filters = arrayOf<InputFilter>(InputFilter.LengthFilter(context.resources.getInteger(R.integer.name_max_length)))
-                setOnTextChangedListener { viewModel.setName(it.toString()) }
-            }
-            hideSoftInputOnFocusLoss(fieldName.textField)
-
-            fieldTextToWrite.apply {
-                setup(
-                    label = R.string.field_notification_message_text_label,
-                    icon = R.drawable.ic_append_counter,
-                    disableInputWithCheckbox = false,
-                )
-                textField.filters = arrayOf<InputFilter>(InputFilter.LengthFilter(300))
-                setOnTextChangedListener { text ->
-                    viewModel.setNotificationMessage(text.toString())
-                }
-                setOnCheckboxClickedListener {
-                    showCounterSelectionDialog { selectedCounter ->
-                        val textToWrite = textField.text.toString().appendCounterReference(
-                            counterName = selectedCounter,
-                            atIndex = textField.selectionEnd,
-                        )
-
-                        viewModel.setNotificationMessage(textToWrite)
-                        setTextValue(value = textToWrite, force = true)
-                    }
-                }
-            }
-
-            fieldDropdownChannelType.setItems(
-                label = context.getString(R.string.field_dropdown_notification_importance_title),
-                items = notificationImportanceItems,
-                onItemSelected = viewModel::setNotificationImportance,
-            )
-
-            buttonNotificationSettings.apply {
-                visibility = if (viewModel.shouldShowSettingsButton()) View.VISIBLE else View.GONE
-                setDebouncedOnClickListener { showNotificationSettings() }
-            }
-        }
-
-        return viewBinding.root
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@NotificationDialog.Content() } }
     }
 
     override fun onDialogCreated(dialog: BottomSheetDialog) {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
-                launch { viewModel.isEditingAction.collect(::onActionEditingStateChanged) }
+                viewModel.isEditingAction.collect(::onActionEditingStateChanged)
             }
         }
+    }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.uiState.collect(::onUiStateUpdated) }
+    @Composable
+    private fun Content() {
+        val state by viewModel.uiState.collectAsStateWithLifecycle()
+        val ui = state ?: return
+        var message by remember { mutableStateOf(TextFieldValue(ui.message)) }
+        LaunchedEffect(ui.message) {
+            if (message.text != ui.message) {
+                message = TextFieldValue(ui.message, TextRange(message.selection.end.coerceAtMost(ui.message.length)))
+            }
+        }
+        Surface(
+            modifier = Modifier.fillMaxWidth().heightIn(max = 640.dp),
+            color = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ) {
+            Column(Modifier.fillMaxWidth()) {
+                TopBar(ui.canBeSaved)
+                Column(
+                    modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    MacrionTextField(
+                        value = ui.name, onValueChange = viewModel::setName,
+                        label = context.getString(R.string.generic_name), isError = ui.nameError,
+                        maxLength = context.resources.getInteger(R.integer.name_max_length),
+                    )
+                    Card(Modifier.fillMaxWidth()) {
+                        OutlinedTextField(
+                            value = message,
+                            onValueChange = { value ->
+                                val limited = value.copy(text = value.text.take(MAX_MESSAGE_LENGTH))
+                                message = limited
+                                viewModel.setNotificationMessage(limited.text)
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            label = { Text(context.getString(R.string.field_notification_message_text_label)) },
+                            trailingIcon = {
+                                IconButton(onClick = { showCounterSelectionDialog(message.selection.end) }) {
+                                    Icon(painterResource(R.drawable.ic_append_counter), null)
+                                }
+                            },
+                            singleLine = true,
+                        )
+                    }
+                    Card(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            ImportanceDropdown(ui.importance, viewModel::setNotificationImportance)
+                            HorizontalDivider()
+                            Text(context.getString(R.string.message_notification_config),
+                                style = MaterialTheme.typography.bodyMedium)
+                            if (viewModel.shouldShowSettingsButton()) {
+                                Button(onClick = ::showNotificationSettings, modifier = Modifier.fillMaxWidth()) {
+                                    Text(context.getString(R.string.button_notification_config))
+                                }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun TopBar(saveEnabled: Boolean) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
+            Text(context.getString(R.string.dialog_title_notification),
+                Modifier.weight(1f).padding(horizontal = 8.dp), style = MaterialTheme.typography.titleLarge)
+            FilledTonalIconButton(onClick = ::onDeleteButtonClicked) {
+                Icon(painterResource(R.drawable.ic_delete), null)
+            }
+            Spacer(Modifier.width(8.dp))
+            FilledIconButton(onClick = ::onSaveButtonClicked, enabled = saveEnabled) {
+                Icon(painterResource(R.drawable.ic_save_filled), null)
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun ImportanceDropdown(
+        selected: NotificationImportanceItem,
+        onSelected: (NotificationImportanceItem) -> Unit,
+    ) {
+        var expanded by remember { mutableStateOf(false) }
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+            OutlinedTextField(
+                value = stringResource(selected.title), onValueChange = {}, readOnly = true,
+                label = { Text(context.getString(R.string.field_dropdown_notification_importance_title)) },
+                supportingText = { selected.helperText?.let { Text(stringResource(it)) } },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                modifier = Modifier.menuAnchor().fillMaxWidth(),
+            )
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                notificationImportanceItems.forEach { item ->
+                    DropdownMenuItem(
+                        text = { Column { Text(stringResource(item.title)); item.helperText?.let {
+                            Text(stringResource(it), style = MaterialTheme.typography.bodySmall)
+                        } } },
+                        onClick = { onSelected(item); expanded = false },
+                    )
+                }
             }
         }
     }
 
     override fun back() {
         if (viewModel.hasUnsavedModifications()) {
-            context.showCloseWithoutSavingDialog {
-                listener.onDismissClicked()
-                super.back()
-            }
+            context.showCloseWithoutSavingDialog { listener.onDismissClicked(); super.back() }
             return
         }
-
-        listener.onDismissClicked()
-        super.back()
+        listener.onDismissClicked(); super.back()
     }
 
-    private fun onSaveButtonClicked() {
-        listener.onConfirmClicked()
-        super.back()
-    }
+    private fun onSaveButtonClicked() { listener.onConfirmClicked(); super.back() }
+    private fun onDeleteButtonClicked() { listener.onDeleteClicked(); super.back() }
 
-    private fun onDeleteButtonClicked() {
-        listener.onDeleteClicked()
-        super.back()
-    }
-
-    private fun onUiStateUpdated(uiState: NotificationDialogUiState?) {
-        uiState ?: return
-
-        viewBinding.apply {
-            layoutTopBar.setButtonEnabledState(DialogNavigationButton.SAVE, uiState.canBeSaved)
-
-            fieldName.setText(uiState.name)
-            fieldTextToWrite.setTextValue(uiState.message)
-            fieldDropdownChannelType.setSelectedItem(uiState.importance)
-        }
-    }
-
-    private fun showCounterSelectionDialog(onSelected: (String) -> Unit) {
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = CounterSelectionDialog(onSelected),
-            hideCurrent = true,
-        )
+    private fun showCounterSelectionDialog(atIndex: Int) {
+        overlayManager.navigateTo(context, CounterSelectionDialog {
+            viewModel.appendCounterReference(it, atIndex)
+        }, hideCurrent = true)
     }
 
     private fun showNotificationSettings() {
-        if (!viewModel.shouldShowSettingsButton()) return
-
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = newNotificationSettingsStarterOverlay(),
-            hideCurrent = true,
-        )
+        if (viewModel.shouldShowSettingsButton()) {
+            overlayManager.navigateTo(context, newNotificationSettingsStarterOverlay(), hideCurrent = true)
+        }
     }
 
     private fun onActionEditingStateChanged(isEditingAction: Boolean) {
-        if (!isEditingAction) {
-            Log.e(TAG, "Closing PauseDialog because there is no action edited")
-            finish()
-        }
+        if (!isEditingAction) { Log.e(TAG, "Closing NotificationDialog because there is no action edited"); finish() }
     }
 }
 
-private const val TAG = "PauseDialog"
+private const val TAG = "NotificationDialog"
+private const val MAX_MESSAGE_LENGTH = 300

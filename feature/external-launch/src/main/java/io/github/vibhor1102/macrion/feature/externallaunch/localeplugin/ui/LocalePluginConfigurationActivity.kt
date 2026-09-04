@@ -10,14 +10,17 @@ package io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.ui
 
 import android.app.Activity
 import android.os.Bundle
-import android.view.View
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.externallaunch.R
-import io.github.vibhor1102.macrion.feature.externallaunch.databinding.ActivityLocalePluginConfigurationBinding
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain.LocalePluginConfiguration
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain.LocalePluginContract
 import io.github.vibhor1102.macrion.feature.externallaunch.localeplugin.domain.LocalePluginOperation
@@ -28,9 +31,8 @@ import kotlinx.coroutines.launch
 class LocalePluginConfigurationActivity : AppCompatActivity() {
 
     private val viewModel: LocalePluginConfigurationViewModel by viewModels()
-    private lateinit var binding: ActivityLocalePluginConfigurationBinding
-    private lateinit var scenarioAdapter: LocalePluginScenarioAdapter
-    private var selectedScenario: LocalePluginScenarioItem? = null
+    private var scenarios by mutableStateOf(emptyList<LocalePluginScenarioItem>())
+    private var selectedScenario by mutableStateOf<LocalePluginScenarioItem?>(null)
     private var restoredConfiguration: LocalePluginConfiguration? = null
     private var hasAppliedRestore = false
 
@@ -41,22 +43,24 @@ class LocalePluginConfigurationActivity : AppCompatActivity() {
             return
         }
 
-        binding = ActivityLocalePluginConfigurationBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        scenarioAdapter = LocalePluginScenarioAdapter(this)
-        binding.scenario.setAdapter(scenarioAdapter)
         restoredConfiguration = viewModel.decodeConfiguration(LocalePluginContract.readConfigurationJson(intent))
-
-        binding.scenario.setOnItemClickListener { _, _, position, _ ->
-            selectedScenario = scenarioAdapter.getItem(position)
-            render()
-        }
-        binding.cancel.setOnClickListener {
-            setResult(Activity.RESULT_CANCELED)
-            finish()
-        }
-        binding.save.setOnClickListener {
-            viewModel.requestFallbackNotificationPermission(this, ::saveConfiguration)
+        setContent {
+            MacrionTheme {
+                LocalePluginConfigurationScreen(
+                    scenarios = scenarios,
+                    selectedScenario = selectedScenario,
+                    restoredScenarioWasDeleted = restoredConfiguration?.operation == LocalePluginOperation.LAUNCH &&
+                        restoredConfiguration?.scenarioId != null && selectedScenario == null,
+                    onScenarioSelected = { selectedScenario = it },
+                    onCancel = {
+                        setResult(Activity.RESULT_CANCELED)
+                        finish()
+                    },
+                    onSave = {
+                        viewModel.requestFallbackNotificationPermission(this, ::saveConfiguration)
+                    },
+                )
+            }
         }
 
         lifecycleScope.launch {
@@ -67,7 +71,7 @@ class LocalePluginConfigurationActivity : AppCompatActivity() {
     }
 
     private fun updateScenarios(scenarios: List<LocalePluginScenarioItem>) {
-        scenarioAdapter.replace(scenarios)
+        this.scenarios = scenarios
         if (!hasAppliedRestore) {
             hasAppliedRestore = true
             restoredConfiguration?.let { restored ->
@@ -81,23 +85,6 @@ class LocalePluginConfigurationActivity : AppCompatActivity() {
                 scenarios.find { it.id == selected.id && it.isSmart == selected.isSmart }
             }
         }
-        binding.scenario.setText(selectedScenario?.name.orEmpty(), false)
-        render()
-    }
-
-    private fun render() {
-        binding.save.isEnabled = selectedScenario != null
-
-        val message = when {
-            scenarioAdapter.isEmpty -> getString(R.string.locale_plugin_no_scenarios)
-            restoredConfiguration?.operation == LocalePluginOperation.LAUNCH &&
-                restoredConfiguration?.scenarioId != null && selectedScenario == null ->
-                getString(R.string.locale_plugin_deleted_scenario)
-            selectedScenario?.isSmart == true -> getString(R.string.locale_plugin_smart_note)
-            else -> null
-        }
-        binding.message.text = message
-        binding.message.visibility = if (message == null) View.GONE else View.VISIBLE
     }
 
     private fun saveConfiguration() {

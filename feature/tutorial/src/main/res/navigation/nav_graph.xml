@@ -24,8 +24,7 @@
     <fragment
         android:id="@+id/fragment_tutorial_list"
         android:name="io.github.vibhor1102.macrion.feature.tutorial.ui.list.TutorialListFragment"
-        android:label="fragment_two"
-        tools:layout="@layout/fragment_tutorial_list">
+        android:label="fragment_two">
 
         <argument
             android:name="categoryType"
@@ -69,8 +68,7 @@
     <fragment
         android:id="@+id/fragment_slideshow"
         android:name="io.github.vibhor1102.macrion.feature.tutorial.ui.slideshow.TutorialSlideshowFragment"
-        android:label="fragment_slideshow"
-        tools:layout="@layout/fragment_tutorial_slideshow">
+        android:label="fragment_slideshow">
 
         <argument
             android:name="slideshowType"
@@ -81,13 +79,11 @@
     <fragment
         android:id="@+id/fragment_game"
         android:name="io.github.vibhor1102.macrion.feature.tutorial.ui.game.clickcount.ClickCountGameFragment"
-        android:label="fragment_two"
-        tools:layout="@layout/fragment_click_count_game"/>
+        android:label="fragment_two"/>
 
     <fragment
         android:id="@+id/fragment_timing_game"
         android:name="io.github.vibhor1102.macrion.feature.tutorial.ui.game.timing.TimingGameFragment"
-        android:label="fragment_timing_game"
-        tools:layout="@layout/fragment_timing_game"/>
+        android:label="fragment_timing_game"/>
 
 </navigation>

@@ -37,6 +37,9 @@ import androidx.lifecycle.Lifecycle.State
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelLazy
 import androidx.lifecycle.lifecycleScope
+import androidx.savedstate.SavedStateRegistry
+import androidx.savedstate.SavedStateRegistryController
+import androidx.savedstate.SavedStateRegistryOwner
 
 import io.github.vibhor1102.macrion.core.base.Dumpable
 import io.github.vibhor1102.macrion.core.base.addDumpTabulationLvl
@@ -71,7 +74,7 @@ abstract class BaseOverlay internal constructor(
     private val theme: Int? = null,
     private val recreateOnRotation: Boolean = false,
     private val useWindowContext: Boolean = false,
-) : Overlay(), Dumpable {
+) : Overlay(), Dumpable, SavedStateRegistryOwner {
 
     /** The context for this overlay. */
     override lateinit var context: Context
@@ -98,6 +101,10 @@ abstract class BaseOverlay internal constructor(
     internal var lifecycleRegistry = LifecycleRegistry(this)
     override val lifecycle: Lifecycle
         get() = lifecycleRegistry
+
+    private var savedStateController = SavedStateRegistryController.create(this)
+    override val savedStateRegistry: SavedStateRegistry
+        get() = savedStateController.savedStateRegistry
 
     /** The store for the view models of the [BaseOverlay] implementations. */
     private val modelStore: ViewModelStore by lazy { ViewModelStore() }
@@ -154,6 +161,8 @@ abstract class BaseOverlay internal constructor(
         context = newOverlayContext(appContext)
 
         dismissListener?.let { listener -> onDestroyListener = { listener(appContext, this@BaseOverlay) } }
+        savedStateController.performAttach()
+        savedStateController.performRestore(null)
         onCreate()
         lifecycleRegistry.currentState = State.CREATED
     }
@@ -263,6 +272,7 @@ abstract class BaseOverlay internal constructor(
         shouldBeRecreated = false
 
         lifecycleRegistry = LifecycleRegistry(this)
+        savedStateController = SavedStateRegistryController.create(this)
         create(context)
     }
 

@@ -1,196 +1,180 @@
-/*
- * Copyright (C) 2024 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.timer
 
-import android.text.InputFilter
-import android.text.InputType
-import android.view.LayoutInflater
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.setItems
-import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.setSelectedItem
-import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.timeUnitDropdownItems
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonEnabledState
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setError
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setLabel
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnTextChangedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setText
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setChecked
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setDescription
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnClickListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setTitle
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setupDescriptions
-import io.github.vibhor1102.macrion.core.ui.utils.MinMaxInputFilter
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.TimeUnitDropDownItem
+import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.timeUnitDropdownItems
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.DialogConfigConditionTimerBinding
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialViewAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.OnConditionConfigCompleteListener
-
-import com.google.android.material.bottomsheet.BottomSheetDialog
-
 import kotlinx.coroutines.launch
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 
-class TimerReachedConditionDialog(
-    private val listener: OnConditionConfigCompleteListener,
-) : OverlayDialog(R.style.ScenarioConfigTheme) {
-
+class TimerReachedConditionDialog(private val listener: OnConditionConfigCompleteListener) :
+    OverlayDialog(R.style.ScenarioConfigTheme) {
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.TIMER_REACHED_CONDITION.name
-
-    /** The view model for this dialog. */
     private val viewModel: TimerReachedConditionViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { timerReachedConditionViewModel() },
     )
-    /** ViewBinding containing the views for this dialog. */
-    private lateinit var viewBinding: DialogConfigConditionTimerBinding
+    private var afterAnchor: View? = null
+    private var restartAnchor: View? = null
+    private var saveAnchor: View? = null
 
-    override fun onCreateView(): ViewGroup {
-        viewBinding = DialogConfigConditionTimerBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(R.string.dialog_title_timer_reached)
-
-                buttonDismiss.setDebouncedOnClickListener { back() }
-                buttonSave.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener {
-                        listener.onConfirmClicked()
-                        super.back()
-                    }
-                }
-                buttonDelete.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener {
-                        listener.onDeleteClicked()
-                        super.back()
-                    }
-                }
-            }
-
-            fieldName.apply {
-                setLabel(R.string.generic_name)
-                setOnTextChangedListener { viewModel.setName(it.toString()) }
-                textField.filters = arrayOf<InputFilter>(
-                    InputFilter.LengthFilter(context.resources.getInteger(R.integer.name_max_length))
-                )
-            }
-            hideSoftInputOnFocusLoss(fieldName.textField)
-
-            editDurationLayout.apply {
-                textField.filters = arrayOf(MinMaxInputFilter(min = 1))
-                setLabel(R.string.input_field_label_timer_duration_no_unit)
-                setOnTextChangedListener {
-                    viewModel.setDuration(if (it.isNotEmpty()) it.toString().toLong() else null)
-                }
-            }
-            hideSoftInputOnFocusLoss(editDurationLayout.textField)
-
-            timeUnitField.setItems(
-                label = context.getString(R.string.dropdown_label_time_unit),
-                items = timeUnitDropdownItems,
-                onItemSelected = viewModel::setTimeUnit,
-            )
-
-            fieldIsReset.apply {
-                setTitle(context.getString(R.string.field_timer_restart_title))
-                setupDescriptions(
-                    listOf(
-                        context.getString(R.string.field_timer_restart_desc_off),
-                        context.getString(R.string.field_timer_restart_desc_on),
-                    )
-                )
-                setOnClickListener(viewModel::toggleRestartWhenReached)
-            }
-        }
-
-        return viewBinding.root
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@TimerReachedConditionDialog.Content() } }
     }
 
     override fun onDialogCreated(dialog: BottomSheetDialog) {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                launch { viewModel.isEditingCondition.collect(::onConditionEditingStateChanged) }
+        lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.CREATED) {
+            viewModel.isEditingCondition.collect {
+                if (!it) { Log.e(TAG, "Closing TimerReachedConditionDialog because there is no condition edited"); finish() }
             }
-        }
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.name.collect(viewBinding.fieldName::setText) }
-                launch { viewModel.nameError.collect(viewBinding.fieldName::setError)}
-                launch { viewModel.duration.collect(::updateDuration) }
-                launch { viewModel.durationError.collect(viewBinding.editDurationLayout::setError)}
-                launch { viewModel.selectedUnitItem.collect(viewBinding.timeUnitField::setSelectedItem) }
-                launch { viewModel.restartWhenReached.collect(::updateIsResetField) }
-                launch { viewModel.conditionCanBeSaved.collect(::updateSaveButton) }
+        } }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        viewModel.monitorAfterView(afterAnchor)
+        viewModel.monitorRestartView(restartAnchor)
+        viewModel.monitorSaveView(saveAnchor)
+    }
+
+    override fun onStop() { viewModel.detachMonitoredViews(); super.onStop() }
+
+    @Composable private fun Content() {
+        val initialName by viewModel.name.collectAsStateWithLifecycle(null)
+        val displayedDuration by viewModel.duration.collectAsStateWithLifecycle(null)
+        val unit by viewModel.selectedUnitItem.collectAsStateWithLifecycle(TimeUnitDropDownItem.Milliseconds)
+        val nameError by viewModel.nameError.collectAsStateWithLifecycle(false)
+        val durationError by viewModel.durationError.collectAsStateWithLifecycle(false)
+        val restart by viewModel.restartWhenReached.collectAsStateWithLifecycle(false)
+        val saveEnabled by viewModel.conditionCanBeSaved.collectAsStateWithLifecycle(false)
+        var name by rememberSaveable { mutableStateOf("") }
+        var duration by rememberSaveable { mutableStateOf("") }
+        val durationFocusRequester = remember { FocusRequester() }
+        LaunchedEffect(initialName) { initialName?.let { name = it } }
+        LaunchedEffect(displayedDuration) { displayedDuration?.let { duration = it } }
+
+        Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            Column {
+                TopBar(saveEnabled)
+                Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    MacrionTextField(name, { name = it; viewModel.setName(it) }, context.getString(R.string.generic_name),
+                        isError = nameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                        Box(Modifier.weight(0.7f)) {
+                            TutorialViewAnchor({ afterAnchor = it; viewModel.monitorAfterView(it) },
+                                durationFocusRequester::requestFocus, Modifier.matchParentSize())
+                            OutlinedTextField(duration, {
+                                val filtered = it.filter(Char::isDigit)
+                                duration = filtered
+                                viewModel.setDuration(filtered.toLongOrNull())
+                            }, Modifier.fillMaxWidth().focusRequester(durationFocusRequester),
+                                label = { Text(context.getString(R.string.input_field_label_timer_duration_no_unit)) },
+                                isError = durationError, singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                        }
+                        Spacer(Modifier.width(16.dp))
+                        TimeUnitDropdown(unit, Modifier.weight(0.3f))
+                    }
+                    RestartCard(restart)
+                }
             }
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.monitorViews(
-            afterEditText = viewBinding.editDurationLayout.textField,
-            restartCheckBox = viewBinding.fieldIsReset.toggleSwitch,
-            saveButton = viewBinding.layoutTopBar.buttonSave,
-        )
+    @Composable private fun TopBar(saveEnabled: Boolean) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
+            Text(context.getString(R.string.dialog_title_timer_reached), Modifier.weight(1f).padding(horizontal = 8.dp),
+                style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Clip)
+            FilledTonalIconButton(onClick = ::delete) { Icon(painterResource(R.drawable.ic_delete), null) }
+            Spacer(Modifier.width(8.dp))
+            Box {
+                FilledIconButton(onClick = ::save, enabled = saveEnabled) { Icon(painterResource(R.drawable.ic_save_filled), null) }
+                TutorialClickAnchor({ saveAnchor = it; viewModel.monitorSaveView(it) }, ::save, saveEnabled)
+            }
+        }
     }
 
-    override fun onPause() {
-        super.onPause()
-        viewModel.stopViewMonitoring()
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable private fun TimeUnitDropdown(selected: TimeUnitDropDownItem, modifier: Modifier) {
+        var expanded by remember { mutableStateOf(false) }
+        ExposedDropdownMenuBox(expanded, { expanded = it }, modifier) {
+            OutlinedTextField(stringResource(selected.title), {},
+                Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(), readOnly = true,
+                label = { Text(context.getString(R.string.dropdown_label_time_unit)) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) }, singleLine = true)
+            ExposedDropdownMenu(expanded, { expanded = false }) {
+                timeUnitDropdownItems.forEach { item -> DropdownMenuItem({ Text(stringResource(item.title)) }, {
+                    viewModel.setTimeUnit(item); expanded = false
+                }) }
+            }
+        }
+    }
+
+    @Composable private fun RestartCard(restart: Boolean) {
+        ElevatedCard(Modifier.fillMaxWidth().heightIn(min = 62.dp)) {
+            Box {
+                Row(Modifier.fillMaxWidth().clickable(onClick = viewModel::toggleRestartWhenReached)
+                    .padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(context.getString(R.string.field_timer_restart_title), style = MaterialTheme.typography.titleSmall)
+                        Text(context.getString(if (restart) R.string.field_timer_restart_desc_on else R.string.field_timer_restart_desc_off),
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Switch(restart, { viewModel.toggleRestartWhenReached() })
+                }
+                TutorialClickAnchor({ restartAnchor = it; viewModel.monitorRestartView(it) }, viewModel::toggleRestartWhenReached)
+            }
+        }
     }
 
     override fun back() {
         if (viewModel.hasUnsavedModifications()) {
-            context.showCloseWithoutSavingDialog {
-                listener.onDismissClicked()
-                super.back()
-            }
+            context.showCloseWithoutSavingDialog { listener.onDismissClicked(); super.back() }
             return
         }
-
-        listener.onDismissClicked()
-        super.back()
+        listener.onDismissClicked(); super.back()
     }
-
-    private fun updateDuration(newDuration: String?) {
-        viewBinding.editDurationLayout.setText(newDuration, InputType.TYPE_CLASS_NUMBER)
-    }
-
-    private fun updateSaveButton(canBeSaved: Boolean) {
-        viewBinding.layoutTopBar.setButtonEnabledState(DialogNavigationButton.SAVE, canBeSaved)
-    }
-
-    private fun updateIsResetField(resetWhenReached: Boolean) {
-        viewBinding.fieldIsReset.apply {
-            setChecked(resetWhenReached)
-            setDescription(if (resetWhenReached) 1 else 0)
-        }
-    }
-
-    private fun onConditionEditingStateChanged(isEditing: Boolean) {
-        if (!isEditing) finish()
-    }
+    private fun save() { listener.onConfirmClicked(); super.back() }
+    private fun delete() { listener.onDeleteClicked(); super.back() }
 }
+
+private const val TAG = "TimerReachedConditionDialog"

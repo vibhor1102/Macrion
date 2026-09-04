@@ -20,10 +20,13 @@ package io.github.vibhor1102.macrion.scenarios
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentContainerView
+import androidx.fragment.app.commitNow
 import androidx.lifecycle.lifecycleScope
 
 import io.github.vibhor1102.macrion.R
@@ -66,7 +69,20 @@ class ScenarioActivity : AppCompatActivity(), ScenarioListFragment.Listener {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_scenario)
+        setContentView(
+            FragmentContainerView(this).apply {
+                id = R.id.fragment
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                )
+            },
+        )
+        if (savedInstanceState == null) {
+            supportFragmentManager.commitNow {
+                replace(R.id.fragment, ScenarioListFragment(), "ScenarioList")
+            }
+        }
 
         scenarioViewModel.stopScenario()
         scenarioViewModel.requestUserConsentIfNeeded(this)

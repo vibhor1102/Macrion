@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 Vibhor Goel -->
+<resources>
+    <item name="btn_confirm" type="id" />
+    <item name="btn_cancel" type="id" />
+    <item name="btn_help" type="id" />
+    <item name="btn_save" type="id" />
+    <item name="btn_add" type="id" />
+    <item name="btn_copy" type="id" />
+    <item name="btn_back" type="id" />
+    <item name="btn_record" type="id" />
+    <item name="btn_add_other" type="id" />
+    <item name="btn_play" type="id" />
+    <item name="btn_stop" type="id" />
+    <item name="btn_click_list" type="id" />
+    <item name="btn_switch_scenario" type="id" />
+    <item name="layout_debug" type="id" />
+    <item name="error_badge" type="id" />
+</resources>

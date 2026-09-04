@@ -24,23 +24,27 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.WindowManager
+import android.widget.FrameLayout
 
 import androidx.annotation.CallSuper
 import androidx.annotation.StyleRes
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
 
-import io.github.vibhor1102.macrion.core.common.overlays.databinding.DialogBaseNavBarBinding
-import io.github.vibhor1102.macrion.core.common.overlays.databinding.ViewBottomNavBarBinding
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.NavBarDialogScaffold
 import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.databinding.IncludeDialogNavigationTopBarBinding
-import io.github.vibhor1102.macrion.core.ui.databinding.IncludeFloatingActionButtonsBinding
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.TopBarNavigationView
+import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.FloatingActionButtonsView
 
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationBarView
+import com.google.android.material.navigationrail.NavigationRailView
 
 abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
 
@@ -53,10 +57,11 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
      */
     private var keyboardAdjustListener: ViewTreeObserver.OnGlobalLayoutListener? = null
 
-    private lateinit var baseViewBinding: DialogBaseNavBarBinding
+    private lateinit var persistentHeader: FrameLayout
+    private lateinit var contentContainer: FrameLayout
     protected lateinit var navBarView: NavigationBarView
-    lateinit var floatingActionButtons: IncludeFloatingActionButtonsBinding
-    lateinit var topBarBinding: IncludeDialogNavigationTopBarBinding
+    lateinit var floatingActionButtons: FloatingActionButtonsView
+    lateinit var topBarBinding: TopBarNavigationView
 
     abstract fun inflateMenu(navBarView: NavigationBarView)
 
@@ -67,27 +72,34 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
     open fun onContentViewChanged(navItemId: Int) = Unit
 
     override fun onCreateView(): ViewGroup {
-        baseViewBinding = DialogBaseNavBarBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                buttonSave.setDebouncedOnClickListener { handleButtonClick(DialogNavigationButton.SAVE) }
-                buttonDismiss.setDebouncedOnClickListener { handleButtonClick(DialogNavigationButton.DISMISS) }
-                buttonDelete.setDebouncedOnClickListener { handleButtonClick(DialogNavigationButton.DELETE) }
-            }
+        val inflater = LayoutInflater.from(context)
+        topBarBinding = TopBarNavigationView(context).apply {
+            setButtonClickListener(DialogNavigationButton.SAVE) { debounceUserInteraction { handleButtonClick(DialogNavigationButton.SAVE) } }
+            setButtonClickListener(DialogNavigationButton.DISMISS) { debounceUserInteraction { handleButtonClick(DialogNavigationButton.DISMISS) } }
+            setButtonClickListener(DialogNavigationButton.DELETE) { debounceUserInteraction { handleButtonClick(DialogNavigationButton.DELETE) } }
         }
-        topBarBinding = baseViewBinding.layoutTopBar
+        persistentHeader = FrameLayout(context).apply {
+            id = View.generateViewId()
+            visibility = View.GONE
+        }
+        contentContainer = FrameLayout(context).apply { id = View.generateViewId() }
 
         // In portrait, we need to inject the navigation view as a child of the dialog's CoordinatorLayout in order to
         // correctly handle the dialog scrolling behaviour without moving the navigation view from the bottom.
         // This issue does not occurs in landscape mode, as the NavigationBar is replaced by a NavigationRail, which
         // is sticky to the dialog start.
         if (displayConfigManager.displayConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            navBarView = ViewBottomNavBarBinding.inflate(LayoutInflater.from(context)).root
-            floatingActionButtons = IncludeFloatingActionButtonsBinding.inflate(LayoutInflater.from(context))
+            navBarView = BottomNavigationView(context).apply {
+                id = View.generateViewId()
+                translationZ = 100 * resources.displayMetrics.density
+            }
+            floatingActionButtons = FloatingActionButtonsView(context)
         } else {
-            navBarView = baseViewBinding.navBar
-                ?: throw IllegalStateException("Landscape layout must contains a NavigationRailView")
-            floatingActionButtons = baseViewBinding.floatingActionButtons
-                ?: throw IllegalStateException("Landscape layout must contains a floating action buttons layout")
+            navBarView = NavigationRailView(context).apply {
+                id = View.generateViewId()
+                labelVisibilityMode = NavigationBarView.LABEL_VISIBILITY_UNLABELED
+            }
+            floatingActionButtons = FloatingActionButtonsView(context)
         }
 
         // Generic setup of the navigation
@@ -99,7 +111,20 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
             }
         }
 
-        return baseViewBinding.root
+        val isPortrait = displayConfigManager.displayConfig.orientation == Configuration.ORIENTATION_PORTRAIT
+        return ComposeView(context).apply {
+            setContent {
+                MacrionTheme {
+                    NavBarDialogScaffold(
+                        topBar = topBarBinding.root,
+                        persistentHeader = persistentHeader,
+                        content = contentContainer,
+                        navBar = navBarView.takeUnless { isPortrait },
+                        floatingActions = floatingActionButtons.root.takeUnless { isPortrait },
+                    )
+                }
+            }
+        }
     }
 
     @CallSuper
@@ -150,7 +175,7 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
 
     /** Adds content that remains visible above every navigation page. */
     protected fun setPersistentHeader(view: View) {
-        baseViewBinding.dialogPersistentHeader.apply {
+        persistentHeader.apply {
             removeAllViews()
             addView(view)
             visibility = View.VISIBLE
@@ -193,7 +218,7 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
 
     private fun createContentView(itemId: Int): NavBarDialogContent =
         onCreateContent(itemId).apply {
-            create(this@NavBarDialog, baseViewBinding.dialogContent, itemId)
+            create(this@NavBarDialog, contentContainer, itemId)
         }
 
     private fun updateContentView(itemId: Int, forceUpdate: Boolean = false) {

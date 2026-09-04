@@ -1,94 +1,77 @@
-/*
- * Copyright (C) 2026 Kevin Buzeau
- * Copyright (C) 2026 Vibhor Goel
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2026 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.filter.events
 
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-
+import android.view.View
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.DialogFilteredEventsSelectorBinding
 import io.github.vibhor1102.macrion.feature.smart.debugging.di.DebuggingViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportDialogTopBar
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportRecycler
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportRecyclerViews
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.filter.DebugReportTimelineFilter
 
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlinx.coroutines.launch
-import kotlin.getValue
-
 class FilteredEventsSelectorDialog(
-    val eventsFilter: DebugReportTimelineFilter.Events,
-    val onFilteredIdsChanged: (DebugReportTimelineFilter.Events) -> Unit,
+    private val eventsFilter: DebugReportTimelineFilter.Events,
+    private val onFilteredIdsChanged: (DebugReportTimelineFilter.Events) -> Unit,
 ) : OverlayDialog(R.style.AppTheme) {
-
-    /** View model for this dialog. */
     private val viewModel: FilteredEventsSelectorViewModel by viewModels(
         entryPoint = DebuggingViewModelsEntryPoint::class.java,
         creator = { filteredEventsSelectorViewModel() },
     )
-
-    private lateinit var viewBinding: DialogFilteredEventsSelectorBinding
-    private lateinit var adapter: FilteredEventsSelectorAdapter
+    private val adapter = FilteredEventsSelectorAdapter(viewModel::setFilteredState)
+    private var listViews: ReportRecyclerViews? = null
 
     override fun onCreateView(): ViewGroup {
-        viewBinding = DialogFilteredEventsSelectorBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                buttonDelete.visibility = View.GONE
-
-                buttonSave.visibility = View.VISIBLE
-                buttonSave.setDebouncedOnClickListener {
-                    onFilteredIdsChanged(viewModel.getFilter())
-                    back()
-                }
-
-                buttonDismiss.visibility = View.VISIBLE
-                buttonDismiss.setDebouncedOnClickListener { back() }
-            }
-
-            adapter = FilteredEventsSelectorAdapter(
-                onItemClicked = { id, state ->
-                    viewModel.setFilteredState(id, state)
-                }
-            )
-            itemList.adapter = adapter
-            fastScroller.attachToRecyclerView(itemList)
-        }
-
         viewModel.setEventFilter(eventsFilter)
-        return viewBinding.root
-    }
-
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.eventsItems.collect(::updateItems) }
-            }
+        return ComposeView(context).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent { MacrionTheme { this@FilteredEventsSelectorDialog.Content() } }
         }
     }
 
-    private fun updateItems(items: List<FilteredEventsSelectorItem>) {
-        viewBinding.fastScroller.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
-        adapter.submitList(items) {
-            viewBinding.fastScroller.refresh()
+    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
+
+    @Composable private fun Content() {
+        val items = viewModel.eventsItems.collectAsStateWithLifecycle(initialValue = emptyList()).value
+        LaunchedEffect(items) {
+            listViews?.fastScroller?.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
+            adapter.submitList(items) { listViews?.fastScroller?.refresh() }
+        }
+        Surface(Modifier.fillMaxSize().heightIn(min = 600.dp)) {
+            Column {
+                ReportDialogTopBar(
+                    title = "",
+                    onDismiss = ::back,
+                    onSave = {
+                        onFilteredIdsChanged(viewModel.getFilter())
+                        back()
+                    },
+                )
+                ReportRecycler(
+                    contentDescriptionRes = R.string.content_desc_filtered_events_fast_scroller,
+                    modifier = Modifier.weight(1f),
+                    onCreated = { views ->
+                        listViews = views
+                        views.recyclerView.adapter = adapter
+                        views.fastScroller.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
+                    },
+                )
+            }
         }
     }
 }

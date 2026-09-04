@@ -16,13 +16,30 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.filter.events
 
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ItemEventFilteredStateBinding
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 
 class FilteredEventsSelectorAdapter(
     private val onItemClicked: (Long, Boolean) -> Unit,
@@ -30,7 +47,7 @@ class FilteredEventsSelectorAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FilteredEventsSelectorItemViewHolder =
         FilteredEventsSelectorItemViewHolder(
-            viewBinding = ItemEventFilteredStateBinding.inflate(LayoutInflater.from(parent.context), parent, false),
+            parent = parent,
             onItemClicked = onItemClicked,
         )
 
@@ -52,23 +69,48 @@ private object FilteredEventsSelectorItemDiffUtilCallback: DiffUtil.ItemCallback
 }
 
 class FilteredEventsSelectorItemViewHolder(
-    private val viewBinding: ItemEventFilteredStateBinding,
+    parent: ViewGroup,
     private val onItemClicked: (id: Long, state: Boolean) -> Unit,
-) : RecyclerView.ViewHolder(viewBinding.root) {
+) : RecyclerView.ViewHolder(ComposeView(parent.context)) {
+    private var itemState by mutableStateOf<FilteredEventsSelectorItem?>(null)
 
-    fun bind(item: FilteredEventsSelectorItem) {
-        viewBinding.apply {
-            root.setOnItemClickedListener(item, onItemClicked)
-            eventNameText.text = item.eventName
-
-            stateCheckbox.apply {
-                isChecked = item.eventState
-                setOnItemClickedListener(item, onItemClicked)
+    init {
+        (itemView as ComposeView).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
+            setContent {
+                MacrionTheme {
+                    itemState?.let { item ->
+                        androidx.compose.foundation.layout.Column(
+                            Modifier.fillMaxWidth().clickable {
+                                onItemClicked(item.eventId, !item.eventState)
+                            }.padding(horizontal = 16.dp),
+                        ) {
+                            Row(
+                                Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = item.eventName,
+                                    modifier = Modifier.weight(1f).padding(end = 16.dp),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                Checkbox(
+                                    checked = item.eventState,
+                                    onCheckedChange = { onItemClicked(item.eventId, !item.eventState) },
+                                )
+                            }
+                            HorizontalDivider(Modifier.padding(top = 8.dp))
+                        }
+                    }
+                }
             }
         }
     }
 
-    private fun View.setOnItemClickedListener(item: FilteredEventsSelectorItem, onItemClicked: (id: Long, state: Boolean) -> Unit) {
-        setOnClickListener { onItemClicked(item.eventId, !item.eventState) }
+    fun bind(item: FilteredEventsSelectorItem) {
+        itemState = item
     }
 }

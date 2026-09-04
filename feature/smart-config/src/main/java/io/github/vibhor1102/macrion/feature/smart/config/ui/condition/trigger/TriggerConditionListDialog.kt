@@ -1,182 +1,146 @@
-/*
- * Copyright (C) 2024 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger
 
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
-
+import android.view.View
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
-import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.selection.TriggerConditionTypeSelectionDialog
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 import io.github.vibhor1102.macrion.core.domain.model.condition.TriggerCondition
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonVisibility
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.setEmptyText
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.updateState
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.DialogTriggerConditionsBinding
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiTriggerCondition
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.OnConditionConfigCompleteListener
-import io.github.vibhor1102.macrion.feature.smart.config.ui.copy.condition.ConditionCopyDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.broadcast.BroadcastReceivedConditionDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.counter.CounterReachedConditionDialog
+import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.selection.*
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.timer.TimerReachedConditionDialog
-
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlinx.coroutines.launch
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
-import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.selection.allTriggerConditionChoices
-
+import io.github.vibhor1102.macrion.feature.smart.config.ui.copy.condition.ConditionCopyDialog
 
 class TriggerConditionListDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
-
+    private val viewModel: TriggerConditionListViewModel by viewModels(
+        entryPoint = ScenarioConfigViewModelsEntryPoint::class.java, creator = { triggerConditionsViewModel() })
+    private var closeButtonAnchor: View? = null
+    private var createButtonAnchor: View? = null
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.TRIGGER_CONDITION_LIST.name
 
-    private val viewModel: TriggerConditionListViewModel by viewModels(
-        entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
-        creator = { triggerConditionsViewModel() },
-    )
-
-    private lateinit var viewBinding: DialogTriggerConditionsBinding
-
-    override fun onCreateView(): ViewGroup {
-        viewBinding = DialogTriggerConditionsBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                setButtonVisibility(DialogNavigationButton.SAVE, View.GONE)
-                setButtonVisibility(DialogNavigationButton.DELETE, View.GONE)
-                dialogTitle.setText(R.string.dialog_title_trigger_event)
-
-                buttonDismiss.setDebouncedOnClickListener { back() }
-            }
-
-            buttonNew.setDebouncedOnClickListener { showTriggerConditionTypeSelectionDialog() }
-            buttonCopy.setDebouncedOnClickListener { showCopyDialog() }
-
-            layoutLoadableList.apply {
-                setEmptyText(
-                    id = R.string.message_empty_trigger_condition_list_title,
-                    secondaryId = R.string.message_empty_trigger_condition_list_desc,
-                )
-
-                list.apply {
-                    adapter = TriggerConditionAdapter(::showTriggerConditionDialog)
-                    layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
-                }
-            }
-        }
-
-        return viewBinding.root
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@TriggerConditionListDialog.Content() } }
     }
-
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.canCopyCondition.collect(::updateCopyButton) }
-                launch { viewModel.configuredTriggerConditions.collect(::updateConditionList) }
-            }
-        }
-    }
-
+    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
     override fun onResume() {
         super.onResume()
-        viewModel.monitorViews(
-            createConditionButton = viewBinding.buttonNew,
-            closeButton = viewBinding.layoutTopBar.buttonDismiss,
-        )
+        val closeButton = closeButtonAnchor
+        val createButton = createButtonAnchor
+        if (closeButton != null && createButton != null) viewModel.monitorViews(createButton, closeButton)
     }
+    override fun onPause() { viewModel.stopViewMonitoring(); super.onPause() }
 
-    override fun onPause() {
-        super.onPause()
-        viewModel.stopViewMonitoring()
-    }
-
-    private fun updateCopyButton(visible: Boolean) {
-        viewBinding.buttonCopy.visibility = if (visible) View.VISIBLE else View.GONE
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun updateConditionList(newItems: List<UiTriggerCondition>?) {
-        viewBinding.layoutLoadableList.apply {
-            updateState(newItems)
-            (list.adapter as ListAdapter<UiTriggerCondition, RecyclerView.ViewHolder>).submitList(newItems)
+    @Composable private fun Content() {
+        val conditions = viewModel.configuredTriggerConditions.collectAsStateWithLifecycle(emptyList()).value
+        val canCopy = viewModel.canCopyCondition.collectAsStateWithLifecycle(false).value
+        Scaffold(
+            modifier = Modifier.fillMaxWidth().heightIn(max = dimensionResource(io.github.vibhor1102.macrion.core.ui.R.dimen.bottom_sheet_min_height)),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+            topBar = {
+                Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Box {
+                        IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
+                        TutorialClickAnchor(
+                            onViewChanged = { view ->
+                                closeButtonAnchor = view
+                                viewModel.monitorCloseButton(view)
+                            },
+                            onClick = ::back,
+                        )
+                    }
+                    Text(context.getString(R.string.dialog_title_trigger_event), Modifier.weight(1f).padding(8.dp),
+                        style = MaterialTheme.typography.titleLarge)
+                }
+            },
+            floatingActionButton = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (canCopy) FloatingActionButton(onClick = ::showCopyDialog, containerColor = MaterialTheme.colorScheme.secondaryContainer) {
+                        Icon(painterResource(R.drawable.ic_copy), null)
+                    }
+                    Box {
+                        FloatingActionButton(onClick = ::showTriggerConditionTypeSelectionDialog) {
+                            Icon(painterResource(R.drawable.ic_add), null)
+                        }
+                        TutorialClickAnchor(
+                            onViewChanged = { view ->
+                                createButtonAnchor = view
+                                viewModel.monitorCreateButton(view)
+                            },
+                            onClick = ::showTriggerConditionTypeSelectionDialog,
+                        )
+                    }
+                }
+            },
+        ) { padding ->
+            if (conditions.isEmpty()) Box(Modifier.fillMaxSize().padding(padding).padding(24.dp), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(context.getString(R.string.message_empty_trigger_condition_list_title), style = MaterialTheme.typography.titleMedium)
+                    Text(context.getString(R.string.message_empty_trigger_condition_list_desc), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            } else LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = 88.dp)) {
+                items(conditions, key = { it.condition.id.toString() }) { condition -> ConditionRow(condition) }
+            }
         }
     }
 
-    private fun showTriggerConditionTypeSelectionDialog() {
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = TriggerConditionTypeSelectionDialog(
-                choices = allTriggerConditionChoices(),
-                onChoiceSelectedListener = { choice ->
-                    showTriggerConditionDialog(viewModel.createNewTriggerCondition(context, choice))
-                },
-            ),
-            hideCurrent = false,
-        )
+    @Composable private fun ConditionRow(item: UiTriggerCondition) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 72.dp).clickable { showTriggerConditionDialog(item.condition) }
+            .padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(item.name, style = MaterialTheme.typography.titleSmall)
+                Text(item.description, style = MaterialTheme.typography.bodySmall,
+                    color = if (item.haveError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            Icon(painterResource(item.iconRes), null, Modifier.size(32.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
     }
 
-    private fun showCopyDialog() {
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = ConditionCopyDialog(
-                onConditionsCopied = { conditionsSelected ->
-                    if (conditionsSelected.size != 1) return@ConditionCopyDialog
-                    (conditionsSelected[0] as? TriggerCondition)?.let { condition ->
-                        showTriggerConditionDialog(condition)
-                    }
-                },
-                requestTriggerConditions = true,
-            ),
-        )
-    }
+    private fun showTriggerConditionTypeSelectionDialog() = overlayManager.navigateTo(context,
+        TriggerConditionTypeSelectionDialog(allTriggerConditionChoices(), onChoiceSelectedListener = {
+            showTriggerConditionDialog(viewModel.createNewTriggerCondition(context, it))
+        }), false)
+
+    private fun showCopyDialog() = overlayManager.navigateTo(context, ConditionCopyDialog(true) { selected ->
+        if (selected.size == 1) (selected[0] as? TriggerCondition)?.let(::showTriggerConditionDialog)
+    })
 
     private fun showTriggerConditionDialog(condition: TriggerCondition) {
         viewModel.startConditionEdition(condition)
-
-        val conditionConfigDialogListener: OnConditionConfigCompleteListener by lazy {
-            object : OnConditionConfigCompleteListener {
-                override fun onConfirmClicked() { viewModel.upsertEditedCondition() }
-                override fun onDeleteClicked() { viewModel.removeEditedCondition() }
-                override fun onDismissClicked() { viewModel.dismissEditedCondition() }
-            }
+        val listener = object : OnConditionConfigCompleteListener {
+            override fun onConfirmClicked() { viewModel.upsertEditedCondition() }
+            override fun onDeleteClicked() { viewModel.removeEditedCondition() }
+            override fun onDismissClicked() { viewModel.dismissEditedCondition() }
         }
-
-        val configOverlay = when (condition) {
-            is TriggerCondition.OnBroadcastReceived ->
-                BroadcastReceivedConditionDialog(conditionConfigDialogListener)
-            is TriggerCondition.OnCounterCountReached ->
-                CounterReachedConditionDialog(conditionConfigDialogListener)
-            is TriggerCondition.OnTimerReached ->
-                TimerReachedConditionDialog(conditionConfigDialogListener)
+        val overlay = when (condition) {
+            is TriggerCondition.OnBroadcastReceived -> BroadcastReceivedConditionDialog(listener)
+            is TriggerCondition.OnCounterCountReached -> CounterReachedConditionDialog(listener)
+            is TriggerCondition.OnTimerReached -> TimerReachedConditionDialog(listener)
         }
-
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = configOverlay,
-            hideCurrent = true,
-        )
+        overlayManager.navigateTo(context, overlay, true)
     }
 }

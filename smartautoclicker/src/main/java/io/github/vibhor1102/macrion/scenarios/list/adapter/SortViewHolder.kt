@@ -1,87 +1,187 @@
-/*
- * Copyright (C) 2025 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2025 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.scenarios.list.adapter
 
-import androidx.annotation.IdRes
+import android.content.res.Configuration
+import android.view.ViewGroup
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedIconToggleButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SingleChoiceSegmentedButtonRowScope
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.recyclerview.widget.RecyclerView
-
 import io.github.vibhor1102.macrion.R
-import io.github.vibhor1102.macrion.databinding.ItemOrderingAndFilteringBinding
-import io.github.vibhor1102.macrion.scenarios.list.model.ScenarioListUiState
 import io.github.vibhor1102.macrion.core.settings.domain.model.ScenarioSortType
-import com.google.android.material.button.MaterialButtonToggleGroup.OnButtonCheckedListener
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.scenarios.list.model.ScenarioListUiState
 
 class SortViewHolder(
-    private val viewBinding: ItemOrderingAndFilteringBinding,
+    parent: ViewGroup,
     private val onSortTypeClicked: (ScenarioSortType) -> Unit,
     private val onSmartChipClicked: (Boolean) -> Unit,
     private val onDumbChipClicked: (Boolean) -> Unit,
     private val onSortOrderClicked: (Boolean) -> Unit,
-): RecyclerView.ViewHolder(viewBinding.root) {
+) : RecyclerView.ViewHolder(ComposeView(parent.context)) {
+    private var config by mutableStateOf<ScenarioListUiState.Item.SortItem?>(null)
 
-    private val onOrderingButtonGroupCheckedListener =
-        OnButtonCheckedListener { _, checkedId, isChecked ->
-            if (isChecked) onSortTypeClicked(checkedId.toScenarioSortType())
+    init {
+        (itemView as ComposeView).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
+            setContent { MacrionTheme { config?.let { SortControls(it) } } }
         }
+    }
 
-    fun onBind(config: ScenarioListUiState.Item.SortItem) {
-        viewBinding.apply {
-            buttonGroupOrdering.apply {
-                check(config.sortType.toButtonId())
-                addOnButtonCheckedListener(onOrderingButtonGroupCheckedListener)
-            }
+    fun onBind(value: ScenarioListUiState.Item.SortItem) { config = value }
+    fun onUnbind() = Unit
 
-            chipSmart.apply {
-                isChecked = config.smartVisible
-                setOnClickListener { onSmartChipClicked(chipSmart.isChecked) }
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun SortControls(state: ScenarioListUiState.Item.SortItem) {
+        val landscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+        if (landscape) {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                OrderingButtons(state, Modifier.weight(1f).padding(end = 8.dp))
+                FilterControls(state)
             }
-            chipDumb.apply {
-                isChecked = config.dumbVisible
-                setOnClickListener { onDumbChipClicked(chipDumb.isChecked) }
-            }
-            checkboxSortOrder.apply {
-                isChecked = config.changeOrderChecked
-                setOnClickListener { onSortOrderClicked(checkboxSortOrder.isChecked) }
+        } else {
+            Column(
+                Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                OrderingButtons(state, Modifier.fillMaxWidth().padding(horizontal = 32.dp))
+                FilterControls(state, Modifier.padding(top = 8.dp))
             }
         }
     }
 
-    fun onUnbind() {
-        viewBinding.apply {
-            buttonGroupOrdering.removeOnButtonCheckedListener(onOrderingButtonGroupCheckedListener)
-            chipSmart.setOnClickListener(null)
-            chipDumb.setOnClickListener(null)
-            checkboxSortOrder.setOnClickListener(null)
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun OrderingButtons(state: ScenarioListUiState.Item.SortItem, modifier: Modifier) {
+        Box(modifier, contentAlignment = Alignment.Center) {
+            SingleChoiceSegmentedButtonRow {
+                OrderingButton(
+                    R.drawable.ic_sort_name,
+                    R.string.item_scenario_filter_by_name,
+                    state.sortType == ScenarioSortType.NAME,
+                    0,
+                    { onSortTypeClicked(ScenarioSortType.NAME) },
+                )
+                OrderingButton(
+                    R.drawable.ic_sort_recent,
+                    R.string.item_scenario_filter_by_recent,
+                    state.sortType == ScenarioSortType.RECENT,
+                    1,
+                    { onSortTypeClicked(ScenarioSortType.RECENT) },
+                )
+                OrderingButton(
+                    R.drawable.ic_most_used,
+                    R.string.item_scenario_filter_by_most_used,
+                    state.sortType == ScenarioSortType.MOST_USED,
+                    2,
+                    { onSortTypeClicked(ScenarioSortType.MOST_USED) },
+                )
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun SingleChoiceSegmentedButtonRowScope.OrderingButton(
+        icon: Int,
+        label: Int,
+        selected: Boolean,
+        index: Int,
+        onClick: () -> Unit,
+    ) {
+        SegmentedButton(
+            selected = selected,
+            onClick = onClick,
+            shape = SegmentedButtonDefaults.itemShape(index = index, count = 3),
+            icon = {},
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(painterResource(icon), null, Modifier.size(18.dp))
+                Text(stringResource(label), Modifier.padding(start = 8.dp), maxLines = 1)
+            }
+        }
+    }
+
+    @Composable
+    private fun FilterControls(state: ScenarioListUiState.Item.SortItem, modifier: Modifier = Modifier) {
+        Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(
+                selected = state.smartVisible,
+                onClick = { onSmartChipClicked(!state.smartVisible) },
+                label = { Text(stringResource(R.string.item_title_smart_scenario)) },
+                leadingIcon = {
+                    Icon(
+                        painterResource(if (state.smartVisible) R.drawable.ic_confirm else R.drawable.ic_smart),
+                        null,
+                        Modifier.size(18.dp),
+                    )
+                },
+            )
+            FilterChip(
+                selected = state.dumbVisible,
+                onClick = { onDumbChipClicked(!state.dumbVisible) },
+                label = { Text(stringResource(R.string.item_title_dumb_scenario)) },
+                leadingIcon = {
+                    Icon(
+                        painterResource(if (state.dumbVisible) R.drawable.ic_confirm else R.drawable.ic_dumb),
+                        null,
+                        Modifier.size(18.dp),
+                    )
+                },
+            )
+            OutlinedIconToggleButton(
+                checked = state.changeOrderChecked,
+                onCheckedChange = onSortOrderClicked,
+                colors = IconButtonDefaults.outlinedIconToggleButtonColors(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                    checkedContentColor = MaterialTheme.colorScheme.onPrimary,
+                    checkedContainerColor = MaterialTheme.colorScheme.primary,
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            ) {
+                Icon(
+                    painterResource(R.drawable.ic_sort_order),
+                    null,
+                    tint = if (state.changeOrderChecked) {
+                        MaterialTheme.colorScheme.onPrimary
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    },
+                )
+            }
         }
     }
 }
-
-@IdRes
-private fun ScenarioSortType.toButtonId(): Int =
-    when (this) {
-        ScenarioSortType.NAME -> R.id.button_name
-        ScenarioSortType.RECENT -> R.id.button_recent
-        ScenarioSortType.MOST_USED -> R.id.button_most_used
-    }
-
-private fun Int.toScenarioSortType(): ScenarioSortType =
-    when (this) {
-        R.id.button_name -> ScenarioSortType.NAME
-        R.id.button_recent -> ScenarioSortType.RECENT
-        R.id.button_most_used -> ScenarioSortType.MOST_USED
-        else -> throw IllegalArgumentException("Invalid scenario sort button id")
-    }

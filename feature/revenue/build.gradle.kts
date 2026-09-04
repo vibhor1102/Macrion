@@ -25,10 +25,12 @@ plugins {
     alias(libs.plugins.buzbuz.flavour)
     alias(libs.plugins.buzbuz.buildParameters)
     alias(libs.plugins.buzbuz.hilt)
+    alias(libs.plugins.jetbrainsKotlinCompose)
 }
 
 android {
     namespace = "io.github.vibhor1102.macrion.feature.revenue"
+    buildFeatures.compose = true
 
     productFlavors {
         playStore {
@@ -36,7 +38,6 @@ android {
 
             buildFeatures {
                 buildConfig = true
-                viewBinding = true
             }
 
             buildConfigField(buildParameters.consentTestDevicesIds)
@@ -51,7 +52,11 @@ android {
 }
 
 dependencies {
+    val composeBom = platform(libs.androidx.compose.bom)
+
     implementation(libs.kotlinx.coroutines.core)
+    implementation(composeBom)
+    implementation(libs.androidx.compose.ui)
 
     implementation(project(":core:common:base"))
     implementation(project(":core:common:quality"))
@@ -61,6 +66,8 @@ dependencies {
     playStoreImplementation(libs.androidx.core.ktx)
     playStoreImplementation(libs.androidx.fragment.ktx)
     playStoreImplementation(libs.androidx.lifecycle.viewmodel.ktx)
+    playStoreImplementation(libs.androidx.compose.foundation)
+    playStoreImplementation(libs.androidx.compose.material3)
 
     playStoreImplementation(libs.android.billingClient)
     playStoreImplementation(libs.android.billingClient.ktx)

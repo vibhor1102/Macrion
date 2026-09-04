@@ -26,6 +26,9 @@ import android.view.animation.LinearInterpolator
 
 import androidx.annotation.CallSuper
 import androidx.annotation.StyleRes
+import androidx.lifecycle.setViewTreeLifecycleOwner
+import androidx.lifecycle.setViewTreeViewModelStoreOwner
+import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 
 import io.github.vibhor1102.macrion.core.base.extensions.safeAddView
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
@@ -67,6 +70,12 @@ abstract class FullscreenOverlay(@StyleRes theme: Int? = null) : BaseOverlay(the
     final override fun onCreate() {
         windowManager = context.getSystemService(WindowManager::class.java)
         view = onCreateView(context.getSystemService(LayoutInflater::class.java))
+
+        // WindowManager overlay roots don't inherit the Activity view-tree owners. Install this
+        // overlay's owners before attaching the view so Compose can create its recomposer safely.
+        view.setViewTreeLifecycleOwner(this)
+        view.setViewTreeSavedStateRegistryOwner(this)
+        view.setViewTreeViewModelStoreOwner(this)
 
         onViewCreated()
     }

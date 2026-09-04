@@ -17,7 +17,6 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.intent
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 
 import io.github.vibhor1102.macrion.core.android.intent.AndroidIntentApi
 import io.github.vibhor1102.macrion.core.android.intent.getBroadcastReceptionIntentActions
@@ -30,12 +29,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class IntentActionsSelectionViewModel @Inject constructor() : ViewModel() {
 
+    private var initialized = false
     private val selectedAction: MutableStateFlow<String?> = MutableStateFlow(null)
     private val getBroadcastActions: MutableStateFlow<Boolean?> = MutableStateFlow(null)
 
@@ -63,16 +62,15 @@ class IntentActionsSelectionViewModel @Inject constructor() : ViewModel() {
             }
         }
 
-    fun setRequestedActionsType(requestBroadcast: Boolean) {
-        viewModelScope.launch { getBroadcastActions.emit(requestBroadcast) }
+    fun initialize(action: String?, requestBroadcast: Boolean) {
+        if (initialized) return
+        initialized = true
+        selectedAction.value = action?.trim()
+        getBroadcastActions.value = requestBroadcast
     }
 
     fun getSelectedAction(): String? =
         selectedAction.value
-
-    fun setSelectedAction(action: String?) {
-        selectedAction.value = action?.trim()
-    }
 
     fun setActionSelectionState(action: String, isSelected: Boolean) {
         selectedAction.value = if (isSelected) action else null

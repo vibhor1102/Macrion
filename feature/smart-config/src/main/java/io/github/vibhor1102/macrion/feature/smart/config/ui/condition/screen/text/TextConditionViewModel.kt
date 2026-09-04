@@ -101,22 +101,26 @@ class TextConditionViewModel @Inject constructor(
         }
     }
 
-    fun monitorSaveButtonView(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.TEXT_CONDITION_DIALOG_BUTTON_SAVE, view)
+    fun monitorSaveButtonView(view: View?) {
+        monitor(MonitoredViewType.TEXT_CONDITION_DIALOG_BUTTON_SAVE, view)
     }
 
-    fun monitorTextToDetectField(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.TEXT_CONDITION_DIALOG_FIELD_TEXT_TO_DETECT, view)
+    fun monitorTextToDetectField(view: View?) {
+        monitor(MonitoredViewType.TEXT_CONDITION_DIALOG_FIELD_TEXT_TO_DETECT, view)
     }
 
-    fun monitorDetectionAreaSelectorView(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.TEXT_CONDITION_DIALOG_FIELD_AREA_SELECTOR, view)
+    fun monitorDetectionAreaSelectorView(view: View?) {
+        monitor(MonitoredViewType.TEXT_CONDITION_DIALOG_FIELD_AREA_SELECTOR, view)
     }
 
-    fun stopViewMonitoring() {
+    fun detachMonitoredViews() {
         monitoredViewsManager.detach(MonitoredViewType.TEXT_CONDITION_DIALOG_BUTTON_SAVE)
         monitoredViewsManager.detach(MonitoredViewType.TEXT_CONDITION_DIALOG_FIELD_AREA_SELECTOR)
         monitoredViewsManager.detach(MonitoredViewType.TEXT_CONDITION_DIALOG_FIELD_TEXT_TO_DETECT)
+    }
+
+    private fun monitor(type: MonitoredViewType, view: View?) {
+        if (view == null) monitoredViewsManager.detach(type) else monitoredViewsManager.attach(type, view)
     }
 
     private fun updateEditedCondition(closure: (oldValue: ScreenCondition.Text) -> ScreenCondition.Text?) {

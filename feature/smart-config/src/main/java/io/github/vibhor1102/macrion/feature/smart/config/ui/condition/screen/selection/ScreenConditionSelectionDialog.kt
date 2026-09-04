@@ -1,179 +1,133 @@
-/*
- * Copyright (C) 2026 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2026 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.selection
 
 import android.graphics.Bitmap
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
-
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
-import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.setEmptyText
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.updateState
-import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.DialogBaseListBinding
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.ItemScreenConditionGridBinding
-import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.bindings.bind
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
-
-import com.google.android.material.bottomsheet.BottomSheetDialog
-
-import kotlinx.coroutines.Job
-import kotlin.getValue
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.feature.smart.config.R
+import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toEffectDescription
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
 
 class ScreenConditionSelectionDialog(
     private val conditionList: List<UiScreenCondition>,
     private val onConditionSelected: (ScreenCondition) -> Unit,
-): OverlayDialog(R.style.ScenarioConfigTheme) {
-
+) : OverlayDialog(R.style.ScenarioConfigTheme) {
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.SCREEN_CONDITION_SELECTION.name
-
-    /** View model for this content. */
     private val viewModel: ScreenConditionSelectionViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { screenConditionSelectionViewModel() },
     )
-    /** ViewBinding containing the views for this dialog. */
-    private lateinit var viewBinding: DialogBaseListBinding
 
-    /** Adapter for the list of condition. */
-    private lateinit var conditionsAdapter: ScreenConditionsAdapter
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@ScreenConditionSelectionDialog.Content() } }
+    }
+    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
+    override fun onStop() { viewModel.stopViewMonitoring(); super.onStop() }
 
-    override fun onCreateView(): ViewGroup {
-        viewBinding = DialogBaseListBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(R.string.dialog_title_condition_selection)
-                buttonSave.visibility = View.GONE
-                buttonDismiss.setDebouncedOnClickListener { back() }
+    @Composable private fun Content() {
+        Surface(Modifier.fillMaxWidth().heightIn(max = 640.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            Column {
+                Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
+                    Text(context.getString(R.string.dialog_title_condition_selection), Modifier.weight(1f).padding(8.dp),
+                        style = MaterialTheme.typography.titleLarge)
+                }
+                if (conditionList.isEmpty()) Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
+                    Text(context.getString(R.string.message_empty_screen_condition_list_title),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else LazyVerticalGrid(
+                    columns = GridCells.Fixed(2), modifier = Modifier.fillMaxWidth().weight(1f),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
+                ) {
+                    itemsIndexed(conditionList, key = { _, item -> item.condition.id.toString() }) { index, item ->
+                        Box(Modifier.fillMaxWidth()) {
+                            ConditionCard(item) { onConditionSelected(item.condition); back() }
+                            if (index == 0) TutorialClickAnchor(
+                                onViewChanged = { view -> if (view != null) viewModel.monitorFirstConditionItemView(view)
+                                    else viewModel.stopViewMonitoring() },
+                                onClick = { onConditionSelected(item.condition); back() },
+                            )
+                        }
+                    }
+                }
             }
         }
+    }
 
-        conditionsAdapter = ScreenConditionsAdapter(
-            bitmapProvider = viewModel::getConditionBitmap,
-            onConditionSelected = ::onConditionClicked,
-            itemViewBound = ::onConditionItemBound,
-        )
-
-        viewBinding.layoutLoadableList.apply {
-            setEmptyText(R.string.message_empty_screen_condition_list_title)
-            list.apply {
-                adapter = conditionsAdapter
-                layoutManager = GridLayoutManager(
-                    context,
-                    2,
-                )
+    @Composable private fun ConditionCard(item: UiScreenCondition, onClick: () -> Unit) {
+        Card(Modifier.fillMaxWidth().padding(6.dp).clickable(onClick = onClick), shape = RoundedCornerShape(10.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
+            Column(Modifier.height(124.dp)) {
+                ConditionPreview(item, Modifier.fillMaxWidth().height(68.dp))
+                Column(Modifier.weight(1f).padding(vertical = 5.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterVertically)) {
+                    Text(item.name, Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                        style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                            Icon(painterResource(item.shouldBeVisibleIconRes), null, Modifier.size(14.dp))
+                        }
+                        if (item.condition is ScreenCondition.Image) Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                            Icon(painterResource(item.detectionTypeIconRes), null, Modifier.size(14.dp))
+                        }
+                        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                            Text(item.thresholdText, style = MaterialTheme.typography.bodySmall,
+                                color = if (item.haveError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
             }
         }
-
-        return viewBinding.root
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
-        viewBinding.layoutLoadableList.updateState(conditionList)
-        conditionsAdapter.submitList(conditionList)
-    }
-
-    private fun onConditionClicked(condition: ScreenCondition) {
-        onConditionSelected(condition)
-        back()
-    }
-
-    private fun onConditionItemBound(index: Int, itemView: View?) {
-        if (index != 0) return
-
-        if (itemView != null)  viewModel.monitorFirstConditionItemView(itemView)
-        else viewModel.stopViewMonitoring()
-    }
-}
-
-/**
- * Adapter for the list of condition.
- * @param onConditionSelected listener on user click on a condition.
- */
-private class ScreenConditionsAdapter(
-    private val bitmapProvider: (ScreenCondition.Image, onBitmapLoaded: (Bitmap?) -> Unit) -> Job?,
-    private val onConditionSelected: (ScreenCondition) -> Unit,
-    private val itemViewBound: ((Int, View?) -> Unit),
-) : ListAdapter<UiScreenCondition, ScreenConditionViewHolder>(ScreenConditionsDiffUtilCallback) {
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ScreenConditionViewHolder =
-        ScreenConditionViewHolder(
-            ItemScreenConditionGridBinding.inflate(LayoutInflater.from(parent.context), parent, false),
-            bitmapProvider,
-            onConditionSelected,
-        )
-
-    override fun onBindViewHolder(holder: ScreenConditionViewHolder, position: Int) {
-        holder.onBind(getItem(position))
-        itemViewBound(position, holder.viewBinding.cardImageCondition.root)
-    }
-
-    override fun onViewRecycled(holder: ScreenConditionViewHolder) {
-        holder.onUnbind()
-        itemViewBound(holder.bindingAdapterPosition, null)
-        super.onViewRecycled(holder)
-    }
-}
-
-/** DiffUtil Callback comparing two items when updating the [ScreenConditionsAdapter] list. */
-private object ScreenConditionsDiffUtilCallback: DiffUtil.ItemCallback<UiScreenCondition>() {
-    override fun areItemsTheSame(oldItem: UiScreenCondition, newItem: UiScreenCondition): Boolean =
-        oldItem.condition.id == newItem.condition.id
-    override fun areContentsTheSame(oldItem: UiScreenCondition, newItem: UiScreenCondition): Boolean =
-        oldItem == newItem
-}
-
-/**
- * ViewHolder for an Condition.
- *
- * @param viewBinding the view binding for this view holder views.
- * @param bitmapProvider provides the conditions bitmap.
- * @param onConditionSelected called when the user select a condition.
- */
-private class ScreenConditionViewHolder(
-    val viewBinding: ItemScreenConditionGridBinding,
-    private val bitmapProvider: (ScreenCondition.Image, onBitmapLoaded: (Bitmap?) -> Unit) -> Job?,
-    private val onConditionSelected: (ScreenCondition) -> Unit,
-): RecyclerView.ViewHolder(viewBinding.root) {
-
-    /** Job for the loading of the condition bitmap. Null until bound. */
-    private var bitmapLoadingJob: Job? = null
-
-    fun onBind(condition: UiScreenCondition) {
-        bitmapLoadingJob?.cancel()
-        bitmapLoadingJob = viewBinding.cardImageCondition.bind(
-            condition,
-            bitmapProvider,
-            onConditionSelected,
-        )
-    }
-
-    /** Unbind this view holder for a previously bound data model. */
-    fun onUnbind() {
-        bitmapLoadingJob?.cancel()
-        bitmapLoadingJob = null
+    @Composable private fun ConditionPreview(item: UiScreenCondition, modifier: Modifier) {
+        val condition = item.condition
+        var bitmap by remember(condition.id) { mutableStateOf<Bitmap?>(null) }
+        DisposableEffect(condition.id) {
+            val job = if (condition is ScreenCondition.Image) viewModel.getConditionBitmap(condition) { bitmap = it } else null
+            onDispose { job?.cancel() }
+        }
+        Box(modifier.clip(RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
+            when (condition) {
+                is ScreenCondition.Color -> Box(Modifier.size(40.dp).background(Color(condition.color), CircleShape))
+                is ScreenCondition.Image -> bitmap?.let {
+                    Image(it.asImageBitmap(), null, Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+                } ?: Icon(painterResource(if (item.haveError) R.drawable.ic_cancel else item.iconRes), null, Modifier.size(40.dp))
+                is ScreenCondition.Number -> Text(condition.comparisonOperation.toEffectDescription(context,
+                    operand = condition.counterValue.toNaturalDisplayString()), Modifier.padding(6.dp),
+                    style = MaterialTheme.typography.bodySmall, maxLines = 2)
+                is ScreenCondition.Text -> Text(condition.text, Modifier.padding(8.dp), style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 3, overflow = TextOverflow.Ellipsis)
+            }
+        }
     }
 }

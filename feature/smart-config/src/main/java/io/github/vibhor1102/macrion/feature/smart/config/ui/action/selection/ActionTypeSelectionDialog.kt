@@ -1,82 +1,58 @@
-/*
- * Copyright (C) 2024 Kevin Buzeau
- * Copyright (C) 2026 Vibhor Goel
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.selection
 
 import android.view.View
-
+import android.view.ViewGroup
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
-import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.MultiChoiceDialog
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialChoiceList
 
 class ActionTypeSelectionDialog(
-    choices: List<ActionTypeChoice>,
-    onChoiceSelectedListener: (ActionTypeChoice) -> Unit,
-    onCancelledListener: (() -> Unit)? = null,
-) : MultiChoiceDialog<ActionTypeChoice>(
-    theme = R.style.ScenarioConfigTheme,
-    dialogTitleText = R.string.dialog_title_action_type,
-    choices = choices,
-    onChoiceSelected = onChoiceSelectedListener,
-    onCanceled = onCancelledListener,
-) {
-
+    private val choices: List<ActionTypeChoice>,
+    private val onChoiceSelectedListener: (ActionTypeChoice) -> Unit,
+    private val onCancelledListener: (() -> Unit)? = null,
+) : OverlayDialog(R.style.ScenarioConfigTheme) {
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.ACTION_TYPE_SELECTION.name
-
-    /** View model for this content. */
     private val viewModel: ActionTypeSelectionViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { actionTypeSelectionViewModel() },
     )
 
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme {
+            TutorialChoiceList(
+                title = R.string.dialog_title_action_type, choices = choices, onDismiss = ::cancel,
+                onChoiceSelected = { back(); onChoiceSelectedListener(it) },
+                onChoiceViewChanged = ::monitorChoice,
+            )
+        } }
+    }
+    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
     override fun onStop() {
-        super.onStop()
         viewModel.stopViewCreateClickMonitoring()
         viewModel.stopViewToggleEventMonitoring()
         viewModel.stopViewCounterMonitoring()
+        super.onStop()
     }
 
-    override fun onChoiceViewBound(choice: ActionTypeChoice, view: View?) {
+    private fun monitorChoice(choice: ActionTypeChoice, view: View?) {
         when (choice) {
-            ActionTypeChoice.Click ->
-                if (view != null) viewModel.monitorCreateClickView(view)
+            ActionTypeChoice.Click -> if (view != null) viewModel.monitorCreateClickView(view)
                 else viewModel.stopViewCreateClickMonitoring()
-
-            ActionTypeChoice.ToggleEvent ->
-                if (view != null) viewModel.monitorCreateToggleEventView(view)
+            ActionTypeChoice.ToggleEvent -> if (view != null) viewModel.monitorCreateToggleEventView(view)
                 else viewModel.stopViewToggleEventMonitoring()
-
-            ActionTypeChoice.ChangeCounter ->
-                if (view != null) viewModel.monitorCreateCounterView(view)
+            ActionTypeChoice.ChangeCounter -> if (view != null) viewModel.monitorCreateCounterView(view)
                 else viewModel.stopViewCounterMonitoring()
-
-            ActionTypeChoice.Copy,
-            ActionTypeChoice.ExternalAction,
-            ActionTypeChoice.Intent,
-            ActionTypeChoice.Notification,
-            ActionTypeChoice.Pause,
-            ActionTypeChoice.SetText,
-            ActionTypeChoice.Swipe,
-            ActionTypeChoice.System -> Unit
+            else -> Unit
         }
-        if (choice !is ActionTypeChoice.Click) return
-
-
     }
+    private fun cancel() { onCancelledListener?.invoke(); back() }
 }

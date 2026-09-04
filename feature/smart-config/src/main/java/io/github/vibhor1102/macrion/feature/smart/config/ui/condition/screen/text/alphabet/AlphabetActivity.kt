@@ -18,13 +18,14 @@ package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.te
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import android.widget.FrameLayout
 
 import androidx.appcompat.app.AppCompatActivity
 import io.github.vibhor1102.macrion.core.common.overlays.di.OverlaysEntryPoint
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
-import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.required.RequiredAlphabetFragment
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.text.alphabet.selection.AlphabetSelectionFragment
 import dagger.hilt.EntryPoints
@@ -52,7 +53,7 @@ class AlphabetActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_transparent)
+        setContentView(FrameLayout(this).apply { setBackgroundColor(Color.TRANSPARENT) })
 
         overlayManager.hideAll()
 

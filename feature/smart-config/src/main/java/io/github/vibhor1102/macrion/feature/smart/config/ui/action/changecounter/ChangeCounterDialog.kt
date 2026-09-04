@@ -1,203 +1,199 @@
-/*
- * Copyright (C) 2024 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.changecounter
 
-import android.text.InputFilter
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonEnabledState
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setError
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setLabel
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnTextChangedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setText
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.DialogConfigActionChangeCounterBinding
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.OnActionConfigCompleteListener
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.bindings.counter.setCounter
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.bindings.counter.setOnClickListener
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.bindings.counter.setSelectedOperator
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.bindings.counter.setValueInfo
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.bindings.counter.setup
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.counter.allCounterAffectationOperatorDropdownItems
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.counter.*
 import io.github.vibhor1102.macrion.feature.smart.config.ui.counter.selection.CounterSelectionDialog
-
-import com.google.android.material.bottomsheet.BottomSheetDialog
-
 import kotlinx.coroutines.launch
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 
-class ChangeCounterDialog(
-    private val listener: OnActionConfigCompleteListener,
-) : OverlayDialog(R.style.ScenarioConfigTheme) {
-
+class ChangeCounterDialog(private val listener: OnActionConfigCompleteListener) :
+    OverlayDialog(R.style.ScenarioConfigTheme) {
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.CHANGE_COUNTER.name
-
-    /** The view model for this dialog. */
     private val viewModel: ChangeCounterViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
-        creator = { changeCounterViewModel() }
+        creator = { changeCounterViewModel() },
     )
-    /** ViewBinding containing the views for this dialog. */
-    private lateinit var viewBinding: DialogConfigActionChangeCounterBinding
+    private var counterAnchor: View? = null
+    private var saveAnchor: View? = null
 
-    override fun onCreateView(): ViewGroup {
-        viewBinding = DialogConfigActionChangeCounterBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(R.string.dialog_title_change_counter)
-
-                buttonDismiss.setDebouncedOnClickListener { back() }
-                buttonSave.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener { onSaveButtonClicked() }
-                }
-                buttonDelete.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener { onDeleteButtonClicked() }
-                }
-            }
-
-            fieldName.apply {
-                setLabel(R.string.generic_name)
-                setOnTextChangedListener { viewModel.setName(it.toString()) }
-                textField.filters = arrayOf<InputFilter>(
-                    InputFilter.LengthFilter(context.resources.getInteger(R.integer.name_max_length))
-                )
-            }
-            hideSoftInputOnFocusLoss(fieldName.textField)
-
-            counterToChange.setOnClickListener {
-                showCounterSelectionDialog { counter  ->
-                    viewModel.setCounterName(counter)
-                }
-            }
-
-            editValueLayout.apply {
-                setup(
-                    dropdownItems = allCounterAffectationOperatorDropdownItems(),
-                    onOperatorSelected = viewModel::setOperationItem,
-                    onChangeTypeClicked = viewModel::setOperandType,
-                    onStaticValueChangedListener = { newValue ->
-                        viewModel.setOperationValue(CounterOperationValue.Number(newValue))
-                    },
-                    onOpenCounterSelectionClicked = {
-                        showCounterSelectionDialog { counterSelected ->
-                            viewModel.setOperationValue(CounterOperationValue.Counter(counterSelected))
-                        }
-                    },
-                )
-                hideSoftInputOnFocusLoss(staticValueLayout.textField)
-            }
-        }
-
-        return viewBinding.root
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@ChangeCounterDialog.Content() } }
     }
-
     override fun onDialogCreated(dialog: BottomSheetDialog) {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                launch { viewModel.isEditingAction.collect(::onActionEditingStateChanged) }
-            }
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.uiState.collect(::updateUiState) }
-            }
-        }
+        lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.CREATED) {
+            viewModel.isEditingAction.collect { if (!it) { Log.e(TAG, "Closing dialog because there is no action edited"); finish() } }
+        } }
     }
-
     override fun onStart() {
         super.onStart()
-        viewModel.monitorSelectCounterView(viewBinding.counterToChange.root)
-        viewModel.monitorSaveButtonView(viewBinding.layoutTopBar.buttonSave)
+        viewModel.monitorSelectCounterView(counterAnchor)
+        viewModel.monitorSaveButtonView(saveAnchor)
+    }
+    override fun onStop() { viewModel.detachMonitoredViews(); super.onStop() }
+
+    @Composable private fun Content() {
+        val state by viewModel.uiState.collectAsStateWithLifecycle()
+        val ui = state ?: return
+        Surface(Modifier.fillMaxWidth().heightIn(max = 600.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            Column {
+                TopBar(ui.canBeSaved)
+                Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    MacrionTextField(ui.name.orEmpty(), viewModel::setName, context.getString(R.string.generic_name),
+                        isError = ui.nameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
+                    CounterField(ui.counter, ::selectCounterToChange, tutorialMonitored = true)
+                    OperandField(ui)
+                    ElevatedCard(Modifier.fillMaxWidth()) {
+                        Column(
+                            Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(context.getString(R.string.field_change_counter_effect_title), style = MaterialTheme.typography.titleSmall)
+                            Text(ui.actionEffectText, style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    override fun onStop() {
-        viewModel.detachMonitoredViews()
-        super.onStop()
+    @Composable private fun TopBar(saveEnabled: Boolean) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
+            Text(context.getString(R.string.dialog_title_change_counter), Modifier.weight(1f).padding(horizontal = 8.dp),
+                style = MaterialTheme.typography.titleLarge, maxLines = 1, overflow = TextOverflow.Clip)
+            FilledTonalIconButton(onClick = ::delete) { Icon(painterResource(R.drawable.ic_delete), null) }
+            Spacer(Modifier.width(8.dp))
+            Box {
+                FilledIconButton(onClick = ::save, enabled = saveEnabled) { Icon(painterResource(R.drawable.ic_save_filled), null) }
+                TutorialClickAnchor(onViewChanged = { saveAnchor = it; viewModel.monitorSaveButtonView(it) },
+                    onClick = ::save, enabled = saveEnabled)
+            }
+        }
+    }
+
+    @Composable private fun CounterField(
+        value: UiStaticOrCounterSelection.CounterValue,
+        onClick: () -> Unit,
+        tutorialMonitored: Boolean = false,
+    ) {
+        val counter = value.counter
+        Box {
+            ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    Modifier.fillMaxWidth().heightIn(min = 62.dp).padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (counter == null) Box(Modifier.size(40.dp).background(MaterialTheme.colorScheme.error, CircleShape))
+                    else Icon(painterResource(R.drawable.ic_change_counter), null, Modifier.size(40.dp))
+                    Column(Modifier.weight(1f).padding(start = 8.dp, end = 16.dp)) {
+                        Text(counter?.counterName ?: context.getString(R.string.field_counter_selection_title_empty),
+                            style = MaterialTheme.typography.titleSmall)
+                        Text(counter?.let { context.getString(R.string.field_counter_selection_desc,
+                            it.defaultValue.toNaturalDisplayString(maxFractionDigits = 2)) }
+                            ?: context.getString(R.string.field_counter_selection_desc_empty), style = MaterialTheme.typography.bodySmall,
+                            color = if (counter == null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Icon(painterResource(R.drawable.ic_chevron_right), null)
+                }
+            }
+            if (tutorialMonitored) TutorialClickAnchor(
+                onViewChanged = { counterAnchor = it; viewModel.monitorSelectCounterView(it) }, onClick = onClick)
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable private fun OperandField(ui: ChangeCounterUiState) {
+        var expanded by remember { mutableStateOf(false) }
+        ElevatedCard(Modifier.fillMaxWidth()) {
+            Column(
+                Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    ExposedDropdownMenuBox(expanded, { expanded = it }, Modifier.weight(1f)) {
+                        OutlinedTextField(stringResource(ui.operator.title), {}, readOnly = true,
+                            label = { Text(context.getString(R.string.dropdown_comparison_operator_label)) },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth())
+                        ExposedDropdownMenu(expanded, { expanded = false }) {
+                            allCounterAffectationOperatorDropdownItems().forEach { item -> DropdownMenuItem(
+                                text = { Text(stringResource(item.title)) }, onClick = { viewModel.setOperationItem(item); expanded = false }) }
+                        }
+                    }
+                    SingleChoiceSegmentedButtonRow {
+                        listOf(UiOperandType.STATIC to R.drawable.ic_numbers, UiOperandType.COUNTER to R.drawable.ic_change_counter)
+                            .forEachIndexed { index, pair -> SegmentedButton(
+                                selected = (ui.operandValue is UiStaticOrCounterSelection.StaticValue) == (pair.first == UiOperandType.STATIC),
+                                onClick = { viewModel.setOperandType(pair.first) }, shape = SegmentedButtonDefaults.itemShape(index, 2),
+                                icon = {}, label = { Icon(painterResource(pair.second), null, Modifier.size(20.dp)) }) }
+                    }
+                }
+                when (val operand = ui.operandValue) {
+                    is UiStaticOrCounterSelection.StaticValue -> {
+                        var value by remember { mutableStateOf(operand.value.toNaturalDisplayString()) }
+                        OutlinedTextField(
+                        value = value,
+                        onValueChange = { text -> value = text; text.toDoubleOrNull()?.let { number -> viewModel.setOperationValue(CounterOperationValue.Number(number)) } },
+                        modifier = Modifier.fillMaxWidth(), label = { Text(context.getString(R.string.field_counter_operation_value_label)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true)
+                    }
+                    is UiStaticOrCounterSelection.CounterValue -> CounterField(operand, onClick = { showCounterSelectionDialog {
+                        viewModel.setOperationValue(CounterOperationValue.Counter(it)) } })
+                }
+            }
+        }
     }
 
     override fun back() {
         if (viewModel.hasUnsavedModifications()) {
-            context.showCloseWithoutSavingDialog {
-                listener.onDismissClicked()
-                super.back()
-            }
-            return
+            context.showCloseWithoutSavingDialog { listener.onDismissClicked(); super.back() }; return
         }
-
-        listener.onDismissClicked()
-        super.back()
+        listener.onDismissClicked(); super.back()
     }
-
-    private fun onSaveButtonClicked() {
-        listener.onConfirmClicked()
-        super.back()
-    }
-
-    private fun onDeleteButtonClicked() {
-        listener.onDeleteClicked()
-        super.back()
-    }
-
-    private fun updateUiState(state: ChangeCounterUiState?) {
-        state ?: return
-
-        viewBinding.apply {
-            layoutTopBar.setButtonEnabledState(DialogNavigationButton.SAVE, state.canBeSaved)
-
-            fieldName.setText(state.name)
-            fieldName.setError(state.nameError)
-
-            counterToChange.setCounter(state.counter)
-            editValueLayout.setSelectedOperator(state.operator)
-            editValueLayout.setValueInfo(state.operandValue)
-
-            effectDesc.text = state.actionEffectText
-        }
-    }
-
-    private fun showCounterSelectionDialog(onCounterSelected: (String) -> Unit) {
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = CounterSelectionDialog(onCounterSelected),
-            hideCurrent = true,
-        )
-    }
-
-    private fun onActionEditingStateChanged(isEditingAction: Boolean) {
-        if (!isEditingAction) {
-            Log.e(TAG, "Closing ChangeCounterDialog because there is no action edited")
-            finish()
-        }
-    }
+    private fun save() { listener.onConfirmClicked(); super.back() }
+    private fun delete() { listener.onDeleteClicked(); super.back() }
+    private fun selectCounterToChange() = showCounterSelectionDialog(viewModel::setCounterName)
+    private fun showCounterSelectionDialog(onSelected: (String) -> Unit) =
+        overlayManager.navigateTo(context, CounterSelectionDialog(onSelected), true)
 }
 
 private const val TAG = "ChangeCounterDialog"

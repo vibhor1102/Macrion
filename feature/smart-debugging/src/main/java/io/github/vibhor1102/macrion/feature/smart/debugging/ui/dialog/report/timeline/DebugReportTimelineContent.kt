@@ -1,193 +1,125 @@
-/*
- * Copyright (C) 2025 Kevin Buzeau
- * Copyright (C) 2026 Vibhor Goel
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2025 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline
 
 import android.content.Context
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ContentDebugReportTimelineBinding
-import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.adapter.DebugReportTimelineAdapter
 import io.github.vibhor1102.macrion.feature.smart.debugging.di.DebuggingViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportEmptyMessage
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportLoading
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportRecycler
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportRecyclerViews
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.DebugReportEventOccurrenceDetailsDialog
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.adapter.DebugReportTimelineAdapter
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.filter.DebugReportTimelineFiltersDialog
 
-import kotlinx.coroutines.launch
-import kotlin.getValue
-
-
 class DebugReportTimelineContent(appContext: Context) : NavBarDialogContent(appContext) {
-
-    /** View model for this content. */
     private val viewModel: DebugReportTimelineViewModel by viewModels(
         entryPoint = DebuggingViewModelsEntryPoint::class.java,
         creator = { debugReportTimelineViewModel() },
     )
+    private val timelineAdapter = DebugReportTimelineAdapter(::onEventOccurrenceClicked)
+    private var listViews: ReportRecyclerViews? = null
 
-    private val timelineAdapter: DebugReportTimelineAdapter = DebugReportTimelineAdapter(
-        onItemClicked = ::onEventOccurrenceClicked,
-    )
+    override fun floatingActionButtonsAreAvailable() = true
+    override fun primaryFloatingActionButtonIcon() = R.drawable.ic_filter
 
-    private lateinit var viewBinding: ContentDebugReportTimelineBinding
-
-    override fun floatingActionButtonsAreAvailable(): Boolean = true
-
-    override fun primaryFloatingActionButtonIcon(): Int = R.drawable.ic_filter
-
-    override fun onCreateView(container: ViewGroup): ViewGroup {
-        viewBinding = ContentDebugReportTimelineBinding.inflate(LayoutInflater.from(context), container, false).apply {
-            list.adapter = timelineAdapter
-            fastScroller.attachToRecyclerView(list)
-            buttonClearFilters.setOnClickListener { viewModel.clearFilters() }
-        }
-
-        return viewBinding.root
+    override fun onCreateView(container: ViewGroup): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@DebugReportTimelineContent.Content() } }
     }
+    override fun onViewCreated() = Unit
 
-    override fun onViewCreated() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.uiState.collect(::updateUiState) }
+    @Composable private fun Content() {
+        val state = viewModel.uiState.collectAsStateWithLifecycle().value
+        val overlayColor = colorResource(R.color.overlayViewPrimary)
+        LaunchedEffect(state) {
+            updateFiltersBadge(state.activeFilterCount())
+            if (state == DebugReportTimelineUiState.NotAvailable) dialogController.back()
+            if (state is DebugReportTimelineUiState.Available) {
+                timelineAdapter.submitList(state.eventsOccurrences) { listViews?.fastScroller?.refresh() }
             }
         }
-    }
-
-    override fun onStart() {
-        updateFiltersBadge(viewModel.uiState.value.activeFilterCount())
+        when (state) {
+                DebugReportTimelineUiState.Loading -> ReportLoading(overlayColor)
+                DebugReportTimelineUiState.NotAvailable -> Unit
+                DebugReportTimelineUiState.Empty -> ReportEmptyMessage(
+                    context.getString(R.string.title_event_occurrence_empty),
+                    contentColor = overlayColor,
+                )
+                is DebugReportTimelineUiState.FilteredEmpty -> ReportEmptyMessage(
+                    context.getString(R.string.title_event_occurrence_filtered_empty),
+                    context.getString(R.string.desc_event_occurrence_filtered_empty),
+                    contentColor = overlayColor,
+                    secondaryColor = overlayColor.copy(alpha = 0.7f),
+                ) {
+                    Button(onClick = viewModel::clearFilters, modifier = Modifier.padding(top = 8.dp)) {
+                        Text(context.getString(R.string.button_clear_timeline_filters))
+                    }
+                }
+                is DebugReportTimelineUiState.Available -> {
+                    ReportRecycler(
+                        contentDescriptionRes = R.string.content_desc_timeline_fast_scroller,
+                        modifier = Modifier.fillMaxSize(),
+                        onCreated = { views ->
+                            listViews = views
+                            views.recyclerView.adapter = timelineAdapter
+                        },
+                    )
+                }
+        }
     }
 
     override fun onStop() {
-        dialogController.floatingActionButtons.primaryBadge.visibility = View.GONE
+        dialogController.floatingActionButtons.setBadge(null)
     }
 
-    private fun updateUiState(uiState: DebugReportTimelineUiState) {
-        when (uiState) {
-            DebugReportTimelineUiState.Empty -> toEmptyState()
-            is DebugReportTimelineUiState.FilteredEmpty -> toFilteredEmptyState(uiState)
-            DebugReportTimelineUiState.Loading -> toLoadingState()
-            DebugReportTimelineUiState.NotAvailable -> toNotAvailableState()
-            is DebugReportTimelineUiState.Available -> toAvailableState(uiState)
-        }
+    private fun updateFiltersBadge(count: Int) {
+        dialogController.floatingActionButtons.setBadge(
+            text = count.takeIf { it > 0 }?.toString(),
+            description = context.getString(R.string.content_desc_timeline_filters_active, count),
+        )
     }
 
-    private fun toEmptyState() {
-        viewBinding.apply {
-            loading.visibility = View.GONE
-            list.visibility = View.GONE
-            fastScroller.visibility = View.GONE
-            empty.visibility = View.VISIBLE
-            emptyTitle.setText(R.string.title_event_occurrence_empty)
-            emptySecondary.visibility = View.GONE
-            buttonClearFilters.visibility = View.GONE
-        }
-        updateFiltersBadge(0)
-    }
-
-    private fun toFilteredEmptyState(uiState: DebugReportTimelineUiState.FilteredEmpty) {
-        viewBinding.apply {
-            loading.visibility = View.GONE
-            list.visibility = View.GONE
-            fastScroller.visibility = View.GONE
-            empty.visibility = View.VISIBLE
-            emptyTitle.setText(R.string.title_event_occurrence_filtered_empty)
-            emptySecondary.visibility = View.VISIBLE
-            emptySecondaryText.setText(R.string.desc_event_occurrence_filtered_empty)
-            buttonClearFilters.visibility = View.VISIBLE
-        }
-        timelineAdapter.submitList(emptyList())
-        updateFiltersBadge(uiState.activeFilterCount)
-    }
-
-    private fun toLoadingState() {
-        viewBinding.apply {
-            loading.visibility = View.VISIBLE
-            list.visibility = View.GONE
-            fastScroller.visibility = View.GONE
-            empty.visibility = View.GONE
-        }
-    }
-
-    private fun toNotAvailableState() {
-        dialogController.back()
-    }
-
-    private fun toAvailableState(uiState: DebugReportTimelineUiState.Available) {
-        viewBinding.apply {
-            loading.visibility = View.GONE
-            list.visibility = View.VISIBLE
-            fastScroller.visibility = View.VISIBLE
-            empty.visibility = View.GONE
-        }
-        timelineAdapter.submitList(uiState.eventsOccurrences) {
-            viewBinding.fastScroller.refresh()
-        }
-        updateFiltersBadge(uiState.activeFilterCount)
-    }
-
-    private fun updateFiltersBadge(activeFilterCount: Int) {
-        dialogController.floatingActionButtons.primaryBadge.apply {
-            visibility = if (activeFilterCount > 0) View.VISIBLE else View.GONE
-            text = activeFilterCount.toString()
-            contentDescription = context.getString(
-                R.string.content_desc_timeline_filters_active,
-                activeFilterCount,
-            )
-        }
-    }
-
-    private fun DebugReportTimelineUiState.activeFilterCount(): Int = when (this) {
+    private fun DebugReportTimelineUiState.activeFilterCount() = when (this) {
         is DebugReportTimelineUiState.Available -> activeFilterCount
         is DebugReportTimelineUiState.FilteredEmpty -> activeFilterCount
         else -> 0
     }
 
-    private fun onEventOccurrenceClicked(occurrence: DebugReportTimelineEventOccurrenceItem) {
+    private fun onEventOccurrenceClicked(item: DebugReportTimelineEventOccurrenceItem) {
         dialogController.overlayManager.navigateTo(
-            context = context,
-            newOverlay = DebugReportEventOccurrenceDetailsDialog(
-                scenarioId = occurrence.scenarioId,
-                eventOccurrence = occurrence.occurrence,
-            ),
+            context,
+            DebugReportEventOccurrenceDetailsDialog(item.scenarioId, item.occurrence),
             hideCurrent = false,
         )
     }
 
     override fun onPrimaryFloatingActionButtonClicked() {
+        val duration = when (val state = viewModel.uiState.value) {
+            is DebugReportTimelineUiState.Available -> state.durationMs
+            is DebugReportTimelineUiState.FilteredEmpty -> state.durationMs
+            else -> 0L
+        }
         dialogController.overlayManager.navigateTo(
-            context = context,
-            newOverlay = DebugReportTimelineFiltersDialog(
-                reportDurationMs = viewModel.uiState.value.let { uiState ->
-                    when (uiState) {
-                        is DebugReportTimelineUiState.Available -> uiState.durationMs
-                        is DebugReportTimelineUiState.FilteredEmpty -> uiState.durationMs
-                        else -> 0L
-                    }
-                },
-                currentFilters = viewModel.getFilters(),
-                onFiltersApplied = viewModel::setFilters,
-            ),
+            context,
+            DebugReportTimelineFiltersDialog(duration, viewModel.getFilters(), viewModel::setFilters),
             hideCurrent = false,
         )
     }

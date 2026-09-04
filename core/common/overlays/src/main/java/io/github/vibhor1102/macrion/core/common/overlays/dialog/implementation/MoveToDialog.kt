@@ -16,23 +16,39 @@
  */
 package io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation
 
-import android.text.Editable
-import android.text.InputType
 import android.view.KeyEvent
-import android.view.LayoutInflater
 
 import androidx.annotation.StyleRes
 import androidx.appcompat.app.AlertDialog
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.base.BaseOverlay
-import io.github.vibhor1102.macrion.core.common.overlays.databinding.DialogBaseMoveToBinding
 import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setLabel
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnTextChangedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setText
-import io.github.vibhor1102.macrion.core.ui.utils.MinMaxInputFilter
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
+import io.github.vibhor1102.macrion.core.ui.R as UiR
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
@@ -43,28 +59,31 @@ class MoveToDialog(
     private val onValueSelected: ((Int) -> Unit),
 ) : BaseOverlay(theme, recreateOnRotation = true) {
 
-    /** ViewBinding containing the views for this dialog. */
-    private lateinit var viewBinding: DialogBaseMoveToBinding
+    private var currentValue by mutableStateOf(defaultValue.toString())
 
     /** Tells if the dialog is visible. */
     private var isShown = false
     private var dialog: AlertDialog? = null
 
     override fun onCreate() {
-        viewBinding = DialogBaseMoveToBinding.inflate(LayoutInflater.from(context)).apply {
-            fieldMoveToIndex.apply {
-                textField.filters = arrayOf(MinMaxInputFilter(min = 1, max = itemCount))
-
-                setLabel(R.string.dialog_move_to_position_label)
-                setText(defaultValue.toString(), InputType.TYPE_CLASS_NUMBER)
-                textField.setHint("Max: $itemCount")
-                setOnTextChangedListener { updatePositiveButtonState() }
+        val content = ComposeView(context).apply {
+            setContent {
+                MacrionTheme {
+                    MoveToPositionField(
+                        value = currentValue,
+                        itemCount = itemCount,
+                        onValueChanged = { value ->
+                            currentValue = value
+                            updatePositiveButtonState()
+                        },
+                    )
+                }
             }
         }
 
         dialog = MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
             .setTitle(R.string.dialog_move_to_title)
-            .setView(viewBinding.root)
+            .setView(content)
             .setOnKeyListener { _, keyCode, event ->
                 if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
                     this@MoveToDialog.back()
@@ -89,8 +108,7 @@ class MoveToDialog(
 
         isShown = true
         dialog?.show()
-
-        viewBinding.fieldMoveToIndex.textField.requestFocus()
+        updatePositiveButtonState()
     }
 
     override fun onStop() {
@@ -107,20 +125,62 @@ class MoveToDialog(
 
     private fun updatePositiveButtonState() {
         dialog?.getButton(AlertDialog.BUTTON_POSITIVE)?.isEnabled =
-            viewBinding.fieldMoveToIndex.textField.text?.getEditedValue() != null
+            currentValue.toEditedValue() != null
     }
 
     private fun validateCurrentValueAndClose() {
-        viewBinding.fieldMoveToIndex.textField.text?.getEditedValue()?.let { value ->
+        currentValue.toEditedValue()?.let { value ->
             onValueSelected(value)
             back()
         }
     }
 
-    private fun Editable.getEditedValue(): Int? =
+    private fun String.toEditedValue(): Int? =
         try {
-            toString().toInt()
+            toInt()
         } catch (nfEx: NumberFormatException) {
             null
         }
+}
+
+@Composable
+private fun MoveToPositionField(
+    value: String,
+    itemCount: Int,
+    onValueChanged: (String) -> Unit,
+) {
+    val focusRequester = androidx.compose.runtime.remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+        androidx.compose.runtime.withFrameNanos { }
+        keyboardController?.show()
+    }
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = { candidate ->
+            if (candidate.isEmpty() || candidate.toIntOrNull()?.let { it in 1..itemCount } == true) {
+                onValueChanged(candidate)
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 16.dp)
+            .focusRequester(focusRequester),
+        label = { Text(stringResource(R.string.dialog_move_to_position_label)) },
+        placeholder = { Text("Max: $itemCount") },
+        trailingIcon = if (value.isNotEmpty()) {
+            {
+                IconButton(onClick = { onValueChanged("") }) {
+                    Icon(painterResource(UiR.drawable.ic_cancel), contentDescription = null)
+                }
+            }
+        } else null,
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Number,
+            imeAction = ImeAction.Done,
+        ),
+    )
 }

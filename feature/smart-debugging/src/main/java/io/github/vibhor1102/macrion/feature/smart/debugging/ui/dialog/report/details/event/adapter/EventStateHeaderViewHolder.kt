@@ -16,26 +16,18 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.event.adapter
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ItemEventStateHeaderBinding
+import androidx.compose.ui.res.stringResource
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportComposeViewHolder
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportSectionHeader
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.event.DebugEventStateItem
 
-class EventStateHeaderViewHolder private constructor(
-    private val viewBinding: ItemEventStateHeaderBinding,
-) : RecyclerView.ViewHolder(viewBinding.root) {
-
-    constructor(parent: ViewGroup) : this(
-        viewBinding = ItemEventStateHeaderBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
-    )
+class EventStateHeaderViewHolder(parent: ViewGroup) : ReportComposeViewHolder<DebugEventStateItem.Header>(
+    parent = parent,
+    content = { item -> ReportSectionHeader(stringResource(item.title), item.icon) },
+) {
 
     fun bind(item: DebugEventStateItem.Header) {
-        viewBinding.apply {
-            sectionText.setText(item.title)
-            sectionIcon.setImageResource(item.icon)
-        }
+        bindComposeItem(item)
     }
 }

@@ -31,7 +31,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.bri
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.OverlayScreenConditionsBriefMenuBinding
+import io.github.vibhor1102.macrion.feature.smart.config.ui.createScreenConditionsOverlayToolbar
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showDeleteConditionsWithAssociatedActionsDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition
@@ -68,7 +68,7 @@ class ScreenConditionsBriefMenu(
         creator = { screenConditionsBriefViewModel() }
     )
 
-    private lateinit var viewBinding: OverlayScreenConditionsBriefMenuBinding
+    private lateinit var menuView: ViewGroup
 
     override fun onCreate() {
         super.onCreate()
@@ -83,8 +83,8 @@ class ScreenConditionsBriefMenu(
     }
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
-        viewBinding = OverlayScreenConditionsBriefMenuBinding.inflate(layoutInflater)
-        return viewBinding.root
+        menuView = createScreenConditionsOverlayToolbar(context)
+        return menuView
     }
 
     override fun onCreateBriefItemViewHolder(parent: ViewGroup, orientation: Int): ScreenConditionBriefViewHolder =
@@ -100,8 +100,8 @@ class ScreenConditionsBriefMenu(
     override fun onStart() {
         super.onStart()
         viewModel.monitorViews(
-            createMenuButton = viewBinding.btnAdd,
-            saveMenuButton = viewBinding.btnSave,
+            createMenuButton = menuView.findViewById(R.id.btn_add),
+            saveMenuButton = menuView.findViewById(R.id.btn_save),
         )
     }
 

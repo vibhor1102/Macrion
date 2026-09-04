@@ -1,131 +1,180 @@
-/*
- * Copyright (C) 2023 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2023 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.dumb.config.ui.scenario.config
 
 import android.content.Context
-import android.text.InputFilter
-import android.view.LayoutInflater
 import android.view.ViewGroup
-
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
+import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DUMB_SCENARIO_MAX_DURATION_MINUTES
 import io.github.vibhor1102.macrion.core.dumb.domain.model.REPEAT_COUNT_MAX_VALUE
 import io.github.vibhor1102.macrion.core.dumb.domain.model.REPEAT_COUNT_MIN_VALUE
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setChecked
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setError
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setLabel
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setNumericValue
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnCheckboxClickedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnTextChangedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setText
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setup
-import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
-import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setDescription
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnClickListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setTitle
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setupDescriptions
-import io.github.vibhor1102.macrion.core.ui.utils.MinMaxInputFilter
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.dumb.config.R
-import io.github.vibhor1102.macrion.feature.dumb.config.databinding.ContentDumbScenarioConfigBinding
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
-
-import kotlinx.coroutines.launch
 
 class DumbScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContext) {
 
-    /** View model for the container dialog. */
-    private val dialogViewModel: DumbScenarioConfigContentViewModel by viewModels(
+    private val viewModel: DumbScenarioConfigContentViewModel by viewModels(
         entryPoint = DumbConfigViewModelsEntryPoint::class.java,
         creator = { dumbScenarioConfigContentViewModel() },
     )
 
-    private lateinit var viewBinding: ContentDumbScenarioConfigBinding
-    override fun onCreateView(container: ViewGroup): ViewGroup {
-        viewBinding = ContentDumbScenarioConfigBinding.inflate(LayoutInflater.from(context), container, false).apply {
-            fieldName.apply {
-                setLabel(R.string.input_field_label_scenario_name)
-                setOnTextChangedListener { dialogViewModel.setDumbScenarioName(it.toString()) }
-                textField.filters = arrayOf<InputFilter>(
-                    InputFilter.LengthFilter(context.resources.getInteger(R.integer.name_max_length))
-                )
-            }
-            dialogController.hideSoftInputOnFocusLoss(fieldName.textField)
-
-            fieldRepeatCount.apply {
-                textField.filters = arrayOf(MinMaxInputFilter(
-                    REPEAT_COUNT_MIN_VALUE,
-                    REPEAT_COUNT_MAX_VALUE,
-                ))
-                setup(R.string.input_field_label_repeat_count, R.drawable.ic_infinite, disableInputWithCheckbox = true)
-                setOnTextChangedListener {
-                    dialogViewModel.setRepeatCount(if (it.isNotEmpty()) it.toString().toInt() else 0)
-                }
-                setOnCheckboxClickedListener(dialogViewModel::toggleInfiniteRepeat)
-            }
-
-            fieldMaxDuration.apply {
-                textField.filters = arrayOf(MinMaxInputFilter(1, DUMB_SCENARIO_MAX_DURATION_MINUTES))
-                setup(R.string.input_field_label_maximum_duration, R.drawable.ic_infinite, disableInputWithCheckbox = true)
-                setOnTextChangedListener {
-                    dialogViewModel.setMaxDurationMinutes(if (it.isNotEmpty()) it.toString().toInt() else 0)
-                }
-                setOnCheckboxClickedListener(dialogViewModel::toggleInfiniteMaxDuration)
-            }
-
-            fieldAntiDetection.apply {
-                setTitle(context.resources.getString(R.string.input_field_label_anti_detection))
-                setupDescriptions(
-                    listOf(
-                        context.getString(R.string.dropdown_helper_text_anti_detection_disabled),
-                        context.getString(R.string.dropdown_helper_text_anti_detection_enabled),
-                    )
-                )
-                setOnClickListener(dialogViewModel::toggleRandomization)
-
-            }
-        }
-
-        return viewBinding.root
+    override fun onCreateView(container: ViewGroup): ViewGroup = ComposeView(context).apply {
+        layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+        )
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@DumbScenarioConfigContent.Content() } }
     }
 
-    override fun onViewCreated() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { dialogViewModel.scenarioName.collect(viewBinding.fieldName::setText) }
-                launch { dialogViewModel.scenarioNameError.collect(viewBinding.fieldName::setError)}
-                launch { dialogViewModel.repeatCount.collect(viewBinding.fieldRepeatCount::setNumericValue) }
-                launch { dialogViewModel.repeatCountError.collect(viewBinding.fieldRepeatCount::setError) }
-                launch { dialogViewModel.repeatInfiniteState.collect(viewBinding.fieldRepeatCount::setChecked) }
-                launch { dialogViewModel.maxDurationMin.collect(viewBinding.fieldMaxDuration::setNumericValue) }
-                launch { dialogViewModel.maxDurationMinError.collect(viewBinding.fieldMaxDuration::setError) }
-                launch { dialogViewModel.maxDurationMinInfiniteState.collect(viewBinding.fieldMaxDuration::setChecked) }
-                launch { dialogViewModel.randomization.collect(::updateFieldRandomization) }
+    override fun onViewCreated() = Unit
+
+    @Composable
+    private fun Content() {
+        val initialName by viewModel.scenarioName.collectAsStateWithLifecycle(initialValue = null)
+        val initialRepeat by viewModel.repeatCount.collectAsStateWithLifecycle(initialValue = null)
+        val initialDuration by viewModel.maxDurationMin.collectAsStateWithLifecycle(initialValue = null)
+        val nameError by viewModel.scenarioNameError.collectAsStateWithLifecycle(initialValue = false)
+        val repeatError by viewModel.repeatCountError.collectAsStateWithLifecycle(initialValue = false)
+        val durationError by viewModel.maxDurationMinError.collectAsStateWithLifecycle(initialValue = false)
+        val repeatInfinite by viewModel.repeatInfiniteState.collectAsStateWithLifecycle(initialValue = true)
+        val durationInfinite by viewModel.maxDurationMinInfiniteState.collectAsStateWithLifecycle(initialValue = true)
+        val randomization by viewModel.randomization.collectAsStateWithLifecycle(initialValue = false)
+
+        var name by rememberSaveable { mutableStateOf("") }
+        var repeatCount by rememberSaveable { mutableStateOf("") }
+        var maxDuration by rememberSaveable { mutableStateOf("") }
+        var nameFocused by remember { mutableStateOf(false) }
+        var repeatFocused by remember { mutableStateOf(false) }
+        var durationFocused by remember { mutableStateOf(false) }
+        LaunchedEffect(initialName, nameFocused) { if (!nameFocused) initialName?.let { name = it } }
+        LaunchedEffect(initialRepeat, repeatFocused) { if (!repeatFocused) initialRepeat?.let { repeatCount = it } }
+        LaunchedEffect(initialDuration, durationFocused) { if (!durationFocused) initialDuration?.let { maxDuration = it } }
+
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            Column(
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding()
+                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp),
+            ) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { value ->
+                        val sanitized = value.take(context.resources.getInteger(R.integer.name_max_length))
+                        name = sanitized
+                        viewModel.setDumbScenarioName(sanitized)
+                    },
+                    modifier = Modifier.fillMaxWidth().onFocusChanged { nameFocused = it.isFocused },
+                    label = { Text(stringResource(R.string.input_field_label_scenario_name)) },
+                    isError = nameError,
+                    singleLine = true,
+                    trailingIcon = if (name.isNotEmpty()) {{
+                        IconButton({ name = ""; viewModel.setDumbScenarioName("") }) {
+                            Icon(painterResource(R.drawable.ic_cancel), null)
+                        }
+                    }} else null,
+                )
+                Spacer(Modifier.height(8.dp))
+                InfiniteNumberField(
+                    repeatCount, stringResource(R.string.input_field_label_repeat_count), repeatInfinite,
+                    repeatError, REPEAT_COUNT_MIN_VALUE, REPEAT_COUNT_MAX_VALUE,
+                    { repeatFocused = it },
+                    { repeatCount = it; viewModel.setRepeatCount(it.toIntOrNull() ?: 0) },
+                    viewModel::toggleInfiniteRepeat,
+                )
+                Spacer(Modifier.height(8.dp))
+                InfiniteNumberField(
+                    maxDuration, stringResource(R.string.input_field_label_maximum_duration), durationInfinite,
+                    durationError, 1, DUMB_SCENARIO_MAX_DURATION_MINUTES,
+                    { durationFocused = it },
+                    { maxDuration = it; viewModel.setMaxDurationMinutes(it.toIntOrNull() ?: 0) },
+                    viewModel::toggleInfiniteMaxDuration,
+                )
+                Spacer(Modifier.height(12.dp))
+                ElevatedCard(Modifier.fillMaxWidth()) {
+                    Row(
+                        Modifier.fillMaxWidth().clickable(role = Role.Switch, onClick = viewModel::toggleRandomization)
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(
+                            Modifier.weight(1f).padding(end = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(stringResource(R.string.input_field_label_anti_detection), style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                stringResource(if (randomization) R.string.dropdown_helper_text_anti_detection_enabled
+                                    else R.string.dropdown_helper_text_anti_detection_disabled),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                        VerticalDivider(Modifier.height(48.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Switch(randomization, { viewModel.toggleRandomization() })
+                    }
+                }
             }
         }
     }
 
-    private fun updateFieldRandomization(isEnabled: Boolean) {
-        viewBinding.fieldAntiDetection.apply {
-            setChecked(isEnabled)
-            setDescription(if (isEnabled) 1 else 0)
+    @Composable
+    private fun InfiniteNumberField(
+        value: String,
+        label: String,
+        checked: Boolean,
+        isError: Boolean,
+        min: Int,
+        max: Int,
+        onFocusChanged: (Boolean) -> Unit,
+        onValueChange: (String) -> Unit,
+        onToggle: () -> Unit,
+    ) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+            OutlinedTextField(
+                value,
+                { candidate ->
+                    if (candidate.isEmpty() || candidate.toIntOrNull()?.let { it in min..max } == true) {
+                        onValueChange(candidate)
+                    }
+                },
+                Modifier.weight(1f).onFocusChanged { onFocusChanged(it.isFocused) },
+                label = { Text(label) },
+                enabled = !checked,
+                isError = isError,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                trailingIcon = if (value.isNotEmpty() && !checked) {{
+                    IconButton({ onValueChange("") }) { Icon(painterResource(R.drawable.ic_cancel), null) }
+                }} else null,
+            )
+            Spacer(Modifier.width(16.dp))
+            OutlinedIconToggleButton(
+                checked = checked,
+                onCheckedChange = { onToggle() },
+                modifier = Modifier.padding(top = 8.dp).size(48.dp),
+            ) {
+                Icon(painterResource(R.drawable.ic_infinite), label, Modifier.size(24.dp))
+            }
         }
     }
 }

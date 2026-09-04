@@ -35,16 +35,17 @@ class CountersCreationViewModel @Inject constructor(
     private val editionRepository: EditionRepository,
 ) : ViewModel() {
 
-    private val name: MutableStateFlow<String?> = MutableStateFlow("")
+    private val _name: MutableStateFlow<String?> = MutableStateFlow("")
+    val name: StateFlow<String?> = _name
     private val startingValue: MutableStateFlow<Double> = MutableStateFlow(0.0)
 
-    val uiState: StateFlow<CounterCreationUiState?> = name
+    val uiState: StateFlow<CounterCreationUiState?> = _name
         .map { counterName -> toUiState(counterName) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(3_000), null)
 
 
     fun setName(counterName: String) {
-        name.update { counterName }
+        _name.update { counterName }
     }
 
     fun setStartingValue(value: Double) {
@@ -53,7 +54,7 @@ class CountersCreationViewModel @Inject constructor(
 
     fun createCounter() {
         val scenarioId = editionRepository.editionState.getScenario()?.id ?: return
-        val counterName = name.value
+        val counterName = _name.value
         val startingValue = startingValue.value
 
         if (counterName.isNullOrBlank() || editionRepository.editionState.getCounter(counterName) != null) return

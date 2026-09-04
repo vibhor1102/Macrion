@@ -20,7 +20,8 @@ import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.KeyEvent
-import android.view.View
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.ComposeView
 
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
@@ -29,11 +30,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 
 import io.github.vibhor1102.macrion.core.base.extensions.safeStartWebBrowserActivity
-import io.github.vibhor1102.macrion.core.ui.bindings.buttons.LoadableButtonState
-import io.github.vibhor1102.macrion.core.ui.bindings.buttons.setOnClickListener
-import io.github.vibhor1102.macrion.core.ui.bindings.buttons.setState
-import io.github.vibhor1102.macrion.feature.revenue.R
-import io.github.vibhor1102.macrion.feature.revenue.databinding.FragmentPurchaseProModeBinding
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.feature.revenue.ui.PurchaseDialogContent
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -50,8 +48,7 @@ internal class PurchaseProModeFragment : DialogFragment() {
     }
 
     private val viewModel: PurchaseProModeViewModel by viewModels()
-    /** The view binding on the views of this dialog. */
-    private lateinit var viewBinding: FragmentPurchaseProModeBinding
+    private val dialogState = mutableStateOf<PurchaseDialogState>(PurchaseDialogState.Loading)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,18 +61,22 @@ internal class PurchaseProModeFragment : DialogFragment() {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        viewBinding = FragmentPurchaseProModeBinding.inflate(layoutInflater).apply {
-            buttonSource.setOnClickListener {
-                context?.safeStartWebBrowserActivity("https://github.com/vibhor1102/Macrion")
-            }
-
-            buttonBuy.setOnClickListener {
-                viewModel.launchPlayStoreBillingFlow(requireActivity())
+        val content = ComposeView(requireContext()).apply {
+            setContent {
+                MacrionTheme {
+                    PurchaseDialogContent(
+                        state = dialogState.value,
+                        onOpenSource = {
+                            context.safeStartWebBrowserActivity("https://github.com/vibhor1102/Macrion")
+                        },
+                        onPurchase = { viewModel.launchPlayStoreBillingFlow(requireActivity()) },
+                    )
+                }
             }
         }
 
         return BottomSheetDialog(requireContext()).apply {
-            setContentView(viewBinding.root)
+            setContentView(content)
             setOnKeyListener { _, keyCode, event ->
                 if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
                     this@PurchaseProModeFragment.dismiss()
@@ -95,59 +96,7 @@ internal class PurchaseProModeFragment : DialogFragment() {
         activity?.finish()
     }
 
-    private fun updateDialogState(state: PurchaseDialogState): Unit = when (state) {
-        PurchaseDialogState.Loading -> toLoadingState()
-        is PurchaseDialogState.Loaded -> toLoadedState(state.price)
-        PurchaseDialogState.Purchased -> toPurchasedState()
-        PurchaseDialogState.Error -> toErrorState()
-        PurchaseDialogState.Pending -> toPendingState()
-    }
-
-    private fun toLoadingState() {
-        viewBinding.apply {
-            purchaseText.visibility = View.VISIBLE
-            purchasedText.visibility = View.GONE
-            buttonBuy.setState(LoadableButtonState.Loading())
-        }
-    }
-
-    private fun toLoadedState(price: String) {
-        viewBinding.apply {
-            purchaseText.visibility = View.VISIBLE
-            purchasedText.visibility = View.GONE
-            buttonBuy.setState(
-                LoadableButtonState.Loaded.Enabled(requireContext().getString(R.string.button_text_buy_pro, price))
-            )
-        }
-    }
-
-    private fun toPurchasedState() {
-        viewBinding.apply {
-            purchaseText.visibility = View.INVISIBLE
-            purchasedText.visibility = View.VISIBLE
-            buttonBuy.setState(
-                LoadableButtonState.Loaded.Enabled(requireContext().getString(R.string.button_text_understood))
-            )
-        }
-    }
-
-    private fun toPendingState() {
-        viewBinding.apply {
-            purchaseText.visibility = View.VISIBLE
-            purchasedText.visibility = View.GONE
-            buttonBuy.setState(
-                LoadableButtonState.Loaded.Disabled(requireContext().getString(R.string.button_text_buy_pro_pending))
-            )
-        }
-    }
-
-    private fun toErrorState() {
-        viewBinding.apply {
-            purchaseText.visibility = View.VISIBLE
-            purchasedText.visibility = View.GONE
-            buttonBuy.setState(
-                LoadableButtonState.Loaded.Disabled(requireContext().getString(R.string.button_text_buy_pro_error))
-            )
-        }
+    private fun updateDialogState(state: PurchaseDialogState) {
+        dialogState.value = state
     }
 }

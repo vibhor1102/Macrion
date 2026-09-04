@@ -20,14 +20,18 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.view.Gravity
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.PopupWindow
+import android.widget.TextView
 import androidx.annotation.StringRes
 import androidx.appcompat.widget.ListPopupWindow
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ItemDebugReportSortOptionBinding
+import io.github.vibhor1102.macrion.feature.smart.debugging.R
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.R as MaterialR
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.shape.MaterialShapeDrawable
@@ -106,24 +110,57 @@ private class SortOptionsAdapter<T>(
     override fun getItemId(position: Int): Long = position.toLong()
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val binding = if (convertView == null) {
-            ItemDebugReportSortOptionBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        } else {
-            ItemDebugReportSortOptionBinding.bind(convertView)
-        }
+        val row = (convertView as? SortOptionView) ?: SortOptionView(parent)
         val option = getItem(position)
-        val selectedContainer = MaterialColors.getColor(binding.root, MaterialR.attr.colorSecondaryContainer)
-        val selectedContent = MaterialColors.getColor(binding.root, MaterialR.attr.colorOnSecondaryContainer)
-        val normalContent = MaterialColors.getColor(binding.root, MaterialR.attr.colorOnSurface)
+        row.bind(option)
+        return row
+    }
+}
 
-        binding.apply {
-            root.isSelected = option.selected
-            card.setCardBackgroundColor(if (option.selected) selectedContainer else Color.TRANSPARENT)
-            title.setText(option.titleRes)
-            title.setTextColor(if (option.selected) selectedContent else normalContent)
-            selectedIcon.visibility = if (option.selected) View.VISIBLE else View.INVISIBLE
-            selectedIcon.imageTintList = ColorStateList.valueOf(selectedContent)
+private class SortOptionView(parent: ViewGroup) : FrameLayout(parent.context) {
+    private val density = resources.displayMetrics.density
+    private val card = MaterialCardView(context).apply {
+        radius = 16 * density
+        cardElevation = 0f
+        strokeWidth = 0
+    }
+    private val title = TextView(context).apply {
+        setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyLarge)
+        maxLines = 1
+    }
+    private val selectedIcon = ImageView(context).apply {
+        setImageResource(R.drawable.ic_debug_confirm)
+        visibility = View.INVISIBLE
+    }
+
+    init {
+        layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, (56 * density).roundToInt())
+        addView(card, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT).apply {
+            topMargin = (2 * density).roundToInt()
+            bottomMargin = (2 * density).roundToInt()
+        })
+        val content = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            val horizontal = (16 * density).roundToInt()
+            setPadding(horizontal, 0, horizontal, 0)
         }
-        return binding.root
+        card.addView(content, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        content.addView(title, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        content.addView(selectedIcon, LinearLayout.LayoutParams((24 * density).roundToInt(), (24 * density).roundToInt()).apply {
+            marginStart = (16 * density).roundToInt()
+        })
+    }
+
+    fun <T> bind(option: DebugReportSortOption<T>) {
+        val selectedContainer = MaterialColors.getColor(this, MaterialR.attr.colorSecondaryContainer)
+        val selectedContent = MaterialColors.getColor(this, MaterialR.attr.colorOnSecondaryContainer)
+        val normalContent = MaterialColors.getColor(this, MaterialR.attr.colorOnSurface)
+        isSelected = option.selected
+        card.setCardBackgroundColor(if (option.selected) selectedContainer else Color.TRANSPARENT)
+        title.setText(option.titleRes)
+        title.setTextColor(if (option.selected) selectedContent else normalContent)
+        selectedIcon.visibility = if (option.selected) View.VISIBLE else View.INVISIBLE
+        selectedIcon.imageTintList = ColorStateList.valueOf(selectedContent)
     }
 }

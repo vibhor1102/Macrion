@@ -20,6 +20,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.Toast
 
 import androidx.annotation.IntDef
@@ -31,7 +32,7 @@ import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
 import io.github.vibhor1102.macrion.core.domain.model.condition.ScreenCondition
 import io.github.vibhor1102.macrion.core.ui.views.imageselector.ImageSelectorView
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.OverlayValidationMenuBinding
+import io.github.vibhor1102.macrion.feature.smart.config.ui.createValidationOverlayToolbar
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 
@@ -72,8 +73,11 @@ class CaptureMenu(
         creator = { captureViewModel() },
     )
 
-    /** The view binding for the overlay menu. */
-    private lateinit var viewBinding: OverlayValidationMenuBinding
+    private lateinit var menuView: ViewGroup
+    private val confirmButton get() = menuView.findViewById<ImageButton>(R.id.btn_confirm)
+    private val cancelButton get() = menuView.findViewById<ImageButton>(R.id.btn_cancel)
+    private val helpButton get() = menuView.findViewById<ImageButton>(R.id.btn_help)
+    private val hideButton get() = menuView.findViewById<ImageButton>(R.id.btn_hide_overlay)
     /** The view displaying the screenshot and the selector for the capture. */
     private lateinit var selectorView: ImageSelectorView
 
@@ -84,12 +88,12 @@ class CaptureMenu(
             field = value
             when (value) {
                 SELECTION -> {
-                    viewBinding.btnConfirm.setImageResource(R.drawable.ic_capture)
+                    confirmButton.setImageResource(R.drawable.ic_capture)
                     setMenuVisibility(View.VISIBLE)
                     setMenuItemsVisibility(
                         mapOf(
-                            viewBinding.btnHelp to false,
-                            viewBinding.btnHideOverlay to false,
+                            helpButton to false,
+                            hideButton to false,
                         )
                     )
                     setOverlayViewVisibility(false)
@@ -101,21 +105,21 @@ class CaptureMenu(
                     selectorView.hide = true
                 }
                 ADJUST -> {
-                    viewBinding.btnConfirm.setImageResource(R.drawable.ic_confirm)
+                    confirmButton.setImageResource(R.drawable.ic_confirm)
                     setMenuVisibility(View.VISIBLE)
                     setMenuItemsVisibility(
                         mapOf(
-                            viewBinding.btnHelp to true,
-                            viewBinding.btnHideOverlay to true,
+                            helpButton to true,
+                            hideButton to true,
                         )
                     )
                     selectorView.hide = false
                 }
                 SAVE -> {
-                    setMenuItemViewEnabled(viewBinding.btnConfirm, false)
-                    setMenuItemViewEnabled(viewBinding.btnCancel, false)
-                    setMenuItemViewEnabled(viewBinding.btnHelp, false)
-                    setMenuItemViewEnabled(viewBinding.btnHideOverlay, false)
+                    setMenuItemViewEnabled(confirmButton, false)
+                    setMenuItemViewEnabled(cancelButton, false)
+                    setMenuItemViewEnabled(helpButton, false)
+                    setMenuItemViewEnabled(hideButton, false)
                     selectorView.hide = false
                 }
             }
@@ -125,8 +129,8 @@ class CaptureMenu(
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
         selectorView = ImageSelectorView(context, displayConfigManager, ::onSelectorValidityChanged)
-        viewBinding = OverlayValidationMenuBinding.inflate(layoutInflater)
-        return viewBinding.root
+        menuView = createValidationOverlayToolbar(context)
+        return menuView
     }
 
     override fun onCreateOverlayView(): View = selectorView
@@ -151,7 +155,7 @@ class CaptureMenu(
      * @param isValid validity of the selector.
      */
     private fun onSelectorValidityChanged(isValid: Boolean) {
-        setMenuItemViewEnabled(viewBinding.btnConfirm, isValid, isValid)
+        setMenuItemViewEnabled(confirmButton, isValid, isValid)
     }
 
     /**

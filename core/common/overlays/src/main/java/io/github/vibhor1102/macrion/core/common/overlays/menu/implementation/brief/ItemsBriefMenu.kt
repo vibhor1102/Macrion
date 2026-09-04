@@ -117,31 +117,31 @@ abstract class ItemBriefMenu(
                 false,
             )
 
-            emptyScenarioText.setText(noItemText)
+            setEmptyText(noItemText)
 
             root.setOnClickListener {
                 briefPanelAnimationController.showOrResetTimer()
             }
-            buttonPlay.setDebouncedOnClickListener {
-                onPlayItemClicked(itemListSnapHelper.snapPosition)
-            }
-            buttonDelete.setDebouncedOnClickListener {
-                briefPanelAnimationController.showOrResetTimer()
-                onDeleteItemClicked(itemListSnapHelper.snapPosition)
-            }
-
-            buttonMovePrevious.setDebouncedOnClickListener {
-                briefPanelAnimationController.showOrResetTimer()
-                onMoveItemClicked(itemListSnapHelper.snapPosition, itemListSnapHelper.snapPosition - 1)
-            }
-            buttonMoveNext.setDebouncedOnClickListener {
-                briefPanelAnimationController.showOrResetTimer()
-                onMoveItemClicked(itemListSnapHelper.snapPosition, itemListSnapHelper.snapPosition + 1)
-            }
-
-            textActionIndex.setDebouncedOnClickListener {
-                onItemPositionCardClicked(getFocusedItemIndex(), briefAdapter.itemCount)
-            }
+            setControlCallbacks(
+                onMovePrevious = { debounceUserInteraction {
+                    briefPanelAnimationController.showOrResetTimer()
+                    onMoveItemClicked(itemListSnapHelper.snapPosition, itemListSnapHelper.snapPosition - 1)
+                } },
+                onDelete = { debounceUserInteraction {
+                    briefPanelAnimationController.showOrResetTimer()
+                    onDeleteItemClicked(itemListSnapHelper.snapPosition)
+                } },
+                onPosition = { debounceUserInteraction {
+                    onItemPositionCardClicked(getFocusedItemIndex(), briefAdapter.itemCount)
+                } },
+                onPlay = { debounceUserInteraction {
+                    onPlayItemClicked(itemListSnapHelper.snapPosition)
+                } },
+                onMoveNext = { debounceUserInteraction {
+                    briefPanelAnimationController.showOrResetTimer()
+                    onMoveItemClicked(itemListSnapHelper.snapPosition, itemListSnapHelper.snapPosition + 1)
+                } },
+            )
         }
 
         onFocusedItemChanged(0)
@@ -245,26 +245,18 @@ abstract class ItemBriefMenu(
         briefViewBinding.viewRecorder.isVisible
 
     private fun updateBriefButtons(itemCount: Int) {
-        briefViewBinding.apply {
-            val index = itemListSnapHelper.snapPosition
-
-            if (itemCount == 0) {
-                buttonMovePrevious.isEnabled = false
-                buttonMoveNext.isEnabled = false
-                buttonPlay.isEnabled = false
-                buttonDelete.isEnabled = false
-                textActionIndex.text = getIndexText(currentIndex = 0, itemCount = 0)
-                textActionIndex.isEnabled = false
-            } else {
-                displayConfigManager.displayConfig.orientation
-                buttonMovePrevious.isEnabled = itemListSnapHelper.snapPosition != 0
-                buttonMoveNext.isEnabled = itemListSnapHelper.snapPosition != (itemCount - 1)
-                buttonPlay.isEnabled = true
-                buttonDelete.isEnabled = true
-                textActionIndex.text = getIndexText(currentIndex = index + 1, itemCount = itemCount)
-                textActionIndex.isEnabled = true
-            }
-        }
+        val index = itemListSnapHelper.snapPosition
+        val hasItems = itemCount != 0
+        briefViewBinding.updateControls(
+            ItemBriefControlsState(
+                indexText = getIndexText(currentIndex = if (hasItems) index + 1 else 0, itemCount = itemCount),
+                canMovePrevious = hasItems && index != 0,
+                canDelete = hasItems,
+                canSelectPosition = hasItems,
+                canPlay = hasItems,
+                canMoveNext = hasItems && index != itemCount - 1,
+            )
+        )
     }
 
     private fun getIndexText(currentIndex: Int, itemCount: Int): String =

@@ -18,17 +18,28 @@ package io.github.vibhor1102.macrion.feature.tutorial.ui.slideshow
 
 import android.content.Context
 import android.util.Log
-import android.view.LayoutInflater
 import androidx.appcompat.app.AlertDialog
-import androidx.viewpager2.widget.ViewPager2
-
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
 import io.github.vibhor1102.macrion.feature.tutorial.R
 import io.github.vibhor1102.macrion.feature.tutorial.data.mapping.toTutorialSlideshow
-import io.github.vibhor1102.macrion.feature.tutorial.databinding.DialogTutorialSlideshowBinding
 import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialSlideshow
-
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 internal fun Context.createTutorialSlideshowDialog(
     slideshowType: TutorialSlideshow.Type,
@@ -56,51 +67,52 @@ private fun Context.createDialog(
     }
 
     val dialogContext = getDynamicColorsContext(R.style.AppTheme)
-    val dialogViewBinding = DialogTutorialSlideshowBinding.inflate(LayoutInflater.from(dialogContext))
-    val dialog = MaterialAlertDialogBuilder(dialogContext)
-        .setView(dialogViewBinding.root)
+    lateinit var dialog: AlertDialog
+    val content = ComposeView(dialogContext).apply {
+        setContent {
+            MacrionTheme {
+                MacrionDialogSurface {
+                    TutorialSlideshowDialogContent(
+                        slideshow = slideshow,
+                        pages = slideshow.slideshowItems.subList(pages.first, pages.last + 1),
+                        onDismiss = { dialog.dismiss() },
+                    )
+                }
+            }
+        }
+    }
+    dialog = MaterialAlertDialogBuilder(dialogContext)
+        .setView(content)
         .setOnDismissListener { onDismissed?.invoke() }
         .create()
-
-    dialogViewBinding.bind(
-        slideshow = slideshow,
-        pageRange = pages,
-        onCloseClicked = { dialog.dismiss() },
-    )
-
     return dialog
 }
 
-private fun DialogTutorialSlideshowBinding.bind(
+@Composable
+private fun TutorialSlideshowDialogContent(
     slideshow: TutorialSlideshow,
-    pageRange: IntRange,
-    onCloseClicked: () -> Unit,
+    pages: List<TutorialSlideshow.SlideshowItem>,
+    onDismiss: () -> Unit,
 ) {
-    titleSlideshow.setText(slideshow.nameRes)
+    val pagerHeight = (LocalConfiguration.current.screenHeightDp * 0.55f).dp
 
-    val adapter = SlideshowPagerAdapter(slideshow.slideshowItems.subList(pageRange.first, pageRange.last + 1))
-    viewPager.adapter = adapter
-    viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-        override fun onPageSelected(position: Int) {
-            updateButtonLabel(position, adapter.itemCount)
-        }
-    })
-    updateButtonLabel(0, adapter.itemCount)
-
-    buttonNext.setOnClickListener {
-        val currentItem = viewPager.currentItem
-        if (currentItem < adapter.itemCount - 1) {
-            viewPager.currentItem = currentItem + 1
-        } else {
-            onCloseClicked()
-        }
-    }
-}
-
-private fun DialogTutorialSlideshowBinding.updateButtonLabel(currentPage: Int, pageCount: Int) {
-    val isLastPage = currentPage == pageCount - 1
-    buttonNext.setText(
-        if (isLastPage) R.string.button_text_tutorial_close else R.string.button_text_tutorial_next
+    TutorialSlideshowContent(
+        pages = pages,
+        modifier = Modifier.fillMaxWidth(),
+        pagerHeight = pagerHeight,
+        header = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = stringResource(slideshow.nameRes),
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp),
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                )
+                HorizontalDivider()
+            }
+        },
+        onClose = onDismiss,
     )
 }
 

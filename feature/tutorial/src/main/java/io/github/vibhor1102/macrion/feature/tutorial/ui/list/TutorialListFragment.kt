@@ -23,24 +23,23 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 
 import io.github.vibhor1102.macrion.core.display.recorder.MediaProjectionRequest
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.updateState
-import io.github.vibhor1102.macrion.core.ui.databinding.IncludeLoadableListBinding
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.core.ui.errors.createNoMediaProjectionDialog
 import io.github.vibhor1102.macrion.feature.tutorial.R
 import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialCategoryUiItems
-import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialCategoryUiState
 import io.github.vibhor1102.macrion.feature.tutorial.domain.model.TutorialItem
 
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 
 @AndroidEntryPoint
@@ -48,32 +47,24 @@ class TutorialListFragment : Fragment() {
 
     /** ViewModel providing the state of the UI. */
     private val viewModel: TutorialListViewModel by viewModels()
-    /** ViewBinding containing the views for this fragment. */
-    private lateinit var viewBinding: IncludeLoadableListBinding
-    /** Adapter for the list of tutorials. */
-    private lateinit var adapter: TutorialListAdapter
-
     /** The result launcher for the projection permission dialog. */
     private val mediaProjectionRequest: MediaProjectionRequest = MediaProjectionRequest()
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        viewBinding = IncludeLoadableListBinding.inflate(inflater, container, false)
-
-        adapter = TutorialListAdapter(onItemClicked = ::onItemClicked)
         mediaProjectionRequest.registerForActivityResult(this)
 
-        return viewBinding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        viewBinding.list.adapter = adapter
-
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.uiState.collect(::updateUi) }
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MacrionTheme {
+                    Surface(Modifier.fillMaxSize()) {
+                        TutorialListScreen(
+                            uiStateFlow = viewModel.uiState,
+                            onItemClicked = ::onItemClicked,
+                        )
+                    }
+                }
             }
         }
     }
@@ -81,16 +72,6 @@ class TutorialListFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         viewModel.stopTutorial()
-    }
-
-    private fun updateUi(uiState: TutorialCategoryUiState) {
-        when (uiState) {
-            TutorialCategoryUiState.Loading -> viewBinding.updateState(null)
-            is TutorialCategoryUiState.Loaded -> {
-                viewBinding.updateState(uiState.items)
-                adapter.submitList(uiState.items)
-            }
-        }
     }
 
     private fun onItemClicked(item: TutorialCategoryUiItems.Item) {

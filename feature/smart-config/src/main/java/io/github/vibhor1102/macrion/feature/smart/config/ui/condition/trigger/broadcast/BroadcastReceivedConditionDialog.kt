@@ -1,162 +1,100 @@
-/*
- * Copyright (C) 2024 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2024 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.condition.trigger.broadcast
 
-import android.text.InputFilter
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonEnabledState
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setError
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setLabel
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnCheckboxClickedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnTextChangedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setText
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setTextValue
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setup
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.DialogConfigConditionBroadcastBinding
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.intent.IntentActionsSelectionDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.OnConditionConfigCompleteListener
-
-import com.google.android.material.bottomsheet.BottomSheetDialog
-
 import kotlinx.coroutines.launch
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 
-class BroadcastReceivedConditionDialog(
-    private val listener: OnConditionConfigCompleteListener,
-) : OverlayDialog(R.style.ScenarioConfigTheme) {
-
+class BroadcastReceivedConditionDialog(private val listener: OnConditionConfigCompleteListener) :
+    OverlayDialog(R.style.ScenarioConfigTheme) {
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.BROADCAST_RECEIVED_CONDITION.name
-
-    /** The view model for this dialog. */
     private val viewModel: BroadcastReceivedConditionViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { broadcastReceivedConditionViewModel() },
     )
-    /** ViewBinding containing the views for this dialog. */
-    private lateinit var viewBinding: DialogConfigConditionBroadcastBinding
 
-    override fun onCreateView(): ViewGroup {
-        viewBinding = DialogConfigConditionBroadcastBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(R.string.dialog_title_broadcast_received)
-
-                buttonDismiss.setDebouncedOnClickListener { back() }
-                buttonSave.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener {
-                        listener.onConfirmClicked()
-                        super.back()
-                    }
-                }
-                buttonDelete.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener {
-                        listener.onDeleteClicked()
-                        super.back()
-                    }
-                }
-            }
-
-            fieldName.apply {
-                setLabel(R.string.generic_name)
-                setOnTextChangedListener { viewModel.setName(it.toString()) }
-                textField.filters = arrayOf<InputFilter>(
-                    InputFilter.LengthFilter(context.resources.getInteger(R.integer.name_max_length))
-                )
-            }
-            hideSoftInputOnFocusLoss(fieldName.textField)
-
-            editBroadcastAction.apply {
-                setup(R.string.field_intent_broadcast_action_label, R.drawable.ic_search, false)
-                setOnTextChangedListener { viewModel.setIntentAction(it.toString()) }
-                textField.filters = arrayOf<InputFilter>(
-                    InputFilter.LengthFilter(context.resources.getInteger(R.integer.name_max_length))
-                )
-                setOnCheckboxClickedListener { showBroadcastActionSelectionDialog() }
-            }
-            hideSoftInputOnFocusLoss(editBroadcastAction.textField)
-        }
-
-        return viewBinding.root
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@BroadcastReceivedConditionDialog.Content() } }
+    }
+    override fun onDialogCreated(dialog: BottomSheetDialog) {
+        lifecycleScope.launch { repeatOnLifecycle(Lifecycle.State.CREATED) {
+            viewModel.isEditingCondition.collect { if (!it) finish() }
+        } }
     }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                launch { viewModel.isEditingCondition.collect(::onConditionEditingStateChanged) }
+    @Composable private fun Content() {
+        val name = viewModel.name.collectAsStateWithLifecycle("").value.orEmpty()
+        val action = viewModel.intentAction.collectAsStateWithLifecycle("").value.orEmpty()
+        val nameError = viewModel.nameError.collectAsStateWithLifecycle(false).value
+        val actionError = viewModel.intentActionError.collectAsStateWithLifecycle(false).value
+        val saveEnabled = viewModel.conditionCanBeSaved.collectAsStateWithLifecycle(false).value
+        Surface(Modifier.fillMaxWidth().heightIn(max = 560.dp), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            Column {
+                TopBar(saveEnabled)
+                Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    MacrionTextField(name, viewModel::setName, context.getString(R.string.generic_name),
+                        isError = nameError, maxLength = context.resources.getInteger(R.integer.name_max_length))
+                    OutlinedTextField(
+                        value = action, onValueChange = viewModel::setIntentAction, modifier = Modifier.fillMaxWidth(),
+                        label = { Text(context.getString(R.string.field_intent_broadcast_action_label)) },
+                        trailingIcon = { IconButton(onClick = ::showBroadcastActionSelectionDialog) {
+                            Icon(painterResource(R.drawable.ic_search), null)
+                        } },
+                        isError = actionError, singleLine = true,
+                    )
+                }
             }
         }
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.name.collect(viewBinding.fieldName::setText) }
-                launch { viewModel.nameError.collect(viewBinding.fieldName::setError)}
-                launch { viewModel.intentAction.collect(viewBinding.editBroadcastAction::setTextValue) }
-                launch { viewModel.intentActionError.collect(viewBinding.editBroadcastAction::setError)}
-                launch { viewModel.conditionCanBeSaved.collect(::updateSaveButton) }
-            }
+    }
+
+    @Composable private fun TopBar(saveEnabled: Boolean) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
+            Text(context.getString(R.string.dialog_title_broadcast_received), Modifier.weight(1f).padding(horizontal = 8.dp),
+                style = MaterialTheme.typography.titleLarge)
+            FilledTonalIconButton(onClick = ::delete) { Icon(painterResource(R.drawable.ic_delete), null) }
+            Spacer(Modifier.width(8.dp))
+            FilledIconButton(onClick = ::save, enabled = saveEnabled) { Icon(painterResource(R.drawable.ic_save_filled), null) }
         }
     }
 
     override fun back() {
         if (viewModel.hasUnsavedModifications()) {
-            context.showCloseWithoutSavingDialog {
-                listener.onDismissClicked()
-                super.back()
-            }
+            context.showCloseWithoutSavingDialog { listener.onDismissClicked(); super.back() }
             return
         }
-
-        listener.onDismissClicked()
-        super.back()
+        listener.onDismissClicked(); super.back()
     }
-
-    private fun updateSaveButton(canBeSaved: Boolean) {
-        viewBinding.layoutTopBar.setButtonEnabledState(DialogNavigationButton.SAVE, canBeSaved)
-    }
-
-    private fun showBroadcastActionSelectionDialog() {
-        overlayManager.navigateTo(
-            context = context,
-            newOverlay = IntentActionsSelectionDialog(
-                currentAction = viewModel.getIntentAction(),
-                onConfigComplete = { newAction ->
-                    viewModel.setIntentAction(newAction ?: "")
-                    viewBinding.editBroadcastAction.textField.setText(newAction)
-                },
-                forBroadcastReception = true,
-            ),
-            hideCurrent = true,
-        )
-    }
-
-    private fun onConditionEditingStateChanged(isEditing: Boolean) {
-        if (!isEditing) finish()
-    }
+    private fun save() { listener.onConfirmClicked(); super.back() }
+    private fun delete() { listener.onDeleteClicked(); super.back() }
+    private fun showBroadcastActionSelectionDialog() = overlayManager.navigateTo(context,
+        IntentActionsSelectionDialog(viewModel.getIntentAction(), viewModel::setIntentAction, true), true)
 }

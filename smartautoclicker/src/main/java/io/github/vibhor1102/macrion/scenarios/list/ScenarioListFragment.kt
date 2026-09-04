@@ -31,6 +31,23 @@ import android.view.WindowManager
 
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -41,9 +58,8 @@ import io.github.vibhor1102.macrion.R
 import io.github.vibhor1102.macrion.core.base.extensions.applySafeContentInsets
 import io.github.vibhor1102.macrion.core.common.navigation.TutorialNavigator
 import io.github.vibhor1102.macrion.core.common.navigation.getTutorialNavigator
-import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
-import io.github.vibhor1102.macrion.databinding.DialogImportExportBinding
-import io.github.vibhor1102.macrion.databinding.FragmentScenariosBinding
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionDialogSurface
 import io.github.vibhor1102.macrion.feature.backup.ui.BackupDialogFragment
 import io.github.vibhor1102.macrion.feature.backup.ui.BackupDialogFragment.Companion.FRAGMENT_TAG_BACKUP_DIALOG
 import io.github.vibhor1102.macrion.scenarios.migration.ConditionsMigrationFragment
@@ -80,8 +96,7 @@ class ScenarioListFragment : Fragment() {
     /** ViewModel providing the scenarios data to the UI. */
     private val scenarioListViewModel: ScenarioListViewModel by viewModels()
 
-    /** ViewBinding containing the views for this fragment. */
-    private lateinit var viewBinding: FragmentScenariosBinding
+    private lateinit var views: ScenarioListViews
     /** Adapter displaying the click scenarios as a list. */
     private lateinit var scenariosAdapter: ScenarioAdapter
 
@@ -90,8 +105,8 @@ class ScenarioListFragment : Fragment() {
     private var dialog: AlertDialog? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        viewBinding = FragmentScenariosBinding.inflate(inflater, container, false)
-        return viewBinding.root
+        views = ScenarioListViews(requireContext(), ::onCreateClicked)
+        return views.root
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -114,10 +129,9 @@ class ScenarioListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewBinding.apply {
+        views.apply {
             list.adapter = scenariosAdapter
 
-            emptyCreateButton.setOnClickListener { onCreateClicked() }
             add.setOnClickListener { onCreateClicked() }
 
             appBarLayout.statusBarForeground = MaterialShapeDrawable.createWithElevationOverlay(context)
@@ -180,7 +194,7 @@ class ScenarioListFragment : Fragment() {
      * @param menuState the new ui state for the menu.
      */
     private fun updateMenu(menuState: ScenarioListUiState.Menu) {
-        viewBinding.topAppBar.menu.apply {
+        views.topAppBar.menu.apply {
             findItem(R.id.action_select_all)?.bind(menuState.selectAllItemState)
             findItem(R.id.action_cancel)?.bind(menuState.cancelItemState)
             findItem(R.id.action_import_export)?.bind(menuState.importExportItemState)
@@ -219,18 +233,18 @@ class ScenarioListFragment : Fragment() {
      * Will update the list/empty view according to the current click scenarios
      */
     private fun updateScenarioList(uiState: ScenarioListUiState) {
-        viewBinding.apply {
-            loading.visibility = View.GONE
+        views.apply {
+            loadingVisible.value = false
             if (uiState.listContent.isEmpty() && uiState.type == ScenarioListUiState.Type.SELECTION) {
                 list.visibility = View.GONE
                 add.visibility = View.GONE
-                layoutEmpty.visibility = View.VISIBLE
+                emptyVisible.value = true
             } else {
                 list.visibility = View.VISIBLE
                 add.visibility =
                     if (uiState.type == ScenarioListUiState.Type.SELECTION) View.VISIBLE
                     else View.GONE
-                layoutEmpty.visibility = View.GONE
+                emptyVisible.value = false
             }
         }
 
@@ -313,25 +327,50 @@ class ScenarioListFragment : Fragment() {
     }
 
     private fun showImportExportDialog() {
-        val dialogContext = requireContext().getDynamicColorsContext(R.style.AppTheme)
-        val dialogViewBinding = DialogImportExportBinding.inflate(LayoutInflater.from(dialogContext))
+        val dialogContext = requireContext()
+        val composeView = ComposeView(dialogContext)
         val dialog = MaterialAlertDialogBuilder(dialogContext)
-            .setView(dialogViewBinding.root)
+            .setView(composeView)
             .create()
 
-        dialogViewBinding.apply {
-            buttonImport.setOnClickListener {
-                dialog.dismiss()
-                showBackupDialog(isImport = true)
-            }
-
-            buttonExport.setOnClickListener {
-                dialog.dismiss()
-                scenarioListViewModel.setUiState(ScenarioListUiState.Type.EXPORT)
+        composeView.setContent {
+            MacrionTheme {
+                MacrionDialogSurface {
+                    ImportExportContent(
+                        onImport = {
+                            dialog.dismiss()
+                            showBackupDialog(isImport = true)
+                        },
+                        onExport = {
+                            dialog.dismiss()
+                            scenarioListViewModel.setUiState(ScenarioListUiState.Type.EXPORT)
+                        },
+                    )
+                }
             }
         }
-
         dialog.show()
+    }
+
+    @Composable
+    private fun ImportExportContent(onImport: () -> Unit, onExport: () -> Unit) {
+        Column(
+            Modifier.fillMaxWidth().padding(vertical = 20.dp, horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(stringResource(R.string.dialog_title_backup), style = MaterialTheme.typography.titleLarge)
+            HorizontalDivider()
+            Text(stringResource(R.string.message_backup), textAlign = TextAlign.Center)
+            OutlinedButton(onClick = onImport, modifier = Modifier.fillMaxWidth()) {
+                Icon(painterResource(R.drawable.ic_backup_load), contentDescription = null)
+                Text(stringResource(R.string.button_import), modifier = Modifier.padding(start = 8.dp))
+            }
+            OutlinedButton(onClick = onExport, modifier = Modifier.fillMaxWidth()) {
+                Icon(painterResource(R.drawable.ic_menu_save), contentDescription = null)
+                Text(stringResource(R.string.button_export), modifier = Modifier.padding(start = 8.dp))
+            }
+        }
     }
 
     /**

@@ -16,17 +16,23 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.triggerevents
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
+
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
 import io.github.vibhor1102.macrion.core.domain.model.event.TriggerEvent
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.ItemTriggerEventBinding
-import io.github.vibhor1102.macrion.feature.smart.config.ui.common.bindings.bind
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.event.UiTriggerEvent
+import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.common.EventListRow
 
 /**
  * Adapter displaying a list of trigger events.
@@ -37,7 +43,7 @@ class TriggerEventListAdapter(
 ) : ListAdapter<UiTriggerEvent, TriggerEventViewHolder>(TriggerEventDiffUtilCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TriggerEventViewHolder =
-        TriggerEventViewHolder(ItemTriggerEventBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        TriggerEventViewHolder(parent)
 
     override fun onBindViewHolder(holder: TriggerEventViewHolder, position: Int) {
         holder.bindEvent(getItem(position), itemClickedListener)
@@ -58,8 +64,33 @@ object TriggerEventDiffUtilCallback: DiffUtil.ItemCallback<UiTriggerEvent>() {
  * @param holderViewBinding the view binding for this item.
  */
 class TriggerEventViewHolder(
-    private val holderViewBinding: ItemTriggerEventBinding,
-) : RecyclerView.ViewHolder(holderViewBinding.root) {
+    parent: ViewGroup,
+) : RecyclerView.ViewHolder(ComposeView(parent.context)) {
+    private var itemState by mutableStateOf<UiTriggerEvent?>(null)
+    private var clickListener: ((TriggerEvent) -> Unit)? = null
+
+    init {
+        (itemView as ComposeView).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
+            setContent {
+                MacrionTheme {
+                    itemState?.let { item ->
+                        EventListRow(
+                            name = item.name,
+                            conditionsCount = item.conditionsCountText,
+                            actionsCount = item.actionsCountText,
+                            enabledTextRes = item.enabledOnStartTextRes,
+                            enabledIconRes = item.enabledOnStartIconRes,
+                            conditionIconRes = R.drawable.ic_trigger_condition,
+                            actionsInError = item.haveError,
+                            showReorderHandle = false,
+                            onClick = { clickListener?.invoke(item.event) },
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Bind this view holder to an event.
@@ -68,6 +99,7 @@ class TriggerEventViewHolder(
      * @param itemClickedListener listener called when an event is clicked.
      */
     fun bindEvent(item: UiTriggerEvent, itemClickedListener: (TriggerEvent) -> Unit) {
-        holderViewBinding.bind(item = item, itemClickedListener = itemClickedListener)
+        clickListener = itemClickedListener
+        itemState = item
     }
 }

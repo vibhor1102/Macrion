@@ -24,4 +24,7 @@
     <item name="btn_move" type="id"/>
     <!-- Id for the hide button in the OverlayMenuController -->
     <item name="btn_hide_overlay" type="id"/>
+    <item name="btn_back" type="id"/>
+    <item name="btn_confirm" type="id"/>
+    <item name="btn_cancel" type="id"/>
 </resources>

@@ -104,11 +104,12 @@ class ColorConditionViewModel  @Inject constructor(
         }
     }
 
-    fun monitorSaveButtonView(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.SCREEN_CONDITION_DIALOG_BUTTON_SAVE, view)
+    fun monitorSaveButtonView(view: View?) {
+        if (view == null) monitoredViewsManager.detach(MonitoredViewType.SCREEN_CONDITION_DIALOG_BUTTON_SAVE)
+        else monitoredViewsManager.attach(MonitoredViewType.SCREEN_CONDITION_DIALOG_BUTTON_SAVE, view)
     }
 
-    fun stopViewMonitoring() {
+    fun detachMonitoredViews() {
         monitoredViewsManager.detach(MonitoredViewType.SCREEN_CONDITION_DIALOG_BUTTON_SAVE)
     }
 

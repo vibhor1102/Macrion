@@ -19,11 +19,10 @@ package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.constraintlayout.widget.ConstraintLayout
 
-import io.github.vibhor1102.macrion.core.common.overlays.databinding.OverlayPositionSelectionMenuBinding
-import io.github.vibhor1102.macrion.core.common.overlays.databinding.OverlayPositionSelectionViewBinding
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
+import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenuButton
+import io.github.vibhor1102.macrion.core.common.overlays.menu.createOverlayMenuLayout
 import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.ui.utils.AutoHideAnimationController
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
@@ -47,10 +46,9 @@ class PositionSelectorMenu(
     private val onDismiss: (() -> Unit)? = null,
 ) : OverlayMenu() {
 
-    /** The view binding for the overlay menu. */
-    private lateinit var viewBinding: OverlayPositionSelectionMenuBinding
     /** The view binding for the position selector. */
-    private lateinit var selectorViewBinding: OverlayPositionSelectionViewBinding
+    private lateinit var selectorViews: PositionSelectorViews
+    private lateinit var confirmButton: View
 
     /** Controls the instructions in and out animations. */
     private lateinit var instructionsAnimationController: AutoHideAnimationController
@@ -61,26 +59,31 @@ class PositionSelectorMenu(
     override fun tutorialMonitoringTag(): String = tutorialMonitoringTag
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
-        viewBinding = OverlayPositionSelectionMenuBinding.inflate(layoutInflater)
-        selectorViewBinding = OverlayPositionSelectionViewBinding.inflate(layoutInflater)
+        selectorViews = PositionSelectorViews(
+            context = context,
+            safeInsetTopPx = displayConfigManager.displayConfig.safeInsetTopPx,
+        )
 
         instructionsAnimationController = AutoHideAnimationController().apply {
             attachToView(
-                selectorViewBinding.layoutInstructions,
+                selectorViews.instructions,
                 AutoHideAnimationController.ScreenSide.TOP,
             )
         }
 
-        return viewBinding.root
+        return createOverlayMenuLayout(
+            context,
+            listOf(
+                OverlayMenuButton(R.id.btn_confirm, R.drawable.ic_confirm, R.string.content_desc_confirm),
+                OverlayMenuButton(R.id.btn_cancel, R.drawable.ic_cancel, R.string.content_desc_go_back),
+                OverlayMenuButton(R.id.btn_hide_overlay, R.drawable.ic_visible_on, R.string.content_desc_go_back),
+                OverlayMenuButton(R.id.btn_move, R.drawable.ic_move, R.string.content_desc_move_menu),
+            ),
+        ).also { menu -> confirmButton = menu.findViewById(R.id.btn_confirm) }
     }
 
     override fun onCreateOverlayView(): View {
-        selectorViewBinding.textInstructions.layoutParams =
-            (selectorViewBinding.textInstructions.layoutParams as ConstraintLayout.LayoutParams).apply {
-                setMargins(leftMargin, topMargin + displayConfigManager.displayConfig.safeInsetTopPx, rightMargin, bottomMargin)
-            }
-
-        return selectorViewBinding.root
+        return selectorViews.root
     }
 
     override fun onStart() {
@@ -109,8 +112,8 @@ class PositionSelectorMenu(
     }
 
     private fun setClickDescription(description: ClickDescription) {
-        selectorViewBinding.textInstructions.setText(R.string.toast_configure_single_click)
-        selectorViewBinding.positionSelector.apply {
+        selectorViews.setInstruction(R.string.toast_configure_single_click)
+        selectorViews.positionSelector.apply {
             setDescription(description)
             onTouchListener = { position ->
                 setClickDescription(description.copy(position = position))
@@ -134,8 +137,8 @@ class PositionSelectorMenu(
     }
 
     private fun toSelectSwipeFromState(description: SwipeDescription) {
-        selectorViewBinding.textInstructions.setText(R.string.toast_configure_swipe_from)
-        selectorViewBinding.positionSelector.apply {
+        selectorViews.setInstruction(R.string.toast_configure_swipe_from)
+        selectorViews.positionSelector.apply {
             setDescription(description)
             onTouchListener = { position ->
                 toSelectSwipeFromState(description.copy(from = position))
@@ -152,8 +155,8 @@ class PositionSelectorMenu(
     }
 
     private fun toSelectSwipeToState(description: SwipeDescription) {
-        selectorViewBinding.textInstructions.setText(R.string.toast_configure_swipe_to)
-        selectorViewBinding.positionSelector.apply {
+        selectorViews.setInstruction(R.string.toast_configure_swipe_to)
+        selectorViews.positionSelector.apply {
             setDescription(description)
             onTouchListener = { position ->
                 toSelectSwipeToState(description.copy(to = position))
@@ -181,7 +184,7 @@ class PositionSelectorMenu(
 
     private fun setConfirmEnabledState(isEnabled: Boolean, action: (() -> Unit)? = null) {
         confirmListener = action
-        setMenuItemViewEnabled(viewBinding.btnConfirm, enabled = isEnabled, clickable = isEnabled)
+        setMenuItemViewEnabled(confirmButton, enabled = isEnabled, clickable = isEnabled)
     }
 
     private fun setCancelListener(action: (() -> Unit)) {

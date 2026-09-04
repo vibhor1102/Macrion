@@ -29,7 +29,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
 import io.github.vibhor1102.macrion.core.ui.views.areaselector.AreaSelectorView
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.OverlayValidationMenuBinding
+import io.github.vibhor1102.macrion.feature.smart.config.ui.createValidationOverlayToolbar
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 
 import kotlinx.coroutines.launch
@@ -48,20 +48,18 @@ class ConditionAreaSelectorMenu(
         creator = { imageConditionAreaSelectorViewModel() },
     )
 
-    /** The view binding for the overlay menu. */
-    private lateinit var viewBinding: OverlayValidationMenuBinding
     /** The view displaying selector for the area. */
     private lateinit var selectorView: AreaSelectorView
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup {
         selectorView = AreaSelectorView(context, displayConfigManager)
-        viewBinding = OverlayValidationMenuBinding.inflate(layoutInflater)
+        val menuView = createValidationOverlayToolbar(context)
 
         if (onHelpClicked == null) {
-            viewBinding.btnHelp.visibility = View.GONE
+            menuView.findViewById<View>(R.id.btn_help).visibility = View.GONE
         }
 
-        return viewBinding.root
+        return menuView
     }
 
     override fun onCreateOverlayView(): View = selectorView

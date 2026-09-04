@@ -1,149 +1,122 @@
-/*
- * Copyright (C) 2026 Vibhor Goel
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.activity
 
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.DialogEventActivityBinding
 import io.github.vibhor1102.macrion.feature.smart.debugging.di.DebuggingViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportDialogTopBar
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportEmptyMessage
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportLoading
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportRecycler
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportRecyclerViews
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.activity.adapter.EventActivityAdapter
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.sort.DebugReportSortOption
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.sort.DebugReportSortPopup
 import io.github.vibhor1102.macrion.feature.smart.debugging.utils.captureScrollPosition
 import io.github.vibhor1102.macrion.feature.smart.debugging.utils.restoreScrollPosition
 
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlinx.coroutines.launch
-
-
 class EventActivityDialog : OverlayDialog(R.style.AppTheme) {
-
     private val viewModel: EventActivityViewModel by viewModels(
         entryPoint = DebuggingViewModelsEntryPoint::class.java,
         creator = { eventActivityViewModel() },
     )
-
-    private lateinit var binding: DialogEventActivityBinding
     private val adapter = EventActivityAdapter()
+    private var listViews: ReportRecyclerViews? = null
+    private var sortButton: FloatingActionButton? = null
     private var sortPopup: DebugReportSortPopup<EventActivitySort>? = null
 
-    override fun onCreateView(): ViewGroup {
-        binding = DialogEventActivityBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(R.string.dialog_overlay_title_event_activity)
-                buttonDelete.visibility = View.GONE
-                buttonSave.visibility = View.GONE
-                buttonDismiss.setDebouncedOnClickListener { back() }
-            }
-
-            list.adapter = adapter
-            fastScroller.attachToRecyclerView(list)
-
-            floatingActionButtons.apply {
-                secondary.visibility = View.GONE
-                primaryBadge.visibility = View.GONE
-                primary.setImageResource(R.drawable.ic_sort)
-                primary.contentDescription = context.getString(R.string.content_desc_event_activity_sort)
-                primary.setOnClickListener { openSortDialog() }
-            }
-        }
-        return binding.root
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@EventActivityDialog.Content() } }
     }
+    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
+    override fun onStop() { sortPopup?.dismiss(); sortPopup = null; super.onStop() }
 
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect(::updateUiState)
+    @Composable private fun Content() {
+        val state = viewModel.uiState.collectAsStateWithLifecycle().value
+        LaunchedEffect(state) {
+            if (state == EventActivityUiState.NotAvailable) back()
+            if (state is EventActivityUiState.Available) {
+                val previous = listViews?.recyclerView?.captureScrollPosition()
+                adapter.submitList(state.items) {
+                    previous?.let { listViews?.recyclerView?.restoreScrollPosition(it) }
+                    listViews?.fastScroller?.refresh()
+                }
             }
         }
-    }
-
-    override fun onStop() {
-        sortPopup?.dismiss()
-        sortPopup = null
-        super.onStop()
-    }
-
-    private fun updateUiState(uiState: EventActivityUiState) {
-        when (uiState) {
-            EventActivityUiState.Loading -> showLoading()
-            EventActivityUiState.NotAvailable -> back()
-            EventActivityUiState.Empty -> showEmpty()
-            is EventActivityUiState.Available -> showActivity(uiState)
-        }
-    }
-
-    private fun showLoading() = binding.apply {
-        loading.visibility = View.VISIBLE
-        empty.visibility = View.GONE
-        list.visibility = View.GONE
-        fastScroller.visibility = View.GONE
-        floatingActionButtons.root.visibility = View.GONE
-    }
-
-    private fun showEmpty() = binding.apply {
-        loading.visibility = View.GONE
-        empty.visibility = View.VISIBLE
-        list.visibility = View.GONE
-        fastScroller.visibility = View.GONE
-        floatingActionButtons.root.visibility = View.GONE
-    }
-
-    private fun showActivity(uiState: EventActivityUiState.Available) = binding.apply {
-        loading.visibility = View.GONE
-        empty.visibility = View.GONE
-        list.visibility = View.VISIBLE
-        fastScroller.visibility = View.VISIBLE
-        floatingActionButtons.root.visibility = View.VISIBLE
-        val previousScrollPosition = list.captureScrollPosition()
-        adapter.submitList(uiState.items) {
-            list.restoreScrollPosition(previousScrollPosition)
-            list.postOnAnimation {
-                list.restoreScrollPosition(previousScrollPosition)
-                fastScroller.refresh()
+        Surface(Modifier.fillMaxSize().heightIn(min = 600.dp)) {
+            Column {
+                ReportDialogTopBar(context.getString(R.string.dialog_overlay_title_event_activity), ::back)
+                Box(Modifier.weight(1f)) {
+                    when (state) {
+                        EventActivityUiState.Loading -> ReportLoading()
+                        EventActivityUiState.Empty -> ReportEmptyMessage(
+                            context.getString(R.string.title_event_activity_empty),
+                            context.getString(R.string.desc_event_activity_empty),
+                        )
+                        is EventActivityUiState.Available -> {
+                            ReportRecycler(
+                                contentDescriptionRes = R.string.content_desc_event_activity_fast_scroller,
+                                modifier = Modifier.fillMaxSize(),
+                                bottomPaddingDp = 88,
+                                onCreated = { views ->
+                                    listViews = views
+                                    views.recyclerView.adapter = adapter
+                                },
+                            )
+                            AndroidView(
+                                modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                                factory = { ctx -> FloatingActionButton(ctx).apply {
+                                    setImageResource(R.drawable.ic_sort)
+                                    contentDescription = ctx.getString(R.string.content_desc_event_activity_sort)
+                                    setOnClickListener { openSortDialog() }
+                                    sortButton = this
+                                } },
+                            )
+                        }
+                        EventActivityUiState.NotAvailable -> Unit
+                    }
+                }
             }
         }
     }
 
     private fun openSortDialog() {
-        val selectedSort = viewModel.getSort()
+        val anchor = sortButton ?: return
+        val selected = viewModel.getSort()
         sortPopup?.dismiss()
         sortPopup = DebugReportSortPopup(
-            anchor = binding.floatingActionButtons.primary,
-            options = EventActivitySort.entries.map { sort ->
-                DebugReportSortOption(
-                    value = sort,
-                    titleRes = when (sort) {
-                        EventActivitySort.SCENARIO_ORDER -> R.string.event_activity_sort_scenario_order
-                        EventActivitySort.MOST_FREQUENT -> R.string.event_activity_sort_most_frequent
-                        EventActivitySort.FIRST_EXECUTION -> R.string.event_activity_sort_first_execution
-                    },
-                    selected = sort == selectedSort,
-                )
-            },
-            onSelected = viewModel::setSort,
+            anchor,
+            EventActivitySort.entries.map { sort -> DebugReportSortOption(
+                sort,
+                when (sort) {
+                    EventActivitySort.SCENARIO_ORDER -> R.string.event_activity_sort_scenario_order
+                    EventActivitySort.MOST_FREQUENT -> R.string.event_activity_sort_most_frequent
+                    EventActivitySort.FIRST_EXECUTION -> R.string.event_activity_sort_first_execution
+                },
+                sort == selected,
+            ) },
+            viewModel::setSort,
         ).also { it.show() }
     }
 }

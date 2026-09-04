@@ -22,7 +22,6 @@ plugins {
 
 android {
     namespace = "io.github.vibhor1102.macrion.feature.review"
-    buildFeatures.viewBinding = true
 }
 
 dependencies {

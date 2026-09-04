@@ -106,16 +106,12 @@ abstract class NavBarDialogContent(
         rootContainer.addView(root)
 
         if (floatingActionButtonsAreAvailable()) {
-            dialogController.floatingActionButtons.apply {
-                primary.apply {
-                    setOnClickListener { onPrimaryFloatingActionButtonClicked() }
-                    setImageResource(primaryFloatingActionButtonIcon())
-                }
-                secondary.apply {
-                    setOnClickListener { onSecondaryFloatingActionButtonClicked() }
-                    setImageResource(secondaryFloatingActionButtonIcon())
-                }
-            }
+            dialogController.floatingActionButtons.configure(
+                primaryIcon = primaryFloatingActionButtonIcon(),
+                secondaryIcon = secondaryFloatingActionButtonIcon(),
+                onPrimary = ::onPrimaryFloatingActionButtonClicked,
+                onSecondary = ::onSecondaryFloatingActionButtonClicked,
+            )
         }
 
         lifecycleRegistry.currentState = Lifecycle.State.STARTED

@@ -16,20 +16,19 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.eventtry
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.ImageView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ItemLiveDebuggingEventTryActionBinding
+import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.live.uistate.TryEventActionsItem
 
 class TryEventActionsAdapter : ListAdapter<TryEventActionsItem, TryEventActionViewHolder>(TryEventActionDiffUtilCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TryEventActionViewHolder =
-        TryEventActionViewHolder(
-            ItemLiveDebuggingEventTryActionBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        )
+        TryEventActionViewHolder(parent)
 
     override fun onBindViewHolder(holder: TryEventActionViewHolder, position: Int) {
         holder.onBind(getItem(position))
@@ -46,10 +45,16 @@ object TryEventActionDiffUtilCallback: DiffUtil.ItemCallback<TryEventActionsItem
 }
 
 class TryEventActionViewHolder(
-    private val viewBinding: ItemLiveDebuggingEventTryActionBinding,
-) : RecyclerView.ViewHolder(viewBinding.root) {
+    parent: ViewGroup,
+) : RecyclerView.ViewHolder(ImageView(parent.context).apply {
+    val density = resources.displayMetrics.density
+    layoutParams = ViewGroup.LayoutParams((32 * density).toInt(), (24 * density).toInt())
+    setPadding((4 * density).toInt(), 0, (4 * density).toInt(), 0)
+    scaleType = ImageView.ScaleType.FIT_CENTER
+    imageTintList = ContextCompat.getColorStateList(context, R.color.overlayViewPrimary)
+}) {
 
     fun onBind(item: TryEventActionsItem) {
-        viewBinding.actionIcon.setImageResource(item.icon)
+        (itemView as ImageView).setImageResource(item.icon)
     }
 }

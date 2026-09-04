@@ -17,13 +17,26 @@
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief
 
 import android.annotation.SuppressLint
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -34,19 +47,13 @@ import androidx.recyclerview.widget.RecyclerView
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.brief.ItemBrief
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonVisibility
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.setEmptyText
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.updateState
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.DialogSmartActionsLegacyBinding
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.ItemSmartActionLegacyBinding
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.selection.ActionTypeSelectionDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.action.UiAction
 
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlinx.coroutines.launch
 import java.util.Collections
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 
@@ -65,7 +72,6 @@ class SmartActionsLegacyDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
     /** TouchHelper applied to [actionAdapter] allowing to drag and drop the items. */
     private val itemTouchHelper = ItemTouchHelper(ActionReorderTouchHelper())
 
-    private lateinit var viewBinding: DialogSmartActionsLegacyBinding
     private lateinit var actionAdapter: ActionAdapter
 
     override fun onCreateView(): ViewGroup {
@@ -73,45 +79,13 @@ class SmartActionsLegacyDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
             actionClickedListener = ::onActionClicked,
             actionReorderListener = viewModel::updateActionOrder,
         )
-
-        viewBinding = DialogSmartActionsLegacyBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                setButtonVisibility(DialogNavigationButton.SAVE, View.GONE)
-                setButtonVisibility(DialogNavigationButton.DELETE, View.GONE)
-                dialogTitle.setText(R.string.menu_item_title_actions)
-
-                buttonDismiss.setDebouncedOnClickListener { back() }
-            }
-
-            buttonNew.setDebouncedOnClickListener { onCreateButtonClicked() }
-            buttonCopy.setDebouncedOnClickListener { onCopyButtonClicked() }
-
-            layoutLoadableList.apply {
-                setEmptyText(
-                    id = R.string.message_empty_action_list_title,
-                    secondaryId = R.string.message_empty_action_list_desc,
-                )
-
-                list.apply {
-                    itemTouchHelper.attachToRecyclerView(this)
-                    addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
-                    adapter = actionAdapter
-                    layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
-                }
-            }
-        }
-
-        return viewBinding.root
-    }
-
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.canCopyActions.collect(::updateCopyButtonVisibility) }
-                launch { viewModel.actionBriefList.collect(::updateActionList) }
-            }
+        return ComposeView(context).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent { MacrionTheme { this@SmartActionsLegacyDialog.Content() } }
         }
     }
+
+    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
 
     private fun onCreateButtonClicked() {
         overlayManager.navigateTo(
@@ -133,15 +107,43 @@ class SmartActionsLegacyDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
         debounceUserInteraction { showActionConfigDialog(viewModel, (item.data as UiAction).action) }
     }
 
-    private fun updateCopyButtonVisibility(isVisible: Boolean) {
-        viewBinding.buttonCopy.visibility = if (isVisible) View.VISIBLE else View.GONE
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun updateActionList(newItems: List<ItemBrief>?) {
-        viewBinding.layoutLoadableList.apply {
-            updateState(newItems)
-            (list.adapter as ListAdapter<ItemBrief, RecyclerView.ViewHolder>).submitList(newItems)
+    @Composable private fun Content() {
+        val canCopy = viewModel.canCopyActions.collectAsStateWithLifecycle(false).value
+        val items = viewModel.actionBriefList.collectAsStateWithLifecycle(null).value
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            Column {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
+                    Text(context.getString(R.string.menu_item_title_actions), Modifier.weight(1f).padding(horizontal = 8.dp),
+                        style = MaterialTheme.typography.titleLarge)
+                }
+                Box(Modifier.fillMaxWidth().weight(1f)) {
+                    when {
+                        items == null -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                        items.isEmpty() -> Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(context.getString(R.string.message_empty_action_list_title), style = MaterialTheme.typography.headlineSmall)
+                            Spacer(Modifier.height(8.dp))
+                            Text(context.getString(R.string.message_empty_action_list_desc), style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        else -> AndroidView(factory = { ctx -> RecyclerView(ctx).apply {
+                            layoutManager = LinearLayoutManager(ctx)
+                            adapter = actionAdapter
+                            addItemDecoration(DividerItemDecoration(ctx, DividerItemDecoration.VERTICAL))
+                            itemTouchHelper.attachToRecyclerView(this)
+                        } }, update = { actionAdapter.submitList(items) }, modifier = Modifier.fillMaxSize())
+                    }
+                    Column(Modifier.align(Alignment.BottomEnd).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        if (canCopy) FloatingActionButton(onClick = ::onCopyButtonClicked,
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer) {
+                            Icon(painterResource(R.drawable.ic_copy), context.getString(R.string.content_desc_copy_button))
+                        }
+                        FloatingActionButton(onClick = ::onCreateButtonClicked) {
+                            Icon(painterResource(R.drawable.ic_add), context.getString(R.string.content_desc_add_button))
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -152,7 +154,7 @@ private class ActionAdapter(
 ) : ListAdapter<ItemBrief, ActionItemBriefViewHolder>(ActionItemBriefDiffUtilCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActionItemBriefViewHolder =
-        ActionItemBriefViewHolder(ItemSmartActionLegacyBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        ActionItemBriefViewHolder(parent)
 
     override fun onBindViewHolder(holder: ActionItemBriefViewHolder, position: Int) {
         holder.onBind(getItem(position), actionClickedListener)
@@ -190,18 +192,63 @@ private object ActionItemBriefDiffUtilCallback: DiffUtil.ItemCallback<ItemBrief>
 }
 
 private class ActionItemBriefViewHolder(
-    private val viewBinding: ItemSmartActionLegacyBinding,
-) : RecyclerView.ViewHolder(viewBinding.root) {
+    parent: ViewGroup,
+) : RecyclerView.ViewHolder(ComposeView(parent.context)) {
+    private var itemState by mutableStateOf<ItemBrief?>(null)
+    private var clickListener: ((ItemBrief) -> Unit)? = null
+
+    init {
+        (itemView as ComposeView).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
+            setContent { MacrionTheme { itemState?.let { ActionRow(it) } } }
+        }
+    }
 
     fun onBind(item: ItemBrief, itemClickedListener: (ItemBrief) -> Unit) {
-        viewBinding.apply {
-            root.setOnClickListener { itemClickedListener(item) }
+        clickListener = itemClickedListener
+        itemState = item
+    }
 
-            val details = item.data as UiAction
-            itemIcon.setImageResource(details.icon)
-            itemName.text = details.name
-            itemDescription.text = details.description
-            errorBadge.visibility = if (details.haveError) View.VISIBLE else View.GONE
+    @Composable
+    private fun ActionRow(item: ItemBrief) {
+        val details = item.data as UiAction
+        Row(
+            Modifier.fillMaxWidth().height(80.dp).clickable { clickListener?.invoke(item) }
+                .padding(start = 8.dp, end = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AndroidView(
+                factory = { context -> ImageView(context).apply { scaleType = ImageView.ScaleType.CENTER } },
+                update = { it.setImageResource(R.drawable.ic_reorder) },
+                modifier = Modifier.size(48.dp),
+            )
+            Column(Modifier.weight(1f).padding(start = 8.dp, end = 12.dp)) {
+                Text(
+                    details.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    details.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontStyle = FontStyle.Italic,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Box(Modifier.size(32.dp)) {
+                AndroidView(
+                    factory = { context -> ImageView(context).apply { scaleType = ImageView.ScaleType.FIT_CENTER } },
+                    update = { it.setImageResource(details.icon) },
+                    modifier = Modifier.matchParentSize(),
+                )
+                if (details.haveError) Box(
+                    Modifier.align(Alignment.TopEnd).size(6.dp)
+                        .background(MaterialTheme.colorScheme.error, CircleShape),
+                )
+            }
         }
     }
 }

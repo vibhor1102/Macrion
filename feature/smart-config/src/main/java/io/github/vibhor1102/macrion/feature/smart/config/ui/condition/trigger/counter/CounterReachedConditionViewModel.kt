@@ -111,12 +111,14 @@ class CounterReachedConditionViewModel @Inject constructor(
         }
     }
 
-    fun monitorSelectCounterView(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.COUNTER_REACHED_DIALOG_FIELD_COUNTER_SELECTION, view)
+    fun monitorSelectCounterView(view: View?) {
+        if (view != null) monitoredViewsManager.attach(MonitoredViewType.COUNTER_REACHED_DIALOG_FIELD_COUNTER_SELECTION, view)
+        else monitoredViewsManager.detach(MonitoredViewType.COUNTER_REACHED_DIALOG_FIELD_COUNTER_SELECTION)
     }
 
-    fun monitorSaveButtonView(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.COUNTER_REACHED_DIALOG_BUTTON_SAVE, view)
+    fun monitorSaveButtonView(view: View?) {
+        if (view != null) monitoredViewsManager.attach(MonitoredViewType.COUNTER_REACHED_DIALOG_BUTTON_SAVE, view)
+        else monitoredViewsManager.detach(MonitoredViewType.COUNTER_REACHED_DIALOG_BUTTON_SAVE)
     }
 
     fun detachMonitoredViews() {

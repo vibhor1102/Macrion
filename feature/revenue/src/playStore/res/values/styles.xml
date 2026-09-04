@@ -23,16 +23,4 @@
         <item name="android:windowAnimationStyle">@style/Animation.Material3.BottomSheetDialog</item>
     </style>
 
-    <style name="AppTheme.TextAppearance.BannerTitle" parent="@style/TextAppearance.Material3.HeadlineSmall">
-        <item name="android:gravity">center</item>
-        <item name="android:textColor">@color/md_theme_light_onPrimary</item>
-    </style>
-
-    <style name="AppTheme.TextAppearance.BannerBody" parent="@style/TextAppearance.Material3.BodyLarge">
-        <item name="android:gravity">center</item>
-        <item name="android:textColor">@color/md_theme_light_onPrimary</item>
-    </style>
-
-    <style name="AppTheme.TextAppearance.DisplaySmall" parent="@style/TextAppearance.Material3.HeadlineSmall"/>
-
 </resources>

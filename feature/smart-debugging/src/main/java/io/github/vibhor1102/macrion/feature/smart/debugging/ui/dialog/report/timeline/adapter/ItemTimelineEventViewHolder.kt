@@ -17,48 +17,21 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.adapter
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.view.isVisible
-import androidx.recyclerview.widget.RecyclerView
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ItemTimelineEventOccurrenceBinding
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportComposeViewHolder
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.DebugReportTimelineEventOccurrenceItem
 
-class ItemTimelineEventViewHolder private constructor(
-    private val viewBinding: ItemTimelineEventOccurrenceBinding,
-) : RecyclerView.ViewHolder(viewBinding.root) {
-
-    constructor(parent: ViewGroup) : this(
-        viewBinding = ItemTimelineEventOccurrenceBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
-    )
-
-    private val actionsAdapter: DebugReportTimelineEventActionsAdapter =
-        DebugReportTimelineEventActionsAdapter()
-
-    init {
-        viewBinding.actions.adapter = actionsAdapter
-        viewBinding.actions.itemAnimator = null
-    }
+class ItemTimelineEventViewHolder(
+    parent: ViewGroup,
+    onItemClicked: (DebugReportTimelineEventOccurrenceItem) -> Unit,
+) : ReportComposeViewHolder<DebugReportTimelineEventOccurrenceItem>(
+    parent = parent,
+    content = { item -> ReportTimelineItem(item) { onItemClicked(item) } },
+) {
 
     fun bind(
         item: DebugReportTimelineEventOccurrenceItem,
-        onItemClicked: (DebugReportTimelineEventOccurrenceItem) -> Unit,
     ) {
-        viewBinding.apply {
-            root.setOnClickListener { onItemClicked(item) }
-            eventNameText.text = item.eventName
-            legacyTimeText.isVisible = item.legacyTimeText != null
-            legacyTimeText.text = item.legacyTimeText
-            timingTable.isVisible = item.detectingDurationValue != null
-            detectingTimingValue.text = item.detectingDurationValue
-            actionsTimingRow.isVisible = item.actionsDurationValue != null
-            actionsTimingValue.text = item.actionsDurationValue
-            occurrenceText.text = item.occurrenceText
-            conditionsText.text = item.conditionsText
-        }
-
-        actionsAdapter.setItems(item.actions)
+        bindComposeItem(item)
     }
 }

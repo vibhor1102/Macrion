@@ -30,6 +30,7 @@ import javax.inject.Inject
 
 class FlagsSelectionViewModel @Inject constructor() : ViewModel() {
 
+    private var initialized = false
     private val isStartActivitiesFlags: MutableStateFlow<Boolean?> = MutableStateFlow(null)
     private val selectedFlags: MutableStateFlow<Int> = MutableStateFlow(0)
 
@@ -53,7 +54,9 @@ class FlagsSelectionViewModel @Inject constructor() : ViewModel() {
     fun getSelectedFlags(): Int =
         selectedFlags.value
 
-    fun setSelectedFlags(flags: Int, startActivityFlags: Boolean) {
+    fun initialize(flags: Int, startActivityFlags: Boolean) {
+        if (initialized) return
+        initialized = true
         isStartActivitiesFlags.value = startActivityFlags
         selectedFlags.value = flags
     }

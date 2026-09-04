@@ -18,19 +18,19 @@
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.overview
 
 import android.content.Context
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setDescription
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setTitle
-import io.github.vibhor1102.macrion.core.ui.databinding.IncludeFieldDataDisplayBinding
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ContentDebugReportOverviewBinding
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.debugging.di.DebuggingViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.activity.EventActivityDialog
@@ -47,13 +47,17 @@ class DebugReportOverviewContent(appContext: Context) : NavBarDialogContent(appC
         creator = { debugReportOverviewViewModel() },
     )
 
-    private lateinit var viewBinding: ContentDebugReportOverviewBinding
+    private var uiState by mutableStateOf<DebugReportOverviewUiState>(DebugReportOverviewUiState.Loading)
 
     override fun onCreateView(container: ViewGroup): ViewGroup {
-        viewBinding = ContentDebugReportOverviewBinding.inflate(LayoutInflater.from(context), container, false).apply {
-            eventActivity.root.setOnClickListener { openEventActivity() }
+        return ComposeView(context).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MacrionTheme {
+                    DebugReportOverview(uiState, ::openEventActivity)
+                }
+            }
         }
-        return viewBinding.root
     }
 
     override fun onViewCreated() {
@@ -66,16 +70,9 @@ class DebugReportOverviewContent(appContext: Context) : NavBarDialogContent(appC
 
     private fun updateOverview(uiState: DebugReportOverviewUiState) {
         when (uiState) {
-            is DebugReportOverviewUiState.Loading -> toLoadingState()
+            is DebugReportOverviewUiState.Loading -> this.uiState = uiState
             is DebugReportOverviewUiState.NotAvailable -> toNotAvailableState()
-            is DebugReportOverviewUiState.Available -> toAvailableState(uiState)
-        }
-    }
-
-    private fun toLoadingState() {
-        viewBinding.apply {
-            loading.visibility = View.VISIBLE
-            overview.visibility = View.GONE
+            is DebugReportOverviewUiState.Available -> this.uiState = uiState
         }
     }
 
@@ -83,41 +80,6 @@ class DebugReportOverviewContent(appContext: Context) : NavBarDialogContent(appC
         dialogController.back()
     }
 
-    private fun toAvailableState(state: DebugReportOverviewUiState.Available) {
-        viewBinding.apply {
-            loading.visibility = View.GONE
-            overview.visibility = View.VISIBLE
-
-            fieldScenario.bindEntry(state.scenario)
-            fieldTotalDuration.bindEntry(state.totalDuration)
-            fieldImgProcCount.bindEntry(state.frameCount)
-            fieldAvgImgProcDur.bindEntry(state.averageFrameProcessingDuration)
-            fieldExecutionLimiterIdleTime.bindEntry(state.executionLimiterIdleTime)
-            fieldImgEvtFulfilledCount.bindEntry(state.imageEventFulfilledCount)
-            fieldTriggerEvtFulfilledCount.bindEntry(state.triggerEventFulfilledCount)
-            eventActivity.summaryData.apply {
-                setTitle(context.getString(R.string.item_title_report_event_activity))
-                setDescription(state.eventActivity.formatDescription())
-            }
-        }
-    }
-
-    private fun EventActivitySummary.formatDescription(): String {
-        if (reachedEventCount == 0) return context.getString(R.string.item_desc_report_event_activity_empty)
-
-        val counts = context.resources.getQuantityString(
-            R.plurals.item_desc_report_event_activity_reached,
-            reachedEventCount,
-            reachedEventCount,
-            totalOccurrenceCount,
-        )
-        val mostFrequent = context.getString(
-            R.string.item_desc_report_event_activity_most_frequent,
-            mostFrequentEventName,
-            mostFrequentEventCount,
-        )
-        return "$counts\n$mostFrequent"
-    }
 
     private fun openEventActivity() {
         dialogController.overlayManager.navigateTo(
@@ -125,10 +87,5 @@ class DebugReportOverviewContent(appContext: Context) : NavBarDialogContent(appC
             newOverlay = EventActivityDialog(),
             hideCurrent = false,
         )
-    }
-
-    private fun IncludeFieldDataDisplayBinding.bindEntry(entry: OverviewEntry) {
-        setTitle(context.getString(entry.titleRes))
-        setDescription(entry.value ?: context.getString(requireNotNull(entry.valueRes)))
     }
 }

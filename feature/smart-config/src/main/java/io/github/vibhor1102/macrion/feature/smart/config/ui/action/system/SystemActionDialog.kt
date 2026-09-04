@@ -1,50 +1,35 @@
-/*
- * Copyright (C) 2025 Kevin Buzeau
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2025 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.system
 
-import android.text.InputFilter
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonEnabledState
-import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.setItems
-import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.setSelectedItem
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setError
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setLabel
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setOnTextChangedListener
-import io.github.vibhor1102.macrion.core.ui.bindings.fields.setText
+import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.DialogConfigActionSystemBinding
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.OnActionConfigCompleteListener
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
-import com.google.android.material.bottomsheet.BottomSheetDialog
-
 import kotlinx.coroutines.launch
-import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
-
 
 class SystemActionDialog(
     private val listener: OnActionConfigCompleteListener,
@@ -52,62 +37,96 @@ class SystemActionDialog(
 
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.SYSTEM_ACTION.name
 
-    /** The view model for this dialog. */
     private val viewModel: SystemActionViewModel by viewModels(
         entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
         creator = { systemActionViewModel() },
     )
 
-    /** ViewBinding containing the views for this dialog. */
-    private lateinit var viewBinding: DialogConfigActionSystemBinding
-
-
-    override fun onCreateView(): ViewGroup {
-        viewBinding = DialogConfigActionSystemBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(R.string.dialog_title_system_action)
-
-                buttonDismiss.setDebouncedOnClickListener { back() }
-                buttonSave.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener { onSaveButtonClicked() }
-                }
-                buttonDelete.apply {
-                    visibility = View.VISIBLE
-                    setDebouncedOnClickListener { onDeleteButtonClicked() }
-                }
-            }
-
-            fieldName.apply {
-                setLabel(R.string.generic_name)
-                textField.filters = arrayOf<InputFilter>(InputFilter.LengthFilter(context.resources.getInteger(R.integer.name_max_length)))
-                setOnTextChangedListener { viewModel.setName(it.toString()) }
-            }
-            hideSoftInputOnFocusLoss(fieldName.textField)
-
-            fieldType.setItems(
-                label = context.getString(R.string.field_dropdown_system_action_type_title),
-                items = systemActionTypeItems,
-                onItemSelected = viewModel::setType,
-            )
-        }
-
-        return viewBinding.root
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@SystemActionDialog.Content() } }
     }
 
     override fun onDialogCreated(dialog: BottomSheetDialog) {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
-                launch { viewModel.isEditingAction.collect(::onActionEditingStateChanged) }
+                viewModel.isEditingAction.collect(::onActionEditingStateChanged)
             }
         }
+    }
 
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.name.collect(viewBinding.fieldName::setText) }
-                launch { viewModel.nameError.collect(viewBinding.fieldName::setError)}
-                launch { viewModel.typeItem.collect(viewBinding.fieldType::setSelectedItem) }
-                launch { viewModel.isValidAction.collect(::updateSaveButton) }
+    @Composable
+    private fun Content() {
+        val initialName by viewModel.name.collectAsStateWithLifecycle(initialValue = null)
+        val selectedType by viewModel.typeItem.collectAsStateWithLifecycle(SystemActionTypeItem.Back)
+        val nameError by viewModel.nameError.collectAsStateWithLifecycle(false)
+        val saveEnabled by viewModel.isValidAction.collectAsStateWithLifecycle(false)
+        var name by remember { mutableStateOf("") }
+        LaunchedEffect(initialName) { initialName?.let { name = it } }
+
+        Surface(
+            modifier = Modifier.fillMaxWidth().heightIn(max = 320.dp),
+            color = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ) {
+            Column(Modifier.fillMaxWidth()) {
+                TopBar(saveEnabled)
+                Column(
+                    modifier = Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    MacrionTextField(
+                        value = name,
+                        onValueChange = { name = it; viewModel.setName(it) },
+                        label = context.getString(R.string.generic_name),
+                        isError = nameError,
+                        maxLength = context.resources.getInteger(R.integer.name_max_length),
+                    )
+                    TypeDropdown(selectedType, viewModel::setType)
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun TopBar(saveEnabled: Boolean) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
+            Text(context.getString(R.string.dialog_title_system_action),
+                Modifier.weight(1f).padding(horizontal = 8.dp), style = MaterialTheme.typography.titleLarge)
+            FilledTonalIconButton(onClick = ::onDeleteButtonClicked) {
+                Icon(painterResource(R.drawable.ic_delete), null)
+            }
+            Spacer(Modifier.width(8.dp))
+            FilledIconButton(onClick = ::onSaveButtonClicked, enabled = saveEnabled) {
+                Icon(painterResource(R.drawable.ic_save_filled), null)
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun TypeDropdown(selected: SystemActionTypeItem, onSelected: (SystemActionTypeItem) -> Unit) {
+        var expanded by remember { mutableStateOf(false) }
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+            OutlinedTextField(
+                value = stringResource(selected.title), onValueChange = {}, readOnly = true,
+                label = { Text(context.getString(R.string.field_dropdown_system_action_type_title)) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                modifier = Modifier.menuAnchor().fillMaxWidth(),
+            )
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                systemActionTypeItems.forEach { item ->
+                    DropdownMenuItem(
+                        text = { Text(stringResource(item.title)) },
+                        onClick = { onSelected(item); expanded = false },
+                    )
+                }
             }
         }
     }
@@ -120,28 +139,16 @@ class SystemActionDialog(
             }
             return
         }
-
         listener.onDismissClicked()
         super.back()
     }
 
-    private fun onSaveButtonClicked() {
-        listener.onConfirmClicked()
-        super.back()
-    }
-
-    private fun onDeleteButtonClicked() {
-        listener.onDeleteClicked()
-        super.back()
-    }
-
-    private fun updateSaveButton(isValidCondition: Boolean) {
-        viewBinding.layoutTopBar.setButtonEnabledState(DialogNavigationButton.SAVE, isValidCondition)
-    }
+    private fun onSaveButtonClicked() { listener.onConfirmClicked(); super.back() }
+    private fun onDeleteButtonClicked() { listener.onDeleteClicked(); super.back() }
 
     private fun onActionEditingStateChanged(isEditingAction: Boolean) {
         if (!isEditingAction) {
-            Log.e(TAG, "Closing SystemAction Dialog because there is no action edited")
+            Log.e(TAG, "Closing SystemActionDialog because there is no action edited")
             finish()
         }
     }

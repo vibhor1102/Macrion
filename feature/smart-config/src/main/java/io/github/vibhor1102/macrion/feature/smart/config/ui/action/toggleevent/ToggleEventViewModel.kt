@@ -159,12 +159,9 @@ class ToggleEventViewModel @Inject constructor(
         }
     }
 
-    fun monitorSelectTogglesView(view: View) {
-        monitoredViewsManager.attach(MonitoredViewType.TOGGLE_EVENT_DIALOG_SELECT_TOGGLES, view)
-    }
-
-    fun stopViewMonitoring() {
-        monitoredViewsManager.detach(MonitoredViewType.TOGGLE_EVENT_DIALOG_SELECT_TOGGLES)
+    fun monitorSelectTogglesView(view: View?) {
+        if (view == null) monitoredViewsManager.detach(MonitoredViewType.TOGGLE_EVENT_DIALOG_SELECT_TOGGLES)
+        else monitoredViewsManager.attach(MonitoredViewType.TOGGLE_EVENT_DIALOG_SELECT_TOGGLES, view)
     }
 
     fun setNewEventToggles(toggles: List<EventToggle>) {

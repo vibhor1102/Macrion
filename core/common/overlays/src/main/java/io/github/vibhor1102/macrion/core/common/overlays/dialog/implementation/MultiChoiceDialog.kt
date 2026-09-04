@@ -23,14 +23,42 @@ import android.view.ViewGroup
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 
-import io.github.vibhor1102.macrion.core.common.overlays.databinding.DialogBaseMultiChoiceBinding
-import io.github.vibhor1102.macrion.core.common.overlays.databinding.ItemMultiChoiceBinding
-import io.github.vibhor1102.macrion.core.common.overlays.databinding.ItemMultiChoiceSmallBinding
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.R
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
+import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.TopBarNavigationView
 
 import com.google.android.material.bottomsheet.BottomSheetDialog
 
@@ -51,38 +79,51 @@ open class MultiChoiceDialog<T : DialogChoice>(
     private val onCanceled: (() -> Unit)? = null,
 ) : OverlayDialog(theme) {
 
-    /** ViewBinding containing the views for this dialog. */
-    protected lateinit var viewBinding: DialogBaseMultiChoiceBinding
+    private lateinit var list: RecyclerView
     /** The adapter displaying the choices. */
     protected lateinit var adapter: ChoiceAdapter<T>
 
     override fun onCreateView(): ViewGroup {
-        viewBinding = DialogBaseMultiChoiceBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(dialogTitleText)
-                buttonDismiss.setDebouncedOnClickListener {
-                    onCanceled?.invoke()
-                    back()
-                }
-            }
-
-            adapter = ChoiceAdapter(
-                choices = choices,
-                onChoiceSelected = { choice ->
-                    debounceUserInteraction {
-                        back()
-                        onChoiceSelected(choice)
-                    }
-                },
-                onChoiceViewBound = ::onChoiceViewBound,
-            )
+        val inflater = LayoutInflater.from(context)
+        val topBarBinding = TopBarNavigationView(context).apply {
+            setTitle(dialogTitleText)
+            setButtonClickListener(DialogNavigationButton.DISMISS) { debounceUserInteraction {
+                onCanceled?.invoke()
+                back()
+            } }
+        }
+        list = RecyclerView(context).apply {
+            layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+            isVerticalScrollBarEnabled = true
         }
 
-        return viewBinding.root
+        adapter = ChoiceAdapter(
+            choices = choices,
+            onChoiceSelected = { choice ->
+                debounceUserInteraction {
+                    back()
+                    onChoiceSelected(choice)
+                }
+            },
+            onChoiceViewBound = ::onChoiceViewBound,
+        )
+
+        return ComposeView(context).apply {
+            setContent {
+                MacrionTheme {
+                    ListDialogScaffold(
+                        topBar = topBarBinding.root,
+                        list = list,
+                        enforceMinimumHeight = false,
+                        listBottomPadding = false,
+                    )
+                }
+            }
+        }
     }
 
     override fun onDialogCreated(dialog: BottomSheetDialog) {
-        viewBinding.list.adapter = adapter
+        list.adapter = adapter
     }
 
     open fun onChoiceViewBound(choice: T, view: View?) = Unit
@@ -101,23 +142,26 @@ class ChoiceAdapter<T : DialogChoice>(
     private val onChoiceViewBound: ((T, View?) -> Unit),
 ): RecyclerView.Adapter<MultiChoiceViewHolder<T>>() {
 
+    private companion object {
+        const val TYPE_SMALL = 0
+        const val TYPE_FULL = 1
+    }
+
     override fun getItemCount(): Int = choices.size
 
     override fun getItemViewType(position: Int): Int {
         val item = choices[position]
 
         return when {
-            item.description == null && item.iconId == null -> R.layout.item_multi_choice_small
-            else -> R.layout.item_multi_choice
+            item.description == null && item.iconId == null -> TYPE_SMALL
+            else -> TYPE_FULL
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MultiChoiceViewHolder<T> =
         when (viewType) {
-            R.layout.item_multi_choice_small ->
-                SmallChoiceViewHolder(ItemMultiChoiceSmallBinding.inflate(LayoutInflater.from(parent.context), parent, false))
-            R.layout.item_multi_choice ->
-                ChoiceViewHolder(ItemMultiChoiceBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+            TYPE_SMALL -> SmallChoiceViewHolder(parent)
+            TYPE_FULL -> ChoiceViewHolder(parent)
             else -> throw IllegalArgumentException("Unsupported view type !")
         }
 
@@ -130,7 +174,8 @@ class ChoiceAdapter<T : DialogChoice>(
 
     override fun onViewRecycled(holder: MultiChoiceViewHolder<T>) {
         super.onViewRecycled(holder)
-        onChoiceViewBound(choices[holder.bindingAdapterPosition], null)
+        holder.boundChoice?.let { onChoiceViewBound(it, null) }
+        holder.onUnbind()
     }
 }
 
@@ -138,58 +183,79 @@ class ChoiceAdapter<T : DialogChoice>(
  * Base view holder for a choice.
  * @param itemView the root view of the item.
  */
-abstract class MultiChoiceViewHolder<T : DialogChoice>(itemView: View): ViewHolder(itemView) {
+abstract class MultiChoiceViewHolder<T : DialogChoice>(parent: ViewGroup): ViewHolder(ComposeView(parent.context)) {
+
+    private var choice by mutableStateOf<T?>(null)
+    private var onChoiceSelected by mutableStateOf<((T) -> Unit)?>(null)
+    var boundChoice: T? = null
+        private set
+
+    init {
+        (itemView as ComposeView).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
+            setContent {
+                MacrionTheme {
+                    choice?.let { value -> Content(value) { onChoiceSelected?.invoke(value) } }
+                }
+            }
+        }
+    }
 
     /**
      * Binds a choice to this view holder.
      * @param choice the choice object to be bound.
      * @param onChoiceSelected listener upon user click on the choice item.
      */
-    abstract fun onBind(choice: T, onChoiceSelected: (T) -> Unit)
+    fun onBind(choice: T, onChoiceSelected: (T) -> Unit) {
+        boundChoice = choice
+        this.choice = choice
+        this.onChoiceSelected = onChoiceSelected
+    }
+
+    fun onUnbind() {
+        boundChoice = null
+        choice = null
+        onChoiceSelected = null
+    }
+
+    @Composable protected abstract fun Content(choice: T, onClick: () -> Unit)
 }
 
 /**
  * View holder for a choice with an icon and a description.
  * @param holderViewBinding the view binding containing the holder root view.
  */
-private class ChoiceViewHolder<T : DialogChoice>(
-    val holderViewBinding: ItemMultiChoiceBinding,
-) : MultiChoiceViewHolder<T>(holderViewBinding.root) {
-
-    override fun onBind(choice: T, onChoiceSelected: (T) -> Unit) {
-        holderViewBinding.apply {
-            root.setOnClickListener { onChoiceSelected.invoke(choice) }
-
-            choiceTitle.setText(choice.title)
-            choiceDescription.apply {
-                if (choice.description != null) {
-                    visibility = View.VISIBLE
-                    setText(choice.description)
-                } else {
-                    visibility = View.GONE
+private class ChoiceViewHolder<T : DialogChoice>(parent: ViewGroup) : MultiChoiceViewHolder<T>(parent) {
+    @Composable override fun Content(choice: T, onClick: () -> Unit) {
+        val alpha = if (choice.enabled) ENABLED_ITEM_ALPHA else DISABLED_ITEM_ALPHA
+        Row(
+            Modifier.fillMaxWidth().height(78.dp).padding(horizontal = 16.dp, vertical = 8.dp).clickable(onClick = onClick),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            choice.iconId?.let {
+                Icon(painterResource(it), null, Modifier.size(32.dp).alpha(alpha), tint = Color.Unspecified)
+                Spacer(Modifier.width(8.dp))
+            }
+            Column(Modifier.weight(1f)) {
+                Text(
+                    stringResource(choice.title),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                choice.description?.let {
+                    Text(
+                        stringResource(it),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha),
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
             }
-            choiceIcon.apply {
-                if (choice.iconId != null) {
-                    visibility = View.VISIBLE
-                    setImageResource(choice.iconId)
-                } else {
-                    visibility = View.GONE
-                    setImageResource(0)
-                }
-            }
-
-            if (choice.enabled) {
-                choiceTitle.alpha = ENABLED_ITEM_ALPHA
-                choiceDescription.alpha = ENABLED_ITEM_ALPHA
-                choiceIcon.alpha = ENABLED_ITEM_ALPHA
-                choiceChevron.setImageResource(R.drawable.ic_chevron_right)
-            } else {
-                choiceTitle.alpha = DISABLED_ITEM_ALPHA
-                choiceDescription.alpha = DISABLED_ITEM_ALPHA
-                choiceIcon.alpha = DISABLED_ITEM_ALPHA
-                choice.disabledIconId?.let { choiceChevron.setImageResource(it) }
-            }
+            Icon(
+                painterResource(if (choice.enabled) R.drawable.ic_chevron_right else choice.disabledIconId ?: R.drawable.ic_chevron_right),
+                null,
+            )
         }
     }
 }
@@ -201,14 +267,18 @@ private const val DISABLED_ITEM_ALPHA = 0.5f
  * View holder for a choice with only a title.
  * @param holderViewBinding the view binding containing the holder root view.
  */
-private class SmallChoiceViewHolder<T : DialogChoice>(
-    val holderViewBinding: ItemMultiChoiceSmallBinding,
-) : MultiChoiceViewHolder<T>(holderViewBinding.root) {
-
-    override fun onBind(choice: T, onChoiceSelected: (T) -> Unit) {
-        holderViewBinding.apply {
-            root.setOnClickListener { onChoiceSelected.invoke(choice) }
-            choiceTitle.setText(choice.title)
+private class SmallChoiceViewHolder<T : DialogChoice>(parent: ViewGroup) : MultiChoiceViewHolder<T>(parent) {
+    @Composable override fun Content(choice: T, onClick: () -> Unit) {
+        Row(
+            Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 16.dp, vertical = 8.dp).clickable(onClick = onClick),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                stringResource(choice.title),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            Icon(painterResource(R.drawable.ic_chevron_right), null)
         }
     }
 }

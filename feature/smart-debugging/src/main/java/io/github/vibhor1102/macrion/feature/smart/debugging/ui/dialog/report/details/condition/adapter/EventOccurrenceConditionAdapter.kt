@@ -34,16 +34,16 @@ class EventOccurrenceItemAdapter(
 
     override fun getItemViewType(position: Int): Int =
         when (getItem(position)) {
-            is EventOccurrenceItem.Header -> R.layout.item_condition_result_header
-            is EventOccurrenceItem.Screen -> R.layout.item_condition_result_image
-            is EventOccurrenceItem.Trigger -> R.layout.item_condition_result_trigger
+            is EventOccurrenceItem.Header -> VIEW_TYPE_HEADER
+            is EventOccurrenceItem.Screen -> VIEW_TYPE_SCREEN
+            is EventOccurrenceItem.Trigger -> VIEW_TYPE_TRIGGER
         }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
         when (viewType) {
-            R.layout.item_condition_result_header -> EventOccurrenceConditionHeaderViewHolder(parent)
-            R.layout.item_condition_result_image -> EventOccurrenceConditionScreenViewHolder(parent, bitmapProvider)
-            R.layout.item_condition_result_trigger -> EventOccurrenceConditionTriggerViewHolder(parent)
+            VIEW_TYPE_HEADER -> EventOccurrenceConditionHeaderViewHolder(parent)
+            VIEW_TYPE_SCREEN -> EventOccurrenceConditionScreenViewHolder(parent, bitmapProvider)
+            VIEW_TYPE_TRIGGER -> EventOccurrenceConditionTriggerViewHolder(parent)
             else -> throw IllegalArgumentException("Unknown view type $viewType")
         }
 
@@ -63,6 +63,10 @@ class EventOccurrenceItemAdapter(
         }
     }
 }
+
+private const val VIEW_TYPE_HEADER = 0
+private const val VIEW_TYPE_TRIGGER = 1
+private const val VIEW_TYPE_SCREEN = 2
 
 private object EventOccurrenceDiffUtilCallback : DiffUtil.ItemCallback<EventOccurrenceItem>() {
 

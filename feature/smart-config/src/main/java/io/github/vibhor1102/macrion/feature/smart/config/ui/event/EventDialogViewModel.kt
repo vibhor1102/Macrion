@@ -172,18 +172,18 @@ class EventDialogViewModel @Inject constructor(
         }
     }
 
-    fun monitorViews(conditionsField: View, conditionOperatorAndView: View, conditionOperatorOrView: View, actionsField: View, initialStateField: View, saveButton: View) {
-        monitoredViewsManager.apply {
-            attach(MonitoredViewType.EVENT_DIALOG_FIELD_CONDITIONS, conditionsField)
-            attach(MonitoredViewType.EVENT_DIALOG_FIELD_OPERATOR_ITEM_AND, conditionOperatorAndView)
-            attach(MonitoredViewType.EVENT_DIALOG_FIELD_OPERATOR_ITEM_OR, conditionOperatorOrView)
-            attach(MonitoredViewType.EVENT_DIALOG_FIELD_ACTIONS, actionsField)
-            attach(MonitoredViewType.EVENT_DIALOG_FIELD_INITIAL_STATE, initialStateField)
-            attach(MonitoredViewType.EVENT_DIALOG_BUTTON_SAVE, saveButton)
-        }
+    fun monitorConditionsView(view: View?) = monitorView(MonitoredViewType.EVENT_DIALOG_FIELD_CONDITIONS, view)
+    fun monitorOperatorAndView(view: View?) = monitorView(MonitoredViewType.EVENT_DIALOG_FIELD_OPERATOR_ITEM_AND, view)
+    fun monitorOperatorOrView(view: View?) = monitorView(MonitoredViewType.EVENT_DIALOG_FIELD_OPERATOR_ITEM_OR, view)
+    fun monitorActionsView(view: View?) = monitorView(MonitoredViewType.EVENT_DIALOG_FIELD_ACTIONS, view)
+    fun monitorInitialStateView(view: View?) = monitorView(MonitoredViewType.EVENT_DIALOG_FIELD_INITIAL_STATE, view)
+    fun monitorSaveView(view: View?) = monitorView(MonitoredViewType.EVENT_DIALOG_BUTTON_SAVE, view)
+
+    private fun monitorView(type: MonitoredViewType, view: View?) {
+        if (view == null) monitoredViewsManager.detach(type) else monitoredViewsManager.attach(type, view)
     }
 
-    fun stopViewMonitoring() {
+    fun detachMonitoredViews() {
         monitoredViewsManager.apply {
             detach(MonitoredViewType.EVENT_DIALOG_BUTTON_SAVE)
             detach(MonitoredViewType.EVENT_DIALOG_FIELD_INITIAL_STATE)

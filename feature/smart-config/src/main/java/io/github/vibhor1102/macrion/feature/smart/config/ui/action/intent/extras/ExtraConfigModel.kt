@@ -34,7 +34,6 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.take
 import javax.inject.Inject
 import kotlin.reflect.KClass
 
@@ -57,7 +56,6 @@ class ExtraConfigModel @Inject constructor(
     /** The key for the extra. */
     val key: Flow<String?> = configuredExtra
         .map { it.key }
-        .take(1)
     /** The state for the input views. Changes with the value type. */
     val valueInputState: Flow<ExtraValueInputState> = configuredExtra
         .map {

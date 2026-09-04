@@ -16,27 +16,17 @@
  */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.condition.adapter
 
-import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ItemConditionResultTriggerBinding
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportComposeViewHolder
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportTriggerConditionCard
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.condition.EventOccurrenceItem
 
-class EventOccurrenceConditionTriggerViewHolder private constructor(
-    private val viewBinding: ItemConditionResultTriggerBinding,
-) : RecyclerView.ViewHolder(viewBinding.root) {
-
-    constructor(parent: ViewGroup) : this(
-        viewBinding = ItemConditionResultTriggerBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
-    )
+class EventOccurrenceConditionTriggerViewHolder(parent: ViewGroup) : ReportComposeViewHolder<EventOccurrenceItem.Trigger>(
+    parent = parent,
+    content = { item -> ReportTriggerConditionCard(item.conditionName, item.description, item.iconRes) },
+) {
 
     fun bind(item: EventOccurrenceItem.Trigger) {
-        viewBinding.apply {
-            conditionImage.setImageResource(item.iconRes)
-            conditionNameText.text = item.conditionName
-            conditionDetailsText.text = item.description
-        }
+        bindComposeItem(item)
     }
 }

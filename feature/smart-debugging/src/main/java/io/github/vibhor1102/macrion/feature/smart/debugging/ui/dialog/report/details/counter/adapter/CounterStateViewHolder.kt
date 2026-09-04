@@ -17,49 +17,44 @@
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.counter.adapter
 
 import android.content.Context
-import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
+import androidx.compose.ui.platform.LocalContext
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ItemCounterStateBinding
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportComposeViewHolder
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.adapter.ReportNameValueRow
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.counter.CounterStateItem
 import java.math.BigDecimal
 
-class CounterStateViewHolder private constructor(
-    private val viewBinding: ItemCounterStateBinding,
-) : RecyclerView.ViewHolder(viewBinding.root) {
-
-    constructor(parent: ViewGroup) : this(
-        viewBinding = ItemCounterStateBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
-    )
+class CounterStateViewHolder(parent: ViewGroup) : ReportComposeViewHolder<CounterStateItem>(
+    parent = parent,
+    content = { item ->
+        ReportNameValueRow(item.counterName, item.toValueDisplayText(LocalContext.current))
+    },
+) {
 
     fun bind(item: CounterStateItem) {
-        viewBinding.apply {
-            counterNameText.text = item.counterName
-            valueText.text = item.toValueDisplayText(root.context)
-        }
+        bindComposeItem(item)
     }
 
-    private fun CounterStateItem.toValueDisplayText(context: Context): String  {
-        val oldValue = oldCounterValue
-        return if (oldValue == null) {
-            context.getString(
-                R.string.item_counter_state_value_same,
-                currentCounterValue.toNaturalDisplayString(),
-            )
-        } else {
-            context.getString(
-                R.string.item_counter_state_value_changed,
-                oldValue.toNaturalDisplayString(),
-                currentCounterValue.toNaturalDisplayString(),
-            )
-        }
-    }
+}
 
-    private fun Double.toNaturalDisplayString(): String {
-        if (!isFinite()) return toString()
-        return BigDecimal.valueOf(this).stripTrailingZeros().toPlainString()
+private fun CounterStateItem.toValueDisplayText(context: Context): String  {
+    val oldValue = oldCounterValue
+    return if (oldValue == null) {
+        context.getString(
+            R.string.item_counter_state_value_same,
+            currentCounterValue.toNaturalDisplayString(),
+        )
+    } else {
+        context.getString(
+            R.string.item_counter_state_value_changed,
+            oldValue.toNaturalDisplayString(),
+            currentCounterValue.toNaturalDisplayString(),
+        )
     }
+}
+
+private fun Double.toNaturalDisplayString(): String {
+    if (!isFinite()) return toString()
+    return BigDecimal.valueOf(this).stripTrailingZeros().toPlainString()
 }

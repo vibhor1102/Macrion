@@ -1,113 +1,65 @@
-/*
- * Copyright (C) 2026 Vibhor Goel
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- */
+/* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.config.ui.action.external
 
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.RecyclerView
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.setEmptyText
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.updateState
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.DialogBaseListBinding
-import io.github.vibhor1102.macrion.feature.smart.config.databinding.ItemCounterNameBinding
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import kotlinx.coroutines.launch
 
-class ExternalActionSelectionDialog(
-    private val onExternalActionSelected: (String) -> Unit,
-) : OverlayDialog(R.style.ScenarioConfigTheme) {
-
+class ExternalActionSelectionDialog(private val onExternalActionSelected: (String) -> Unit) :
+    OverlayDialog(R.style.ScenarioConfigTheme) {
     private val viewModel: ExternalActionViewModel by viewModels(
-        entryPoint = ScenarioConfigViewModelsEntryPoint::class.java,
-        creator = { externalActionViewModel() },
-    )
-    private lateinit var viewBinding: DialogBaseListBinding
-    private lateinit var adapter: ExternalActionSelectionAdapter
+        entryPoint = ScenarioConfigViewModelsEntryPoint::class.java, creator = { externalActionViewModel() })
 
-    override fun onCreateView(): ViewGroup {
-        viewBinding = DialogBaseListBinding.inflate(LayoutInflater.from(context)).apply {
-            layoutTopBar.apply {
-                dialogTitle.setText(R.string.dialog_title_external_action_selection)
-                buttonDismiss.setDebouncedOnClickListener { back() }
-            }
+    override fun onCreateView(): ViewGroup = ComposeView(context).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent { MacrionTheme { this@ExternalActionSelectionDialog.Content() } }
+    }
+    override fun onDialogCreated(dialog: BottomSheetDialog) = Unit
 
-            floatingButtonsLayout.visibility = View.GONE
-
-            adapter = ExternalActionSelectionAdapter { selectedName ->
-                debounceUserInteraction {
-                    onExternalActionSelected(selectedName)
-                    back()
+    @Composable private fun Content() {
+        val names = viewModel.knownExternalActionNames.collectAsStateWithLifecycle(emptyList()).value
+        Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
+            Column {
+                Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
+                    Text(context.getString(R.string.dialog_title_external_action_selection), Modifier.weight(1f).padding(8.dp),
+                        style = MaterialTheme.typography.titleLarge)
+                }
+                if (names.isEmpty()) Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(context.getString(R.string.message_empty_external_action_list_title), style = MaterialTheme.typography.titleMedium)
+                        Text(context.getString(R.string.message_empty_external_action_list_desc), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                } else LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
+                    items(names, key = { it }) { name ->
+                        Column(Modifier.fillMaxWidth().heightIn(min = 64.dp).clickable {
+                            onExternalActionSelected(name); back()
+                        }.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.Center) {
+                            Text(name, style = MaterialTheme.typography.titleSmall)
+                            Text(context.getString(R.string.field_external_action_selection_desc),
+                                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                    }
                 }
             }
-
-            layoutLoadableList.apply {
-                setEmptyText(R.string.message_empty_external_action_list_title, R.string.message_empty_external_action_list_desc)
-                list.adapter = adapter
-                list.addItemDecoration(DividerItemDecoration(context, DividerItemDecoration.VERTICAL))
-            }
         }
-
-        return viewBinding.root
-    }
-
-    override fun onDialogCreated(dialog: BottomSheetDialog) {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.knownExternalActionNames.collect(::updateExternalActionNames) }
-            }
-        }
-    }
-
-    private fun updateExternalActionNames(names: List<String>) {
-        viewBinding.layoutLoadableList.updateState(names)
-        adapter.submitList(names)
-    }
-}
-
-private class ExternalActionSelectionAdapter(
-    private val onExternalActionSelected: (String) -> Unit,
-) : ListAdapter<String, ExternalActionSelectionViewHolder>(ExternalActionSelectionDiffUtilCallback) {
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExternalActionSelectionViewHolder =
-        ExternalActionSelectionViewHolder(
-            ItemCounterNameBinding.inflate(LayoutInflater.from(parent.context), parent, false),
-            onExternalActionSelected,
-        )
-
-    override fun onBindViewHolder(holder: ExternalActionSelectionViewHolder, position: Int) {
-        holder.onBind(getItem(position))
-    }
-}
-
-private object ExternalActionSelectionDiffUtilCallback : DiffUtil.ItemCallback<String>() {
-    override fun areItemsTheSame(oldItem: String, newItem: String): Boolean = oldItem == newItem
-    override fun areContentsTheSame(oldItem: String, newItem: String): Boolean = oldItem == newItem
-}
-
-private class ExternalActionSelectionViewHolder(
-    private val viewBinding: ItemCounterNameBinding,
-    private val onExternalActionSelected: (String) -> Unit,
-) : RecyclerView.ViewHolder(viewBinding.root) {
-
-    fun onBind(name: String) {
-        viewBinding.title.text = name
-        viewBinding.description.setText(R.string.field_external_action_selection_desc)
-        viewBinding.root.setOnClickListener { onExternalActionSelected(name) }
     }
 }

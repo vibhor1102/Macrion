@@ -18,6 +18,7 @@ package io.github.vibhor1102.macrion.feature.dumb.config.ui.brief
 
 import android.view.KeyEvent
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 
 import androidx.lifecycle.Lifecycle
@@ -32,8 +33,8 @@ import io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.bri
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DumbAction
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefDescription
 import io.github.vibhor1102.macrion.feature.dumb.config.R
-import io.github.vibhor1102.macrion.feature.dumb.config.databinding.OverlayDumbScenarioBriefMenuBinding
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.dumb.config.ui.createDumbBriefOverlayToolbar
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbActionCreator
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.DumbActionUiFlowListener
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.actions.startDumbActionCreationUiFlow
@@ -55,8 +56,12 @@ class DumbScenarioBriefMenu(
         creator = { dumbScenarioBriefViewModel() },
     )
 
-    /** The view binding for the overlay menu. */
-    private lateinit var menuViewBinding: OverlayDumbScenarioBriefMenuBinding
+    private lateinit var menuView: ViewGroup
+    private val backButton get() = menuView.findViewById<View>(R.id.btn_back)
+    private val recordButton get() = menuView.findViewById<View>(R.id.btn_record)
+    private val addButton get() = menuView.findViewById<View>(R.id.btn_add)
+    private val hideButton get() = menuView.findViewById<View>(R.id.btn_hide_overlay)
+    private val moveButtonView get() = menuView.findViewById<View>(R.id.btn_move)
 
     private lateinit var dumbActionCreator: DumbActionCreator
     private lateinit var createCopyActionUiFlowListener: DumbActionUiFlowListener
@@ -98,16 +103,16 @@ class DumbScenarioBriefMenu(
             onDumbActionCreationCancelled = {},
         )
 
-        menuViewBinding = OverlayDumbScenarioBriefMenuBinding.inflate(layoutInflater)
-        return menuViewBinding.root
+        menuView = createDumbBriefOverlayToolbar(context)
+        return menuView
     }
 
     override fun onCreateBriefItemViewHolder(parent: ViewGroup, orientation: Int): DumbActionBriefViewHolder =
-        DumbActionBriefViewHolder(LayoutInflater.from(parent.context), orientation, parent)
+        DumbActionBriefViewHolder(orientation, parent)
 
     override fun onScreenOverlayVisibilityChanged(isVisible: Boolean) {
         super.onScreenOverlayVisibilityChanged(isVisible)
-        setMenuItemViewEnabled(menuViewBinding.btnRecord, isVisible)
+        setMenuItemViewEnabled(recordButton, isVisible)
     }
 
     override fun onFocusedItemChanged(index: Int) {
@@ -203,27 +208,27 @@ class DumbScenarioBriefMenu(
 
     private fun updateRecordingState(isRecording: Boolean) {
         if (isRecording) {
-            setMenuItemViewEnabled(menuViewBinding.btnBack, true)
-            setMenuItemViewEnabled(menuViewBinding.btnAdd, false)
-            setMenuItemViewEnabled(menuViewBinding.btnHideOverlay, false)
-            setMenuItemViewEnabled(menuViewBinding.btnMove, true)
-            setMenuItemViewEnabled(menuViewBinding.btnRecord, false)
+            setMenuItemViewEnabled(backButton, true)
+            setMenuItemViewEnabled(addButton, false)
+            setMenuItemViewEnabled(hideButton, false)
+            setMenuItemViewEnabled(moveButtonView, true)
+            setMenuItemViewEnabled(recordButton, false)
         } else {
-            setMenuItemViewEnabled(menuViewBinding.btnBack, true)
-            setMenuItemViewEnabled(menuViewBinding.btnAdd, true)
-            setMenuItemViewEnabled(menuViewBinding.btnHideOverlay, true)
-            setMenuItemViewEnabled(menuViewBinding.btnMove, true)
-            setMenuItemViewEnabled(menuViewBinding.btnRecord, true)
+            setMenuItemViewEnabled(backButton, true)
+            setMenuItemViewEnabled(addButton, true)
+            setMenuItemViewEnabled(hideButton, true)
+            setMenuItemViewEnabled(moveButtonView, true)
+            setMenuItemViewEnabled(recordButton, true)
         }
     }
 
     private fun updateReplayingState(isReplaying: Boolean) {
         setOverlayViewVisibility(!isReplaying)
-        setMenuItemViewEnabled(menuViewBinding.btnBack, true)
-        setMenuItemViewEnabled(menuViewBinding.btnAdd, !isReplaying)
-        setMenuItemViewEnabled(menuViewBinding.btnHideOverlay, !isReplaying)
-        setMenuItemViewEnabled(menuViewBinding.btnMove, !isReplaying)
-        setMenuItemViewEnabled(menuViewBinding.btnRecord, !isReplaying)
+        setMenuItemViewEnabled(backButton, true)
+        setMenuItemViewEnabled(addButton, !isReplaying)
+        setMenuItemViewEnabled(hideButton, !isReplaying)
+        setMenuItemViewEnabled(moveButtonView, !isReplaying)
+        setMenuItemViewEnabled(recordButton, !isReplaying)
     }
 
     private fun showDumbActionCreationUiFlow(): Unit =

@@ -1,87 +1,53 @@
-/*
- * Copyright (C) 2025 Kevin Buzeau
- * Copyright (C) 2026 Vibhor Goel
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+/* Copyright (C) 2025 Kevin Buzeau; Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.condition
 
 import android.content.Context
-import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.report.DebugReportEventOccurrence
-import io.github.vibhor1102.macrion.core.ui.bindings.lists.updateState
-import io.github.vibhor1102.macrion.core.ui.databinding.IncludeLoadableListBinding
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import io.github.vibhor1102.macrion.feature.smart.debugging.di.DebuggingViewModelsEntryPoint
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportLoadableList
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.ReportRecyclerViews
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.condition.adapter.EventOccurrenceItemAdapter
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ContentDebugReportLoadableListBinding
-import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.updateState
-
-import kotlinx.coroutines.launch
-import kotlin.getValue
 
 class DebugConditionContent(
     appContext: Context,
     private val scenarioId: Long,
     private val eventOccurrence: DebugReportEventOccurrence,
 ) : NavBarDialogContent(appContext) {
-
     private val viewModel: DebugConditionContentViewModel by viewModels(
         entryPoint = DebuggingViewModelsEntryPoint::class.java,
         creator = { debugConditionContentViewModel() },
     )
-
-    private lateinit var conditionsAdapter: EventOccurrenceItemAdapter
-    private lateinit var viewBinding: ContentDebugReportLoadableListBinding
-
+    private val adapter by lazy { EventOccurrenceItemAdapter(viewModel::getConditionBitmap) }
+    private var listViews: ReportRecyclerViews? = null
 
     override fun onCreateView(container: ViewGroup): ViewGroup {
-        conditionsAdapter = EventOccurrenceItemAdapter(viewModel::getConditionBitmap)
-
-        viewBinding = ContentDebugReportLoadableListBinding.inflate(LayoutInflater.from(context), container, false).apply {
-            list.adapter = conditionsAdapter
-            fastScroller.attachToRecyclerView(list)
-        }
-
         viewModel.setOccurrence(scenarioId, eventOccurrence)
-
-        return viewBinding.root
-    }
-
-    override fun onViewCreated() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { viewModel.uiState.collect(::updateUiState) }
-            }
+        return ComposeView(context).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent { MacrionTheme { this@DebugConditionContent.Content() } }
         }
     }
+    override fun onViewCreated() = Unit
 
-    private fun updateUiState(uiState: DebugConditionContentUiState) {
-        when (uiState) {
-            DebugConditionContentUiState.Loading -> viewBinding.updateState(null)
-            is DebugConditionContentUiState.Available -> {
-                viewBinding.updateState(uiState.items)
-                conditionsAdapter.submitList(uiState.items) {
-                    viewBinding.fastScroller.refresh()
-                }
-            }
+    @Composable private fun Content() {
+        val state = viewModel.uiState.collectAsStateWithLifecycle().value
+        val items = (state as? DebugConditionContentUiState.Available)?.items
+        LaunchedEffect(items) {
+            if (items != null) adapter.submitList(items) { listViews?.fastScroller?.refresh() }
+        }
+        ReportLoadableList(items, R.string.content_desc_event_occurrence_fast_scroller) { views ->
+            listViews = views
+            views.recyclerView.adapter = adapter
         }
     }
 }

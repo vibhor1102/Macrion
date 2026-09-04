@@ -19,7 +19,8 @@ package io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.de
 
 import android.view.View
 import android.view.ViewGroup
-import android.view.LayoutInflater
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -29,13 +30,13 @@ import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.n
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.smart.debugging.domain.model.report.DebugReportEventOccurrence
 import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
-import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.setButtonVisibility
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
 import io.github.vibhor1102.macrion.feature.smart.debugging.di.DebuggingViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.condition.DebugConditionContent
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.counter.DebugCounterStateContent
 import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.details.event.DebugEventsStateContent
-import io.github.vibhor1102.macrion.feature.smart.debugging.databinding.ViewDebugEventOccurrenceMetadataBinding
+import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.timeline.adapter.ReportOccurrenceMetadata
 import io.github.vibhor1102.macrion.feature.smart.debugging.utils.formatDebugTimelineTimestamp
 
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -63,14 +64,13 @@ class DebugReportEventOccurrenceDetailsDialog(
                 setButtonVisibility(DialogNavigationButton.SAVE, View.GONE)
             }
 
-            val metadataBinding = ViewDebugEventOccurrenceMetadataBinding.inflate(LayoutInflater.from(context))
-            metadataBinding.timestampText.text = context.getString(
+            val timestampText = context.getString(
                 if (eventOccurrence.detectedAtNs != null) R.string.item_event_occurrence_detected_at
                 else R.string.item_event_occurrence_recorded_at,
                 (eventOccurrence.detectedAtNs?.div(NANOSECONDS_PER_MILLISECOND)
                     ?: eventOccurrence.relativeTimestampMs).formatDebugTimelineTimestamp(),
             )
-            metadataBinding.occurrenceText.text = when (eventOccurrence) {
+            val occurrenceText = when (eventOccurrence) {
                 is DebugReportEventOccurrence.ScreenEvent -> context.getString(
                     R.string.item_event_occurrence_frame_number,
                     eventOccurrence.frameNumber,
@@ -78,7 +78,14 @@ class DebugReportEventOccurrenceDetailsDialog(
                 is DebugReportEventOccurrence.TriggerEvent ->
                     context.getString(R.string.item_event_occurrence_trigger)
             }
-            setPersistentHeader(metadataBinding.root)
+            setPersistentHeader(ComposeView(context).apply {
+                setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+                setContent {
+                    MacrionTheme {
+                        ReportOccurrenceMetadata(timestampText, occurrenceText)
+                    }
+                }
+            })
 
             viewModel.setOccurrence(scenarioId, eventOccurrence)
         }
@@ -135,7 +142,7 @@ class DebugReportEventOccurrenceDetailsDialog(
 
     private fun updateUiState(uiState: DebugReportEventOccurrenceUiState?) {
         uiState ?: return
-        topBarBinding.dialogTitle.text = uiState.dialogTitle
+        topBarBinding.setTitle(uiState.dialogTitle)
     }
 }
 

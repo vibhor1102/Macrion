@@ -78,6 +78,17 @@ class NotificationViewModel @Inject constructor(
         updateEditedNotification { old -> old.copy(messageText = "" + message) }
     }
 
+    fun appendCounterReference(counterName: String, atIndex: Int) {
+        updateEditedNotification { old ->
+            old.copy(
+                messageText = old.messageText.appendCounterReference(
+                    counterName = counterName,
+                    atIndex = atIndex.coerceIn(0, old.messageText.length),
+                ),
+            )
+        }
+    }
+
     fun setNotificationImportance(channelItem: NotificationImportanceItem) {
         updateEditedNotification { old -> old.copy(channelImportance = channelItem.toNotificationImportance()) }
     }

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2026 Vibhor Goel -->
+<resources>
+    <item name="btn_play" type="id" />
+    <item name="btn_stop" type="id" />
+    <item name="btn_show_actions" type="id" />
+    <item name="btn_action_list" type="id" />
+    <item name="btn_back" type="id" />
+    <item name="btn_record" type="id" />
+    <item name="btn_add" type="id" />
+</resources>
