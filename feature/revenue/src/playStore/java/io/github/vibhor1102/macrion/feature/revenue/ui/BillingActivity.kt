@@ -18,14 +18,15 @@ package io.github.vibhor1102.macrion.feature.revenue.ui
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import android.widget.FrameLayout
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 
 import androidx.appcompat.app.AppCompatActivity
 
-import io.github.vibhor1102.macrion.feature.revenue.R
 import io.github.vibhor1102.macrion.feature.revenue.ui.paywall.PaywallFragment
 import io.github.vibhor1102.macrion.feature.revenue.ui.purchase.PurchaseProModeFragment
 
@@ -58,7 +59,7 @@ internal class BillingActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_pro_mode)
+        setContentView(FrameLayout(this).apply { setBackgroundColor(Color.TRANSPARENT) })
 
         when (val tag = intent?.getStringExtra(EXTRA_FRAGMENT_TAG)) {
             PaywallFragment.FRAGMENT_TAG -> PaywallFragment()
