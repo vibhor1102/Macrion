@@ -155,6 +155,7 @@ private fun NumericField(
         value = value, onValueChange = { onValueChanged(it.filter(Char::isDigit)) },
         label = { Text(label) }, modifier = modifier.fillMaxWidth(), isError = isError,
         enabled = enabled, singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Number),
+        keyboardActions = macrionDoneKeyboardActions(),
     )
 }

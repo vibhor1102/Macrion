@@ -45,6 +45,8 @@ import io.github.vibhor1102.macrion.core.domain.model.OR
 import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.TimeUnitDropDownItem
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartActionsBriefMenu
@@ -252,7 +254,8 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
             OutlinedTextField(value, { text -> val filtered = text.filter(Char::isDigit); value = filtered
                 viewModel.setCooldownValue(filtered.toLongOrNull()) }, Modifier.weight(.7f), enabled = ui.cooldownEnabled,
                 label = { Text(context.getString(R.string.field_event_cooldown_edit_label)) }, singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Number),
+                keyboardActions = macrionDoneKeyboardActions())
             Spacer(Modifier.width(12.dp)); TimeUnitDropdown(ui.cooldownUnit, ui.cooldownEnabled, Modifier.weight(.3f))
         }
     }

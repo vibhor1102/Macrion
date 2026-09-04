@@ -38,6 +38,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
@@ -94,8 +95,6 @@ fun MacrionTextField(
     maxLength: Int? = null,
     trimWhitespace: Boolean = true,
 ) {
-    val focusManager = LocalFocusManager.current
-    val keyboardController = LocalSoftwareKeyboardController.current
     var fieldValue by remember {
         mutableStateOf(TextFieldValue(value, selection = TextRange(value.length)))
     }
@@ -133,13 +132,23 @@ fun MacrionTextField(
         },
         isError = isError,
         singleLine = true,
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = {
-            commitValue()
-            focusManager.clearFocus()
-            keyboardController?.hide()
-        }),
+        keyboardOptions = macrionDoneKeyboardOptions(),
+        keyboardActions = macrionDoneKeyboardActions { commitValue() },
     )
+}
+
+fun macrionDoneKeyboardOptions(keyboardType: KeyboardType = KeyboardType.Text): KeyboardOptions =
+    KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Done)
+
+@Composable
+fun macrionDoneKeyboardActions(onDone: () -> Unit = {}): KeyboardActions {
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    return KeyboardActions(onDone = {
+        onDone()
+        focusManager.clearFocus()
+        keyboardController?.hide()
+    })
 }
 
 private fun TextRange.coerceToTextLength(length: Int): TextRange = TextRange(

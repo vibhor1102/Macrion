@@ -27,6 +27,8 @@ import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.n
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionAnimatedDescription
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
@@ -160,7 +162,8 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
                         enabled = state.isEnabled,
                         label = { Text(stringResource(R.string.field_scenario_fps_rate_label)) },
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Decimal),
+                        keyboardActions = macrionDoneKeyboardActions(),
                     )
                     Text("/", Modifier.padding(horizontal = 8.dp), style = MaterialTheme.typography.headlineMedium)
                     ExposedDropdownMenuBox(menuExpanded, { if (state.isEnabled) menuExpanded = !menuExpanded }, Modifier.weight(.8f)) {

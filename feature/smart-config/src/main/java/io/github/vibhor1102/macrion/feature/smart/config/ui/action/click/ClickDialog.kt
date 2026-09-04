@@ -46,6 +46,8 @@ import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring
 import io.github.vibhor1102.macrion.core.domain.model.action.Click
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.renderers.ClickDescription
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
@@ -102,7 +104,8 @@ class ClickDialog(private val listener: OnActionConfigCompleteListener) : Overla
                         }
                     }, Modifier.fillMaxWidth(), label = { Text(context.getString(R.string.input_field_label_click_press_duration)) },
                         isError = state.pressDurationError, singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                        keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Number),
+                        keyboardActions = macrionDoneKeyboardActions())
                     state.positionState?.let { PositionCard(it) }
                 }
             }

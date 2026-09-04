@@ -40,6 +40,8 @@ import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring
 import io.github.vibhor1102.macrion.core.domain.model.counter.CounterOperationValue
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
@@ -185,7 +187,8 @@ class NumberConditionDialog(private val listener: OnConditionConfigCompleteListe
             OutlinedTextField(text, { newText -> text = newText; newText.toDoubleOrNull()?.let {
                 viewModel.setOperationValue(CounterOperationValue.Number(it)) } }, Modifier.fillMaxWidth().focusRequester(focusRequester),
                 label = { Text(context.getString(R.string.field_counter_operation_value_label)) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true)
+                keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Decimal),
+                keyboardActions = macrionDoneKeyboardActions(), singleLine = true)
         }
     }
 

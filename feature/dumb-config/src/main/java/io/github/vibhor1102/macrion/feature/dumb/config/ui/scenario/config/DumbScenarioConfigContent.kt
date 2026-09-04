@@ -28,6 +28,8 @@ import io.github.vibhor1102.macrion.core.dumb.domain.model.DUMB_SCENARIO_MAX_DUR
 import io.github.vibhor1102.macrion.core.dumb.domain.model.REPEAT_COUNT_MAX_VALUE
 import io.github.vibhor1102.macrion.core.dumb.domain.model.REPEAT_COUNT_MIN_VALUE
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionAnimatedDescription
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
@@ -90,6 +92,8 @@ class DumbScenarioConfigContent(appContext: Context) : NavBarDialogContent(appCo
                     label = { Text(stringResource(R.string.input_field_label_scenario_name)) },
                     isError = nameError,
                     singleLine = true,
+                    keyboardOptions = macrionDoneKeyboardOptions(),
+                    keyboardActions = macrionDoneKeyboardActions(),
                     trailingIcon = if (name.isNotEmpty()) {{
                         IconButton({ name = ""; viewModel.setDumbScenarioName("") }) {
                             Icon(painterResource(R.drawable.ic_cancel), null)
@@ -161,7 +165,8 @@ class DumbScenarioConfigContent(appContext: Context) : NavBarDialogContent(appCo
                 label = { Text(label) },
                 enabled = !checked,
                 isError = isError,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Number),
+                keyboardActions = macrionDoneKeyboardActions(),
                 singleLine = true,
                 trailingIcon = if (value.isNotEmpty() && !checked) {{
                     IconButton({ onValueChange("") }) { Icon(painterResource(R.drawable.ic_cancel), null) }

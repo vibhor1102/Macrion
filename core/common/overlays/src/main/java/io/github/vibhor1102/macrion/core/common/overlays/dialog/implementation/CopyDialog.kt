@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
@@ -117,6 +118,7 @@ private fun CopySearchTopBar(
     var searching by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
     val keyboard = LocalSoftwareKeyboardController.current
     val foreground = MaterialTheme.colorScheme.onSurface
 
@@ -155,7 +157,10 @@ private fun CopySearchTopBar(
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
+                keyboardActions = KeyboardActions(onSearch = {
+                    focusManager.clearFocus()
+                    keyboard?.hide()
+                }),
                 decorationBox = { inner ->
                     if (query.isEmpty()) {
                         Text(
