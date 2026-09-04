@@ -97,7 +97,15 @@ internal fun NavBarDialogScaffold(
                         AndroidView(factory = { content }, modifier = Modifier.fillMaxWidth().weight(1f))
                     }
                     floatingActions?.let { actions ->
-                        AndroidView(factory = { actions }, modifier = Modifier.align(androidx.compose.ui.Alignment.BottomEnd))
+                        AndroidView(
+                            factory = { actions },
+                            modifier = Modifier
+                                .align(androidx.compose.ui.Alignment.BottomEnd)
+                                .padding(
+                                    end = dimensionResource(R.dimen.margin_horizontal_default),
+                                    bottom = dimensionResource(R.dimen.margin_vertical_extra_large),
+                                ),
+                        )
                     }
                 }
             }

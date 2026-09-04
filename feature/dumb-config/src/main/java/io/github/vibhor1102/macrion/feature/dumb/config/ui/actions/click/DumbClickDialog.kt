@@ -71,6 +71,7 @@ class DumbClickDialog(
             infiniteRepeat = viewModel.repeatInfiniteState.collectAsStateWithLifecycle(false).value,
             saveEnabled = viewModel.isValidDumbClick.collectAsStateWithLifecycle(false).value,
             maxNameLength = context.resources.getInteger(R.integer.name_max_length),
+            infiniteRepeatIcon = R.drawable.ic_infinite,
             onNameChanged = { name = it; viewModel.setName(it) },
             onDurationChanged = { duration = it; viewModel.setPressDurationMs(it.toLongOrNull() ?: 0) },
             onRepeatCountChanged = { count = it; viewModel.setRepeatCount(it.toIntOrNull() ?: 0) },

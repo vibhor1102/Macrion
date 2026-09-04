@@ -1,6 +1,12 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.core.ui.compose
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,6 +41,21 @@ fun MacrionSwitchField(title: String, description: String, checked: Boolean, onC
         }
         Spacer(Modifier.width(16.dp))
         Switch(checked = checked, onCheckedChange = null)
+    }
+}
+
+@Composable
+fun MacrionAnimatedDescription(text: String, modifier: Modifier = Modifier) {
+    AnimatedContent(
+        targetState = text,
+        modifier = modifier,
+        transitionSpec = {
+            fadeIn(tween(100)) togetherWith fadeOut(tween(100)) using
+                SizeTransform(clip = false, sizeAnimationSpec = { _, _ -> tween(100) })
+        },
+        label = "description",
+    ) {
+        Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
     }
 }
 

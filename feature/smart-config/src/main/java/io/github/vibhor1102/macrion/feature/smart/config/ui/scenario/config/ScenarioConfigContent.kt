@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionAnimatedDescription
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
@@ -49,6 +50,8 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             state?.let {
+                val antiDetectionEnabledDescription = stringResource(R.string.dropdown_helper_text_anti_detection_enabled)
+                val antiDetectionDisabledDescription = stringResource(R.string.dropdown_helper_text_anti_detection_disabled)
                 Column(
                     Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding()
                         .padding(horizontal = 16.dp, vertical = 12.dp),
@@ -57,10 +60,10 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
                     ScenarioName(it.name)
                     SwitchCard(
                         stringResource(R.string.input_field_label_anti_detection),
-                        stringResource(if (it.randomizeChecked) R.string.dropdown_helper_text_anti_detection_enabled
-                        else R.string.dropdown_helper_text_anti_detection_disabled),
+                        if (it.randomizeChecked) antiDetectionEnabledDescription else antiDetectionDisabledDescription,
                         it.randomizeChecked,
                         viewModel::toggleRandomization,
+                        animateDescription = true,
                     )
                     SwitchCard(
                         stringResource(R.string.field_scenario_keep_screen_on_title),
@@ -93,7 +96,13 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
     }
 
     @Composable
-    private fun SwitchCard(title: String, description: String, checked: Boolean, onToggle: () -> Unit) {
+    private fun SwitchCard(
+        title: String,
+        description: String,
+        checked: Boolean,
+        onToggle: () -> Unit,
+        animateDescription: Boolean = false,
+    ) {
         ElevatedCard(Modifier.fillMaxWidth()) {
             Row(
                 Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(horizontal = 16.dp, vertical = 8.dp),
@@ -101,7 +110,9 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
             ) {
                 Column(Modifier.weight(1f).padding(end = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(title, style = MaterialTheme.typography.bodyLarge)
-                    Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (animateDescription) MacrionAnimatedDescription(description)
+                    else Text(description, style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 VerticalDivider(Modifier.height(48.dp))
                 Spacer(Modifier.width(12.dp))

@@ -27,6 +27,7 @@ import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.n
 import io.github.vibhor1102.macrion.core.dumb.domain.model.DUMB_SCENARIO_MAX_DURATION_MINUTES
 import io.github.vibhor1102.macrion.core.dumb.domain.model.REPEAT_COUNT_MAX_VALUE
 import io.github.vibhor1102.macrion.core.dumb.domain.model.REPEAT_COUNT_MIN_VALUE
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionAnimatedDescription
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
@@ -60,6 +61,8 @@ class DumbScenarioConfigContent(appContext: Context) : NavBarDialogContent(appCo
         val repeatInfinite by viewModel.repeatInfiniteState.collectAsStateWithLifecycle(initialValue = true)
         val durationInfinite by viewModel.maxDurationMinInfiniteState.collectAsStateWithLifecycle(initialValue = true)
         val randomization by viewModel.randomization.collectAsStateWithLifecycle(initialValue = false)
+        val antiDetectionEnabledDescription = stringResource(R.string.dropdown_helper_text_anti_detection_enabled)
+        val antiDetectionDisabledDescription = stringResource(R.string.dropdown_helper_text_anti_detection_disabled)
 
         var name by rememberSaveable { mutableStateOf("") }
         var repeatCount by rememberSaveable { mutableStateOf("") }
@@ -121,11 +124,8 @@ class DumbScenarioConfigContent(appContext: Context) : NavBarDialogContent(appCo
                             verticalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
                             Text(stringResource(R.string.input_field_label_anti_detection), style = MaterialTheme.typography.bodyLarge)
-                            Text(
-                                stringResource(if (randomization) R.string.dropdown_helper_text_anti_detection_enabled
-                                    else R.string.dropdown_helper_text_anti_detection_disabled),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.bodySmall,
+                            MacrionAnimatedDescription(
+                                text = if (randomization) antiDetectionEnabledDescription else antiDetectionDisabledDescription,
                             )
                         }
                         VerticalDivider(Modifier.height(48.dp))
