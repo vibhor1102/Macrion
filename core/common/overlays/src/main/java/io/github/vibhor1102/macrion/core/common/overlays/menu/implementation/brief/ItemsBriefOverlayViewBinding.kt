@@ -19,7 +19,10 @@ package io.github.vibhor1102.macrion.core.common.overlays.menu.implementation.br
 import android.content.res.Configuration
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.Space
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.ElevatedCard
@@ -44,10 +47,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import io.github.vibhor1102.macrion.core.common.overlays.R
-import io.github.vibhor1102.macrion.core.common.overlays.databinding.OverlayViewActionBriefLandBinding
-import io.github.vibhor1102.macrion.core.common.overlays.databinding.OverlayViewActionBriefPortBinding
 import io.github.vibhor1102.macrion.core.ui.views.gesturerecord.GestureRecordView
 import io.github.vibhor1102.macrion.core.ui.views.itembrief.ItemBriefView
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -77,48 +79,204 @@ class ItemsBriefOverlayViewBinding private constructor(
     private var onPlay: () -> Unit = {}
     private var onMoveNext: () -> Unit = {}
 
+    private constructor(views: HostViews, orientation: Int) : this(
+        root = views.root,
+        viewBrief = views.viewBrief,
+        viewRecorder = views.viewRecorder,
+        layoutInstructions = views.layoutInstructions,
+        layoutActionList = views.layoutActionList,
+        listActions = views.listActions,
+        emptyScenarioCard = views.emptyScenarioCard,
+        controlPanel = views.controlPanel,
+        orientation = orientation,
+    )
+
     companion object {
 
-        fun inflate(inflater: LayoutInflater, orientation: Int) =
-            if (orientation == Configuration.ORIENTATION_PORTRAIT)
-                ItemsBriefOverlayViewBinding(OverlayViewActionBriefPortBinding.inflate(inflater))
-            else
-                ItemsBriefOverlayViewBinding(OverlayViewActionBriefLandBinding.inflate(inflater))
+        fun inflate(inflater: LayoutInflater, orientation: Int): ItemsBriefOverlayViewBinding {
+            val isPortrait = orientation == Configuration.ORIENTATION_PORTRAIT
+            val views = createHostViews(inflater, isPortrait)
+            return ItemsBriefOverlayViewBinding(views, orientation).apply {
+                views.backgroundList.setFade(if (isPortrait) FadeDirection.BOTTOM else FadeDirection.LEFT)
+                views.emptyScenarioCard.setEmptyContent(emptyText)
+                setInstructionsContent(isPortrait)
+                setControlPanelContent()
+            }
+        }
+
+        private fun createHostViews(inflater: LayoutInflater, isPortrait: Boolean): HostViews {
+            val context = inflater.context
+            val resources = context.resources
+            val matchParent = ViewGroup.LayoutParams.MATCH_PARENT
+            val wrapContent = ViewGroup.LayoutParams.WRAP_CONTENT
+
+            val root = FrameLayout(context).apply {
+                layoutParams = FrameLayout.LayoutParams(matchParent, matchParent)
+            }
+            val viewRecorder = GestureRecordView(context).apply {
+                visibility = View.GONE
+            }
+            val layoutInstructions = ComposeView(context).apply {
+                visibility = View.GONE
+            }
+            val viewBrief = ItemBriefView(context)
+            val layoutActionList = ConstraintLayout(context)
+            val backgroundList = ComposeView(context).apply { id = View.generateViewId() }
+            val emptyScenarioCard = ComposeView(context).apply {
+                id = View.generateViewId()
+                visibility = View.GONE
+            }
+            val listActions = RecyclerView(context).apply {
+                id = View.generateViewId()
+                clipToPadding = false
+                isHorizontalScrollBarEnabled = false
+                isVerticalScrollBarEnabled = false
+            }
+            val controlPanel = ComposeView(context).apply { id = View.generateViewId() }
+            val spacer = Space(context).apply { id = View.generateViewId() }
+
+            root.addView(viewRecorder, FrameLayout.LayoutParams(matchParent, matchParent))
+            root.addView(layoutInstructions, FrameLayout.LayoutParams(matchParent, wrapContent))
+            root.addView(viewBrief, FrameLayout.LayoutParams(matchParent, matchParent))
+            root.addView(layoutActionList, FrameLayout.LayoutParams(matchParent, matchParent))
+
+            if (isPortrait) {
+                layoutActionList.addView(
+                    backgroundList,
+                    ConstraintLayout.LayoutParams(0, 0).apply {
+                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+                        topToTop = spacer.id
+                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                    },
+                )
+                layoutActionList.addView(
+                    spacer,
+                    ConstraintLayout.LayoutParams(0, 0).apply {
+                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+                        bottomToTop = controlPanel.id
+                        bottomMargin = resources.getDimensionPixelSize(R.dimen.overlay_brief_background_top_padding_port)
+                    },
+                )
+                layoutActionList.addView(
+                    emptyScenarioCard,
+                    ConstraintLayout.LayoutParams(
+                        0,
+                        resources.getDimensionPixelSize(R.dimen.item_brief_height),
+                    ).apply {
+                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+                        bottomToTop = controlPanel.id
+                        marginStart = resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_extra_large)
+                        marginEnd = resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_extra_large)
+                        bottomMargin = resources.getDimensionPixelSize(UiR.dimen.margin_vertical_extra_large)
+                    },
+                )
+                listActions.setPadding(
+                    resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_large),
+                    0,
+                    resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_large),
+                    0,
+                )
+                layoutActionList.addView(
+                    listActions,
+                    ConstraintLayout.LayoutParams(0, 0).apply {
+                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                        bottomToTop = controlPanel.id
+                        bottomMargin = resources.getDimensionPixelSize(UiR.dimen.margin_vertical_extra_large)
+                    },
+                )
+                layoutActionList.addView(
+                    controlPanel,
+                    ConstraintLayout.LayoutParams(0, wrapContent).apply {
+                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                    },
+                )
+            } else {
+                layoutActionList.addView(
+                    backgroundList,
+                    ConstraintLayout.LayoutParams(0, 0).apply {
+                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                        endToStart = spacer.id
+                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                    },
+                )
+                layoutActionList.addView(
+                    spacer,
+                    ConstraintLayout.LayoutParams(0, 0).apply {
+                        startToEnd = controlPanel.id
+                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                        marginStart = resources.getDimensionPixelSize(R.dimen.overlay_brief_background_end_padding_land)
+                    },
+                )
+                layoutActionList.addView(
+                    emptyScenarioCard,
+                    ConstraintLayout.LayoutParams(
+                        resources.getDimensionPixelSize(R.dimen.overlay_brief_item_width_land),
+                        0,
+                    ).apply {
+                        startToEnd = controlPanel.id
+                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                        marginStart = resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_default)
+                        topMargin = 64.dpToPx(resources.displayMetrics.density)
+                        bottomMargin = 64.dpToPx(resources.displayMetrics.density)
+                    },
+                )
+                val verticalPadding = 64.dpToPx(resources.displayMetrics.density)
+                listActions.setPadding(0, verticalPadding, 0, verticalPadding)
+                layoutActionList.addView(
+                    listActions,
+                    ConstraintLayout.LayoutParams(0, 0).apply {
+                        startToEnd = controlPanel.id
+                        endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                        marginStart = resources.getDimensionPixelSize(UiR.dimen.margin_horizontal_default)
+                    },
+                )
+                layoutActionList.addView(
+                    controlPanel,
+                    ConstraintLayout.LayoutParams(wrapContent, 0).apply {
+                        startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                        topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                        bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                    },
+                )
+            }
+
+            return HostViews(
+                root = root,
+                viewBrief = viewBrief,
+                viewRecorder = viewRecorder,
+                layoutInstructions = layoutInstructions,
+                layoutActionList = layoutActionList,
+                backgroundList = backgroundList,
+                listActions = listActions,
+                emptyScenarioCard = emptyScenarioCard,
+                controlPanel = controlPanel,
+            )
+        }
     }
 
-    constructor(binding: OverlayViewActionBriefPortBinding) : this(
-        root = binding.root,
-        viewBrief = binding.viewBrief,
-        viewRecorder = binding.viewRecord,
-        layoutInstructions = binding.layoutInstructions,
-        layoutActionList = binding.layoutActionList,
-        listActions = binding.listActions,
-        emptyScenarioCard = binding.emptyScenarioCard,
-        controlPanel = binding.controlPanel,
-        orientation = Configuration.ORIENTATION_PORTRAIT,
-    ) {
-        binding.backgroundList.setFade(FadeDirection.BOTTOM)
-        binding.emptyScenarioCard.setEmptyContent(emptyText)
-        setInstructionsContent(isPortrait = true)
-        setControlPanelContent()
-    }
-
-    constructor(binding: OverlayViewActionBriefLandBinding) : this(
-        root = binding.root,
-        viewBrief = binding.viewBrief,
-        viewRecorder = binding.viewRecord,
-        layoutInstructions = binding.layoutInstructions,
-        layoutActionList = binding.layoutActionList,
-        listActions = binding.listActions,
-        emptyScenarioCard = binding.emptyScenarioCard,
-        controlPanel = binding.controlPanel,
-        orientation = Configuration.ORIENTATION_LANDSCAPE,
-    ) {
-        binding.backgroundList.setFade(FadeDirection.LEFT)
-        binding.emptyScenarioCard.setEmptyContent(emptyText)
-        setInstructionsContent(isPortrait = false)
-        setControlPanelContent()
-    }
+    private data class HostViews(
+        val root: FrameLayout,
+        val viewBrief: ItemBriefView,
+        val viewRecorder: GestureRecordView,
+        val layoutInstructions: ComposeView,
+        val layoutActionList: ConstraintLayout,
+        val backgroundList: ComposeView,
+        val listActions: RecyclerView,
+        val emptyScenarioCard: ComposeView,
+        val controlPanel: ComposeView,
+    )
 
     fun setEmptyText(textRes: Int) {
         emptyText.intValue = textRes
@@ -257,7 +415,15 @@ private fun BriefIconButton(icon: Int, enabled: Boolean, onClick: () -> Unit) {
 @androidx.compose.runtime.Composable
 private fun PositionCard(state: ItemBriefControlsState, onClick: () -> Unit, modifier: Modifier) {
     ElevatedCard(onClick = onClick, enabled = state.canSelectPosition, modifier = modifier) {
-        Box(Modifier.fillMaxSize().padding(vertical = if (state.indexText.contains('\n')) 8.dp else 0.dp), contentAlignment = Alignment.Center) {
+        val isMultiline = state.indexText.contains('\n')
+        Box(
+            modifier = if (isMultiline) {
+                Modifier.fillMaxWidth().padding(vertical = 8.dp)
+            } else {
+                Modifier.fillMaxSize()
+            },
+            contentAlignment = Alignment.Center,
+        ) {
             Text(
                 text = state.indexText,
                 color = colorResource(UiR.color.overlayViewPrimary).copy(
@@ -266,13 +432,15 @@ private fun PositionCard(state: ItemBriefControlsState, onClick: () -> Unit, mod
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center,
-                maxLines = if (state.indexText.contains('\n')) 3 else 1,
+                maxLines = if (isMultiline) 3 else 1,
             )
         }
     }
 }
 
 private enum class FadeDirection { TOP, BOTTOM, LEFT }
+
+private fun Int.dpToPx(density: Float): Int = (this * density).toInt()
 
 private fun ComposeView.setFade(direction: FadeDirection) {
     isClickable = false

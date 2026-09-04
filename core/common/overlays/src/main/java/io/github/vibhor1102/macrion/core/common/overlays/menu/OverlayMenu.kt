@@ -396,6 +396,7 @@ abstract class OverlayMenu(
      */
     private fun recreateOverlayViewForRotation(oldOverlayView: View) {
         screenOverlayView = onCreateOverlayView()
+        screenOverlayView?.installOverlayViewTreeOwners()
         overlayLayoutParams = onCreateOverlayViewLayoutParams().apply {
             gravity = Gravity.TOP or Gravity.START
         }
