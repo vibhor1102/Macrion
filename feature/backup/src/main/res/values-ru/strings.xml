@@ -60,4 +60,12 @@
       -->
     <string name="content_desc_backup_state">Состояние резервной копии</string>
 
+    <string name="item_title_backup_klickr_compatible">Создать резервную копию для Klick’r</string>
+    <string name="message_backup_import_malformed">Эта резервная копия повреждена или содержит одновременно форматы Macrion и Klick’r.</string>
+    <string name="message_backup_klickr_compatibility_loss">Функции, доступные только в Macrion, будут удалены из этой копии, чтобы Klick’r смог её импортировать.</string>
+    <string name="message_backup_klickr_compatibility_analysis">Проверка совместимости выбранных сценариев с Klick’r…</string>
+    <string name="message_backup_klickr_compatibility_review_without_loss">Целевая совместимость: %1$s\n\nУдалять компоненты Macrion не требуется. Продолжите, чтобы выбрать место сохранения копии.</string>
+    <string name="message_backup_klickr_compatibility_review">Целевая совместимость: %1$s\n\nБудет удалено компонентов: %2$d\nНевозможно экспортировать сценариев: %3$d\n\nПродолжите, чтобы выбрать место сохранения копии, или отмените операцию без создания файла.</string>
+    <string name="message_backup_create_klickr_compatible_completed">Резервная копия для Klick’r создана. Удалено компонентов Macrion: %1$d.</string>
+    <string name="message_backup_create_klickr_compatible_completed_without_loss">Резервная копия для Klick’r создана. Удалять функции Macrion не потребовалось.</string>
 </resources>

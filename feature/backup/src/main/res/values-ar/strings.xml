@@ -58,4 +58,12 @@
       -->
     <string name="content_desc_backup_state">حالة النسخة الاحتياطية</string>
 
+    <string name="item_title_backup_klickr_compatible">إنشاء نسخة احتياطية متوافقة مع Klick’r</string>
+    <string name="message_backup_import_malformed">يبدو أن هذه النسخة الاحتياطية تالفة أو تجمع بين تنسيقي النسخ الاحتياطي في Macrion وKlick’r.</string>
+    <string name="message_backup_klickr_compatibility_loss">ستُزال الميزات الخاصة بـ Macrion من هذه النسخة الاحتياطية ليتمكن Klick’r من استيرادها.</string>
+    <string name="message_backup_klickr_compatibility_analysis">جارٍ التحقق من توافق السيناريوهات المحددة مع Klick’r…</string>
+    <string name="message_backup_klickr_compatibility_review_without_loss">هدف التوافق: %1$s\n\nلا حاجة إلى إزالة أي مكونات خاصة بـ Macrion. تابع لاختيار مكان حفظ النسخة الاحتياطية.</string>
+    <string name="message_backup_klickr_compatibility_review">هدف التوافق: %1$s\n\nالمكونات التي ستُزال: %2$d\nالسيناريوهات التي لا يمكن تصديرها: %3$d\n\nتابع لاختيار مكان حفظ النسخة الاحتياطية، أو ألغِ دون إنشاء ملف.</string>
+    <string name="message_backup_create_klickr_compatible_completed">اكتمل إنشاء نسخة احتياطية متوافقة مع Klick’r. مكونات Macrion التي أُزيلت: %1$d.</string>
+    <string name="message_backup_create_klickr_compatible_completed_without_loss">اكتمل إنشاء نسخة احتياطية متوافقة مع Klick’r. لم تكن هناك حاجة لإزالة أي ميزات خاصة بـ Macrion.</string>
 </resources>

@@ -16,4 +16,12 @@
     <string name="message_backup_import_compatibility">部分导入的场景来自屏幕规格不同的设备，可能影响检测与操作坐标。\n\n请重新截取条件图像，并更新点击／滑动位置。</string>
     <string name="message_backup_error_no_zip_app">设备上未找到可处理 Zip 文件保存／读取的应用。</string>
     <string name="content_desc_backup_state">备份状态</string>
+    <string name="item_title_backup_klickr_compatible">创建兼容 Klick’r 的备份</string>
+    <string name="message_backup_import_malformed">此备份似乎已损坏，或混合了 Macrion 和 Klick’r 的备份格式。</string>
+    <string name="message_backup_klickr_compatibility_loss">将从此备份中移除 Macrion 专有功能，以便 Klick’r 可以导入。</string>
+    <string name="message_backup_klickr_compatibility_analysis">正在检查所选场景与 Klick’r 的兼容性…</string>
+    <string name="message_backup_klickr_compatibility_review_without_loss">兼容目标：%1$s\n\n无需移除任何 Macrion 专有组件。继续选择备份的保存位置。</string>
+    <string name="message_backup_klickr_compatibility_review">兼容目标：%1$s\n\n将移除的组件：%2$d\n无法导出的场景：%3$d\n\n继续选择备份的保存位置，或取消且不创建文件。</string>
+    <string name="message_backup_create_klickr_compatible_completed">兼容 Klick’r 的备份已完成。已移除的 Macrion 专有组件：%1$d。</string>
+    <string name="message_backup_create_klickr_compatible_completed_without_loss">兼容 Klick’r 的备份已完成。无需移除任何 Macrion 专有功能。</string>
 </resources>

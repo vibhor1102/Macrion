@@ -492,4 +492,6 @@
     <string name="dialog_title_external_action_selection">外部動作</string>
     <string name="message_empty_external_action_list_title">找不到外部動作</string>
     <string name="message_empty_external_action_list_desc">請先在智慧情境中輸入新的外部動作名稱。</string>
+    <string name="content_desc_switch_scenario">切換情境</string>
+    <string name="default_external_action_name">外部動作</string>
 </resources>

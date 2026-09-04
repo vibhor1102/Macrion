@@ -519,4 +519,6 @@
     <string name="dialog_title_external_action_selection">Зовнішні дії</string>
     <string name="message_empty_external_action_list_title">Зовнішніх дій не знайдено</string>
     <string name="message_empty_external_action_list_desc">Спочатку введіть нову назву зовнішньої дії в розумному сценарії.</string>
+    <string name="content_desc_switch_scenario">Змінити сценарій</string>
+    <string name="default_external_action_name">Зовнішня дія</string>
 </resources>

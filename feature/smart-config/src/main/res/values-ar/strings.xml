@@ -516,4 +516,6 @@
     <string name="dialog_title_external_action_selection">الإجراءات الخارجية</string>
     <string name="message_empty_external_action_list_title">لم يتم العثور على إجراء خارجي</string>
     <string name="message_empty_external_action_list_desc">اكتب أولاً اسم إجراء خارجي جديد في سيناريو ذكي.</string>
+    <string name="content_desc_switch_scenario">تبديل السيناريو</string>
+    <string name="default_external_action_name">إجراء خارجي</string>
 </resources>
