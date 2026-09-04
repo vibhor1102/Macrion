@@ -23,6 +23,8 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -32,6 +34,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
@@ -61,7 +64,14 @@ class CrashReportsActivity : AppCompatActivity() {
             MacrionTheme {
                 Scaffold(topBar = {
                     TopAppBar(title = { Text(stringResource(R.string.crash_reports_title)) },
-                        navigationIcon = { TextButton(onClick = ::finish) { Text(stringResource(R.string.content_desc_back)) } })
+                        navigationIcon = {
+                            IconButton(onClick = ::finish) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_back),
+                                    contentDescription = stringResource(R.string.content_desc_back),
+                                )
+                            }
+                        })
                 }) { padding ->
                     LazyColumn(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)) {
