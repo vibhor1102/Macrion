@@ -1,0 +1,26 @@
+{
+  "name": "macrion-crash-reports",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "migrate:local": "WRANGLER_SEND_METRICS=false wrangler d1 migrations apply DB --local",
+    "migrate:production": "WRANGLER_SEND_METRICS=false wrangler d1 migrations apply DB --remote",
+    "deploy:production": "npm run typecheck && npm test && WRANGLER_SEND_METRICS=false wrangler deploy",
+    "reports": "node scripts/reports.mjs",
+    "smoke:production": "node scripts/smoke-production.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.mjs",
+    "stress": "node test/stress.mjs"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260904.1",
+    "esbuild": "0.28.2",
+    "miniflare": "5.20260903.0-alpha",
+    "typescript": "7.0.2",
+    "wrangler": "4.129.0"
+  }
+}

@@ -40,5 +40,4 @@ dependencies {
 
     testImplementation(libs.kotlinx.coroutines.test)
 
-    playStoreImplementation(libs.google.firebase.crashlytics.ktx)
 }

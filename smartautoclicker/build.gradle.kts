@@ -155,12 +155,8 @@ if (project.isBuildForVariant(MacrionFlavour.F_DROID)) {
 // Apply signature convention after declaring the signingConfigs
 apply(plugin = libs.plugins.buzbuz.androidSigning.get().pluginId)
 
-// Only apply gms/firebase plugins if we are building for the play store
-if (project.isBuildForVariant(MacrionFlavour.PLAY_STORE, MacrionBuildType.RELEASE)) {
-    apply(plugin = libs.plugins.buzbuz.crashlytics.get().pluginId)
-}
-
 dependencies {
+    implementation(libs.acra.core)
     val composeBom = platform(libs.androidx.compose.bom)
 
     implementation(libs.kotlinx.coroutines.core)

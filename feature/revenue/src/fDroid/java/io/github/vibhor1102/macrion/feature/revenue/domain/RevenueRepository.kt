@@ -38,7 +38,7 @@ internal class RevenueRepository @Inject constructor(): IRevenueRepository {
     override val userBillingState: StateFlow<UserBillingState> = MutableStateFlow(UserBillingState.PURCHASED)
     override val isBillingFlowInProgress: Flow<Boolean> = flowOf(false)
 
-    override fun startUserConsentRequestUiFlowIfNeeded(activity: Activity) = Unit
+    override fun startUserConsentRequestUiFlowIfNeeded(activity: Activity, onComplete: () -> Unit) = onComplete()
     override fun startPrivacySettingUiFlow(activity: Activity) = Unit
     override fun loadAdIfNeeded(context: Context) = Unit
     override fun startPaywallUiFlow(context: Context) = Unit

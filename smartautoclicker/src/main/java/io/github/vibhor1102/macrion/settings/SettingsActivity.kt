@@ -18,6 +18,9 @@
 package io.github.vibhor1102.macrion.settings
 
 import android.os.Bundle
+import android.content.Intent
+import io.github.vibhor1102.macrion.crash.CrashReportsActivity
+import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -32,6 +35,7 @@ class SettingsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        CrashDiagnostics.record(CrashDiagnostics.Event.SETTINGS_OPENED)
         setContent {
             SettingsRoute(
                 viewModel = viewModel,
@@ -39,6 +43,7 @@ class SettingsActivity : AppCompatActivity() {
                 onShowPrivacySettings = { viewModel.showPrivacySettings(this) },
                 onShowPurchase = { viewModel.showPurchaseActivity(this) },
                 onShowTroubleshooting = { viewModel.showTroubleshootingDialog(this) },
+                onShowCrashReports = { startActivity(Intent(this, CrashReportsActivity::class.java)) },
             )
         }
     }

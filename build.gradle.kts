@@ -27,6 +27,5 @@ plugins {
     alias(libs.plugins.androidxRoom) apply false
 
     // PlayStore version only
-    alias(libs.plugins.googleCrashlytics) apply false
     alias(libs.plugins.googleGms) apply false
 }

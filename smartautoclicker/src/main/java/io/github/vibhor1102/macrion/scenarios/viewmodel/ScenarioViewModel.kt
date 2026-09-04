@@ -65,9 +65,9 @@ class ScenarioViewModel @Inject constructor(
     fun isEntireScreenCaptureForced(): Boolean =
         settingsRepository.isEntireScreenCaptureForced()
 
-    fun requestUserConsentIfNeeded(activity: Activity) {
+    fun requestUserConsentIfNeeded(activity: Activity, onComplete: () -> Unit) {
         revenueRepository.refreshPurchases()
-        revenueRepository.startUserConsentRequestUiFlowIfNeeded(activity)
+        revenueRepository.startUserConsentRequestUiFlowIfNeeded(activity, onComplete)
     }
 
     fun refreshPurchaseState() {
@@ -133,4 +133,3 @@ class ScenarioViewModel @Inject constructor(
         serviceConnection.getLocalService()?.stopScenario()
     }
 }
-

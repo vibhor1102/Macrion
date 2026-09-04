@@ -48,6 +48,7 @@ internal fun SettingsRoute(
     onShowPrivacySettings: () -> Unit,
     onShowPurchase: () -> Unit,
     onShowTroubleshooting: () -> Unit,
+    onShowCrashReports: () -> Unit,
 ) {
     val isScenarioFiltersEnabled by viewModel.isScenarioFiltersUiEnabled.collectAsStateWithLifecycle(false)
     val isScenarioSwitcherEnabled by viewModel.isScenarioSwitcherEnabled.collectAsStateWithLifecycle(false)
@@ -72,6 +73,7 @@ internal fun SettingsRoute(
                 if (shouldShowPrivacySettings) add(SettingsItem.Action(R.string.field_privacy, onShowPrivacySettings))
                 if (shouldShowPurchase) add(SettingsItem.Action(R.string.field_remove_ads, onShowPurchase))
                 add(SettingsItem.Action(R.string.field_troubleshooting, onShowTroubleshooting))
+                add(SettingsItem.Action(R.string.crash_reports_title, onShowCrashReports))
             },
             onNavigateBack = onNavigateBack,
         )
