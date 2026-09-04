@@ -24,6 +24,8 @@ import io.github.vibhor1102.macrion.core.database.entity.ActionType
 import io.github.vibhor1102.macrion.core.database.entity.CompleteActionEntity
 import io.github.vibhor1102.macrion.core.database.entity.CompleteEventEntity
 import io.github.vibhor1102.macrion.core.database.entity.CompleteScenario
+import io.github.vibhor1102.macrion.core.database.entity.ConditionEntity
+import io.github.vibhor1102.macrion.core.database.entity.ConditionType
 import io.github.vibhor1102.macrion.core.database.entity.CountersEntity
 import io.github.vibhor1102.macrion.core.database.entity.EventEntity
 import io.github.vibhor1102.macrion.core.database.entity.EventType
@@ -57,14 +59,41 @@ class SmartBackupDataSourceTests {
                 ),
                 events = listOf(CompleteEventEntity(
                     event = EventEntity(1, 1, " Event ", 1, 0, true, EventType.TRIGGER_EVENT),
-                    conditions = emptyList(),
-                    actions = listOf(CompleteActionEntity(
+                    conditions = listOf(ConditionEntity(
+                        id = 1, eventId = 1, name = " Condition ", type = ConditionType.ON_COUNTER_REACHED,
+                        priority = 0, counterName = " Score ", counterOperationCounterName = "Score",
+                        numberCounterOperationCounterName = " Score ",
+                    )),
+                    actions = listOf(
+                        CompleteActionEntity(
                         action = ActionEntity(
                             id = 1, eventId = 1, name = " Notify ", type = ActionType.NOTIFICATION,
                             notificationMessageText = "  value={ Score }  ", notificationImportance = 3,
                         ),
                         intentExtras = emptyList(), eventsToggle = emptyList(),
-                    )),
+                    ),
+                        CompleteActionEntity(
+                            action = ActionEntity(
+                                id = 2, eventId = 1, name = " Text ", type = ActionType.TEXT,
+                                textValue = "first={ Score }, unknown={Missing}, empty={}",
+                            ),
+                            intentExtras = emptyList(), eventsToggle = emptyList(),
+                        ),
+                        CompleteActionEntity(
+                            action = ActionEntity(
+                                id = 3, eventId = 1, name = " Change ", type = ActionType.CHANGE_COUNTER,
+                                counterName = " Score ", counterOperationCounterName = "Score",
+                            ),
+                            intentExtras = emptyList(), eventsToggle = emptyList(),
+                        ),
+                        CompleteActionEntity(
+                            action = ActionEntity(
+                                id = 4, eventId = 1, name = " External ", type = ActionType.EXTERNAL_ACTION,
+                                externalActionName = " External action ",
+                            ),
+                            intentExtras = emptyList(), eventsToggle = emptyList(),
+                        ),
+                    ),
                 )),
             ),
         )
@@ -76,10 +105,19 @@ class SmartBackupDataSourceTests {
 
         assertEquals("Scenario", restored.scenario.name)
         assertEquals("Event", restored.events.single().event.name)
-        assertEquals("Notify", restored.events.single().actions.single().action.name)
+        assertEquals("Notify", restored.events.single().actions.first().action.name)
         assertEquals(listOf("Score", "Score (2)"), restored.counters.map { it.name }.sorted())
-        assertEquals("  value={Score (2)}  ",
-            restored.events.single().actions.single().action.notificationMessageText)
+        val restoredEvent = restored.events.single()
+        assertEquals("Condition", restoredEvent.conditions.single().name)
+        assertEquals("Score (2)", restoredEvent.conditions.single().counterName)
+        assertEquals("Score", restoredEvent.conditions.single().counterOperationCounterName)
+        assertEquals("Score (2)", restoredEvent.conditions.single().numberCounterOperationCounterName)
+        assertEquals("  value={Score (2)}  ", restoredEvent.actions[0].action.notificationMessageText)
+        assertEquals("first={Score (2)}, unknown={Missing}, empty={}", restoredEvent.actions[1].action.textValue)
+        assertEquals("Score (2)", restoredEvent.actions[2].action.counterName)
+        assertEquals("Score", restoredEvent.actions[2].action.counterOperationCounterName)
+        assertEquals("External", restoredEvent.actions[3].action.name)
+        assertEquals("External action", restoredEvent.actions[3].action.externalActionName)
     }
 
     @Test
