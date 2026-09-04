@@ -4,13 +4,18 @@
  */
 package io.github.vibhor1102.macrion.crash
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,6 +30,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -39,7 +45,7 @@ import kotlinx.coroutines.withContext
 import org.acra.builder.ReportBuilder
 import org.acra.config.CoreConfiguration
 
-/** Private local viewer. No share intent, upload button, or durable upload approval. */
+/** Local viewer with explicit per-report copy, send, and discard actions. */
 class CrashReportsActivity : AppCompatActivity() {
     private var reports by mutableStateOf<List<CrashReportStore.Report>>(emptyList())
     private var failed by mutableStateOf(false)
@@ -71,7 +77,20 @@ class CrashReportsActivity : AppCompatActivity() {
                         items(reports, key = { it.id }) { report ->
                             Card {
                                 Column(Modifier.padding(12.dp)) {
-                                    Text(stringResource(R.string.crash_report_label, report.id.take(8)))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.crash_report_label, report.id.take(8)),
+                                            modifier = Modifier.weight(1f),
+                                        )
+                                        if (expanded == report.id) {
+                                            TextButton(onClick = { copyReport(report) }) {
+                                                Text(stringResource(R.string.crash_report_copy))
+                                            }
+                                        }
+                                    }
                                     TextButton(onClick = { expanded = if (expanded == report.id) null else report.id }) {
                                         Text(stringResource(R.string.crash_report_review))
                                     }
@@ -115,6 +134,12 @@ class CrashReportsActivity : AppCompatActivity() {
             sending = null
             reload()
         }
+    }
+
+    private fun copyReport(report: CrashReportStore.Report) {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("Macrion crash report", report.body))
+        android.widget.Toast.makeText(this, R.string.crash_report_copied, android.widget.Toast.LENGTH_SHORT).show()
     }
 
     private fun reload(action: () -> Unit = {}) {

@@ -113,4 +113,24 @@
     <string name="message_locale_plugin_background_launch">Klick\'r は画面キャプチャの確認画面を自動で開けませんでした。\n\nシナリオの起動を完了するため、代わりに通知を表示しました。\n\n一部の Android 端末では、バックグラウンドアプリにより厳しい制限があります。このガイドを確認して権限の安定性を改善してください。</string>
     <string name="field_tutorial_title">チュートリアル</string>
     <string name="field_tutorial_desc">Klick\'r の使い方を確認します</string>
+    <string name="dialog_title_copy_scenario">シナリオをコピー</string>
+    <string name="content_desc_back">戻る</string>
+    <string name="crash_reports_title">ローカルのクラッシュレポート</string>
+    <string name="crash_report_prompt_title">おっと、Macrion がクラッシュしました</string>
+    <string name="crash_report_prompt_message">Macrion で問題が発生したため、終了しました。クラッシュレポートを送信すると、Vibhor が原因を特定して修正する助けになります。できるだけ早く確認します。\n\nレポートにはクラッシュと端末に関する技術情報が含まれ、個人情報を減らすために検査されます。「レポートを送信」を選ばない限り、何も送信されません。</string>
+    <string name="crash_report_local_notice">技術レポートがこの端末に保存されました。「レポートを送信」を選ばない限り、何も送信されません。レポートにはクラッシュと端末の詳細が含まれます。個人情報の削除に努めますが、エラーの詳細に一部残る可能性があります。ローカルレポートは7日後に期限切れとなり、送信済みレポートは最長30日間保持されます。</string>
+    <string name="crash_report_send">レポートを送信</string>
+    <string name="crash_report_sending">送信中…</string>
+    <string name="crash_report_sent">クラッシュレポートを送信しました。ありがとうございます。</string>
+    <string name="crash_report_send_failed">レポートを送信できませんでした。この端末に残されています。</string>
+    <string name="crash_report_rejected">サーバーがこのレポートを受け付けませんでした。この端末に残されています。</string>
+    <string name="crash_report_review">確認</string>
+    <string name="crash_report_discard">破棄</string>
+    <string name="crash_report_copy">コピー</string>
+    <string name="crash_report_copied">レポートをコピーしました</string>
+    <string name="crash_reports_empty">ローカルのクラッシュレポートはありません。</string>
+    <string name="crash_reports_error">ローカルレポートにアクセスできませんでした。もう一度お試しください。</string>
+    <string name="crash_reports_loading">ローカルレポートを読み込み中…</string>
+    <string name="crash_reports_sample">合成レポートを作成（デバッグのみ）</string>
+    <string name="crash_report_label">レポート %1$s</string>
 </resources>

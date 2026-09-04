@@ -113,4 +113,24 @@
     <string name="message_locale_plugin_background_launch">Klick\'r 无法自动打开屏幕捕获提示。\n\n为了完成场景启动，Klick\'r 改为显示了一条通知。\n\n部分 Android 手机对后台应用限制更严格。请参考此指南以提高权限稳定性。</string>
     <string name="field_tutorial_title">教程</string>
     <string name="field_tutorial_desc">了解如何使用 Klick\'r</string>
+    <string name="dialog_title_copy_scenario">复制场景</string>
+    <string name="content_desc_back">返回</string>
+    <string name="crash_reports_title">本地崩溃报告</string>
+    <string name="crash_report_prompt_title">糟糕，Macrion 崩溃了</string>
+    <string name="crash_report_prompt_message">Macrion 遇到问题并不得不关闭。发送崩溃报告可以帮助 Vibhor 查明并修复问题，他会尽快查看。\n\n报告包含崩溃和设备的技术详情，并会经过检查以减少个人信息。除非你选择“发送报告”，否则不会发送任何内容。</string>
+    <string name="crash_report_local_notice">技术报告已保存在此设备上。除非你选择“发送报告”，否则不会发送任何内容。报告包含崩溃和设备详情。我们会尽量移除个人信息，但错误详情中仍可能残留部分信息。本地报告会在七天后过期；已发送的报告最多保留 30 天。</string>
+    <string name="crash_report_send">发送报告</string>
+    <string name="crash_report_sending">正在发送…</string>
+    <string name="crash_report_sent">崩溃报告已发送。谢谢。</string>
+    <string name="crash_report_send_failed">无法发送报告。报告仍保留在此设备上。</string>
+    <string name="crash_report_rejected">服务器无法接受此报告。报告仍保留在此设备上。</string>
+    <string name="crash_report_review">查看</string>
+    <string name="crash_report_discard">忽略</string>
+    <string name="crash_report_copy">复制</string>
+    <string name="crash_report_copied">报告已复制</string>
+    <string name="crash_reports_empty">没有本地崩溃报告。</string>
+    <string name="crash_reports_error">无法访问本地崩溃报告。请重试。</string>
+    <string name="crash_reports_loading">正在加载本地报告…</string>
+    <string name="crash_reports_sample">创建模拟报告（仅限调试）</string>
+    <string name="crash_report_label">报告 %1$s</string>
 </resources>

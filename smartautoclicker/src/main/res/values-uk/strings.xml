@@ -168,4 +168,24 @@
     <string name="message_locale_plugin_background_launch">Klick\'r не вдалося автоматично відкрити вікно запису екрана.\n\nЩоб завершити запуск сценарію, було показано сповіщення.\n\nДеякі телефони Android сильніше обмежують фонові застосунки. Перегляньте цей посібник, щоб підвищити стабільність дозволів.</string>
     <string name="field_tutorial_title">Навчання</string>
     <string name="field_tutorial_desc">Дізнайтеся, як користуватися Klick\'r</string>
+    <string name="dialog_title_copy_scenario">Копіювати сценарій</string>
+    <string name="content_desc_back">Назад</string>
+    <string name="crash_reports_title">Локальні звіти про збої</string>
+    <string name="crash_report_prompt_title">Ой, у Macrion стався збій</string>
+    <string name="crash_report_prompt_message">У Macrion виникла проблема, тому застосунок довелося закрити. Надсилання звіту допоможе Вібхору знайти й виправити причину, і він розгляне її якомога швидше.\n\nЗвіт містить технічні відомості про збій і пристрій та перевіряється, щоб зменшити обсяг особистої інформації. Нічого не надсилається, доки ви не виберете «Надіслати звіт».</string>
+    <string name="crash_report_local_notice">Технічний звіт збережено на цьому пристрої. Нічого не надсилається, доки ви не виберете «Надіслати звіт». Звіти містять відомості про збій і пристрій. Ми намагаємося видаляти особисту інформацію, але деякі дані можуть залишитися в описі помилки. Локальні звіти видаляються через сім днів, надіслані зберігаються до 30 днів.</string>
+    <string name="crash_report_send">Надіслати звіт</string>
+    <string name="crash_report_sending">Надсилання…</string>
+    <string name="crash_report_sent">Звіт про збій надіслано. Дякуємо.</string>
+    <string name="crash_report_send_failed">Не вдалося надіслати звіт. Він залишився на цьому пристрої.</string>
+    <string name="crash_report_rejected">Сервер не прийняв цей звіт. Він залишився на цьому пристрої.</string>
+    <string name="crash_report_review">Переглянути</string>
+    <string name="crash_report_discard">Відхилити</string>
+    <string name="crash_report_copy">Копіювати</string>
+    <string name="crash_report_copied">Звіт скопійовано</string>
+    <string name="crash_reports_empty">Локальних звітів про збої немає.</string>
+    <string name="crash_reports_error">Не вдалося отримати доступ до локальних звітів. Спробуйте ще раз.</string>
+    <string name="crash_reports_loading">Завантаження локальних звітів…</string>
+    <string name="crash_reports_sample">Створити тестовий звіт (лише налагодження)</string>
+    <string name="crash_report_label">Звіт %1$s</string>
 </resources>

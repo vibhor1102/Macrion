@@ -167,4 +167,24 @@
     <string name="message_locale_plugin_background_launch">O Klick\'r não pôde abrir automaticamente a janela de captura de tela.\n\nPara concluir a inicialização do cenário, uma notificação foi exibida.\n\nAlguns telefones Android restringem mais os apps em segundo plano. Consulte este guia para melhorar a estabilidade das permissões.</string>
     <string name="field_tutorial_title">Tutorial</string>
     <string name="field_tutorial_desc">Aprenda a usar o Klick\'r</string>
+    <string name="dialog_title_copy_scenario">Copiar cenário</string>
+    <string name="content_desc_back">Voltar</string>
+    <string name="crash_reports_title">Relatórios de falha locais</string>
+    <string name="crash_report_prompt_title">Ops, o Macrion falhou</string>
+    <string name="crash_report_prompt_message">O Macrion encontrou um problema e precisou fechar. Enviar o relatório de falha pode ajudar Vibhor a encontrar e corrigir o que aconteceu, e ele analisará isso assim que possível.\n\nO relatório contém detalhes técnicos da falha e do dispositivo e é verificado para reduzir informações pessoais. Nada é enviado a menos que você escolha Enviar relatório.</string>
+    <string name="crash_report_local_notice">Um relatório técnico foi salvo neste dispositivo. Nada é enviado a menos que você escolha Enviar relatório. Os relatórios incluem detalhes da falha e do dispositivo. Tentamos remover informações pessoais, mas algumas podem permanecer nos detalhes do erro. Relatórios locais expiram após sete dias; relatórios enviados são mantidos por até 30 dias.</string>
+    <string name="crash_report_send">Enviar relatório</string>
+    <string name="crash_report_sending">Enviando…</string>
+    <string name="crash_report_sent">Relatório de falha enviado. Obrigado.</string>
+    <string name="crash_report_send_failed">Não foi possível enviar o relatório. Ele permanece neste dispositivo.</string>
+    <string name="crash_report_rejected">O servidor não pôde aceitar este relatório. Ele permanece neste dispositivo.</string>
+    <string name="crash_report_review">Revisar</string>
+    <string name="crash_report_discard">Descartar</string>
+    <string name="crash_report_copy">Copiar</string>
+    <string name="crash_report_copied">Relatório copiado</string>
+    <string name="crash_reports_empty">Nenhum relatório de falha local.</string>
+    <string name="crash_reports_error">Não foi possível acessar os relatórios locais. Tente novamente.</string>
+    <string name="crash_reports_loading">Carregando relatórios locais…</string>
+    <string name="crash_reports_sample">Criar relatório sintético (somente depuração)</string>
+    <string name="crash_report_label">Relatório %1$s</string>
 </resources>

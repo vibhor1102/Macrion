@@ -168,4 +168,24 @@
     <string name="message_locale_plugin_background_launch">Klick\'r no pudo abrir automáticamente la ventana de captura de pantalla.\n\nPara terminar de iniciar el escenario, mostró una notificación.\n\nAlgunos teléfonos Android restringen más las aplicaciones en segundo plano. Consulta esta guía para mejorar la estabilidad de los permisos.</string>
     <string name="field_tutorial_title">Tutorial</string>
     <string name="field_tutorial_desc">Aprende a usar Klick\'r</string>
+    <string name="dialog_title_copy_scenario">Copiar escenario</string>
+    <string name="content_desc_back">Volver</string>
+    <string name="crash_reports_title">Informes de fallos locales</string>
+    <string name="crash_report_prompt_title">Vaya, Macrion ha fallado</string>
+    <string name="crash_report_prompt_message">Macrion encontró un problema y tuvo que cerrarse. Enviar el informe del fallo puede ayudar a Vibhor a encontrar y corregir lo ocurrido, y lo revisará lo antes posible.\n\nEl informe contiene detalles técnicos del fallo y del dispositivo, y se revisa para reducir la información personal. No se envía nada salvo que elijas Enviar informe.</string>
+    <string name="crash_report_local_notice">Se guardó un informe técnico en este dispositivo. No se envía nada salvo que elijas Enviar informe. Los informes incluyen detalles del fallo y del dispositivo. Intentamos eliminar la información personal, aunque puede quedar alguna en los detalles del error. Los informes locales caducan tras siete días; los enviados se conservan hasta 30 días.</string>
+    <string name="crash_report_send">Enviar informe</string>
+    <string name="crash_report_sending">Enviando…</string>
+    <string name="crash_report_sent">Informe del fallo enviado. Gracias.</string>
+    <string name="crash_report_send_failed">No se pudo enviar el informe. Permanece en este dispositivo.</string>
+    <string name="crash_report_rejected">El servidor no pudo aceptar este informe. Permanece en este dispositivo.</string>
+    <string name="crash_report_review">Revisar</string>
+    <string name="crash_report_discard">Descartar</string>
+    <string name="crash_report_copy">Copiar</string>
+    <string name="crash_report_copied">Informe copiado</string>
+    <string name="crash_reports_empty">No hay informes de fallos locales.</string>
+    <string name="crash_reports_error">No se pudo acceder a los informes de fallos locales. Inténtalo de nuevo.</string>
+    <string name="crash_reports_loading">Cargando informes locales…</string>
+    <string name="crash_reports_sample">Crear informe sintético (solo depuración)</string>
+    <string name="crash_report_label">Informe %1$s</string>
 </resources>
