@@ -33,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -73,7 +72,6 @@ class LoadableListViews(
         root.addView(ComposeView(context).apply {
             setContent {
                 MacrionTheme {
-                    val foreground = colorResource(R.color.overlayViewPrimary)
                     when (state) {
                         CollectionState.Loading -> Column(
                             modifier = Modifier.fillMaxWidth().heightIn(min = 435.dp),
@@ -92,13 +90,13 @@ class LoadableListViews(
                                 modifier = Modifier.padding(horizontal = 16.dp),
                                 style = MaterialTheme.typography.headlineSmall,
                                 textAlign = TextAlign.Center,
-                                color = foreground,
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             emptySecondaryText?.let { secondary ->
                                 Spacer(Modifier.height(16.dp))
                                 HorizontalDivider(
                                     Modifier.padding(horizontal = 32.dp),
-                                    color = foreground.copy(alpha = 0.3f),
+                                    color = MaterialTheme.colorScheme.outlineVariant,
                                 )
                                 Text(
                                     text = stringResource(secondary),
@@ -106,7 +104,7 @@ class LoadableListViews(
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontStyle = FontStyle.Italic,
                                     textAlign = TextAlign.Center,
-                                    color = foreground.copy(alpha = 0.7f),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }

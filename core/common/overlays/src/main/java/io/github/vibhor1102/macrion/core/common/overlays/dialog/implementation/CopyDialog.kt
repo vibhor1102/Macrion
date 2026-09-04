@@ -45,7 +45,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -119,7 +118,7 @@ private fun CopySearchTopBar(
     var query by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
-    val foreground = colorResource(UiR.color.overlayViewPrimary)
+    val foreground = MaterialTheme.colorScheme.onSurface
 
     LaunchedEffect(searching) {
         if (searching) {
@@ -161,7 +160,7 @@ private fun CopySearchTopBar(
                     if (query.isEmpty()) {
                         Text(
                             text = stringResource(searchHintRes),
-                            color = foreground.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyLarge,
                         )
                     }

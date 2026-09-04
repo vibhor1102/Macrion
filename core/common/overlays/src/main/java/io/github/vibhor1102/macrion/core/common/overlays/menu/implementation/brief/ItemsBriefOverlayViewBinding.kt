@@ -426,7 +426,7 @@ private fun PositionCard(state: ItemBriefControlsState, onClick: () -> Unit, mod
         ) {
             Text(
                 text = state.indexText,
-                color = colorResource(UiR.color.overlayViewPrimary).copy(
+                color = MaterialTheme.colorScheme.onSurface.copy(
                     alpha = if (state.canSelectPosition) 1f else 0.38f,
                 ),
                 fontSize = 17.sp,
@@ -473,7 +473,7 @@ private fun ComposeView.setEmptyContent(textState: androidx.compose.runtime.Muta
                     if (textState.intValue != 0) {
                         Text(
                             text = stringResource(textState.intValue),
-                            color = colorResource(UiR.color.overlayViewPrimary).copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodyMedium,
                             fontStyle = FontStyle.Italic,
                             textAlign = TextAlign.Center,

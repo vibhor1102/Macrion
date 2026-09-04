@@ -48,14 +48,14 @@ class FloatingActionButtonsView(context: Context) : LinearLayout(context) {
         )
         addView(
             primary,
-            LayoutParams(56.dpPx, 56.dpPx).apply { gravity = Gravity.CENTER_HORIZONTAL },
+            LayoutParams(64.dpPx, 64.dpPx).apply { gravity = Gravity.CENTER_HORIZONTAL },
         )
         secondary.visibility = View.GONE
         secondary.setContent { MacrionTheme { SmallFloatingActionButton(onClick = { onSecondary() }) {
             Icon(painterResource(secondaryIcon.intValue), secondary.contentDescription?.toString())
         } } }
-        primary.setContent { MacrionTheme { Box(Modifier.fillMaxSize()) {
-            FloatingActionButton(onClick = { onPrimary() }, modifier = Modifier.fillMaxSize()) {
+        primary.setContent { MacrionTheme { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            FloatingActionButton(onClick = { onPrimary() }, modifier = Modifier.size(56.dp)) {
                 Icon(painterResource(primaryIcon.intValue), primary.contentDescription?.toString())
             }
             badgeText.value?.let { Badge(Modifier.align(Alignment.TopEnd).size(18.dp)) { Text(it) } }

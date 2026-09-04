@@ -29,17 +29,16 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.feature.smart.debugging.R
 
 private val reportPrimaryColor
-    @Composable get() = colorResource(R.color.overlayViewPrimary)
+    @Composable get() = MaterialTheme.colorScheme.onSurface
 
 private val reportSecondaryColor
-    @Composable get() = colorResource(R.color.overlayViewPrimary).copy(alpha = 0.7f)
+    @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
 
 @Composable
 internal fun ReportSectionHeader(

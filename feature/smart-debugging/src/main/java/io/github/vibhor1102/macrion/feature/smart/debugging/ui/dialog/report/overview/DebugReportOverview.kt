@@ -26,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -87,7 +86,7 @@ private fun OverviewEntryRow(
     modifier: Modifier = Modifier,
     showChevron: Boolean = false,
 ) {
-    val primary = colorResource(R.color.overlayViewPrimary)
+    val primary = MaterialTheme.colorScheme.onSurface
     Row(modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(
             Modifier.weight(1f).padding(
@@ -97,7 +96,7 @@ private fun OverviewEntryRow(
             ),
         ) {
             Text(title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = primary)
-            Text(description, style = MaterialTheme.typography.bodyMedium, color = primary.copy(alpha = 0.7f))
+            Text(description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (showChevron) {
             Image(
