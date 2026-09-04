@@ -47,7 +47,7 @@
             android:name=".localeplugin.ui.LocalePluginConfigurationActivity"
             android:exported="true"
             android:excludeFromRecents="true"
-            android:icon="@drawable/ic_click"
+            android:icon="@drawable/ic_locale_plugin_launch"
             android:label="@string/locale_plugin_launch_name"
             android:theme="@style/AppTheme">
             <intent-filter>
@@ -60,7 +60,7 @@
             android:name=".localeplugin.ui.LocalePluginStopConfigurationActivity"
             android:exported="true"
             android:excludeFromRecents="true"
-            android:icon="@drawable/ic_stop"
+            android:icon="@drawable/ic_locale_plugin_stop"
             android:label="@string/locale_plugin_stop_name"
             android:theme="@style/AppTheme.TranslucentActivity">
             <intent-filter>
@@ -80,7 +80,7 @@
             android:name=".localeplugin.ui.ExternalActionEventConfigurationActivity"
             android:exported="true"
             android:excludeFromRecents="true"
-            android:icon="@drawable/ic_external_action"
+            android:icon="@drawable/ic_locale_plugin_external_action"
             android:label="@string/external_action_event_plugin_name"
             android:theme="@style/AppTheme">
             <intent-filter>
@@ -93,7 +93,7 @@
             android:name=".localeplugin.ui.LocalePluginRunCurrentConfigurationActivity"
             android:exported="true"
             android:excludeFromRecents="true"
-            android:icon="@drawable/ic_play_arrow"
+            android:icon="@drawable/ic_locale_plugin_run_current"
             android:label="@string/locale_plugin_run_current_name"
             android:theme="@style/AppTheme.TranslucentActivity">
             <intent-filter>
@@ -106,7 +106,7 @@
             android:name=".localeplugin.ui.ScenarioStateConditionConfigurationActivity"
             android:exported="true"
             android:excludeFromRecents="true"
-            android:icon="@drawable/ic_click"
+            android:icon="@drawable/ic_locale_plugin_status"
             android:label="@string/locale_plugin_scenario_state_name"
             android:theme="@style/AppTheme.TranslucentActivity">
             <intent-filter>
