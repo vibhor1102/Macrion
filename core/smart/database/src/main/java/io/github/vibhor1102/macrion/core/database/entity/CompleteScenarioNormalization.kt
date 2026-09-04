@@ -1,7 +1,7 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.core.database.entity
 
-private val counterReferenceRegex = Regex("\\{([^}]+)}")
+private val counterReferenceRegex = Regex("\\{([^}]+)\\}")
 
 /** Applies the same name invariant used by database migrations to imported scenarios. */
 fun CompleteScenario.normalizeUserEnteredNames(): CompleteScenario {
