@@ -1,6 +1,8 @@
-name: Refresh obfuscated APKs
+name: Nightly Obfuscation
 
 on:
+  schedule:
+    - cron: "0 0 * * *"
   release:
     types: [published]
   workflow_dispatch:
@@ -15,7 +17,7 @@ concurrency:
 jobs:
   build:
     name: Build latest stable release with randomized identity
-    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.release.prerelease }}
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || !github.event.release.prerelease }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
 
@@ -25,12 +27,26 @@ jobs:
       uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
       with:
         script: |
-          const latest = await github.rest.repos.getLatestRelease({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-          });
-          core.setOutput('tag', latest.data.tag_name);
-          core.setOutput('target', latest.data.target_commitish);
+          let tag = '';
+          let target = '';
+          if (context.eventName === 'release' && !context.payload.release.prerelease && !context.payload.release.draft) {
+            tag = context.payload.release.tag_name;
+            target = context.payload.release.target_commitish;
+          } else {
+            const releases = await github.rest.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 30,
+            });
+            const stableRelease = releases.data.find(r => !r.draft && !r.prerelease);
+            if (!stableRelease) {
+              throw new Error("No stable release found");
+            }
+            tag = stableRelease.tag_name;
+            target = stableRelease.target_commitish;
+          }
+          core.setOutput('tag', tag);
+          core.setOutput('target', target);
 
     - name: Checkout latest stable release
       uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -67,17 +83,14 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-obfuscation-ccache-
 
-    - name: Restore and validate release keystore
+    - name: Restore and validate obfuscated release keystore
       shell: bash
       run: |
-        printf '%s' "${{ secrets.RELEASE_KEYSTORE }}" > smartautoclicker.jks.asc
-        gpg --batch --yes --pinentry-mode loopback \
-          --passphrase "${{ secrets.RELEASE_KEYSTORE_PASSPHRASE }}" \
-          --decrypt --output smartautoclicker/smartautoclicker.jks smartautoclicker.jks.asc
+        echo "${{ secrets.OBFUSCATED_KEYSTORE_BASE64 }}" | base64 -d > smartautoclicker/smartautoclicker.jks
         keytool -list \
           -keystore smartautoclicker/smartautoclicker.jks \
-          -storepass "${{ secrets.SIGNING_STORE_PASSWORD }}" \
-          -alias "${{ secrets.SIGNING_KEY_ALIAS }}" \
+          -storepass "${{ secrets.OBFUSCATED_STORE_PASSWORD }}" \
+          -alias "${{ secrets.OBFUSCATED_KEY_ALIAS }}" \
           >/dev/null
 
     - name: Build obfuscated release APKs
@@ -90,9 +103,9 @@ jobs:
         ccache -M 500M
         ./gradlew --no-daemon --max-workers=6 --parallel --build-cache \
           -PrandomizeAppId=true \
-          -PsigningStorePassword="${{ secrets.SIGNING_STORE_PASSWORD }}" \
-          -PsigningKeyAlias="${{ secrets.SIGNING_KEY_ALIAS }}" \
-          -PsigningKeyPassword="${{ secrets.SIGNING_KEY_PASSWORD }}" \
+          -PsigningStorePassword="${{ secrets.OBFUSCATED_STORE_PASSWORD }}" \
+          -PsigningKeyAlias="${{ secrets.OBFUSCATED_KEY_ALIAS }}" \
+          -PsigningKeyPassword="${{ secrets.OBFUSCATED_KEY_PASSWORD }}" \
           :smartautoclicker:assembleFDroidRelease
         ccache -s
 
