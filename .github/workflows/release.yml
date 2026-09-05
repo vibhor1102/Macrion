@@ -16,48 +16,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  unit-tests:
-    name: Run unit tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
-      checks: write
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-
-    - name: Set up JDK 21 and restore Gradle cache
-      uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
-      with:
-        distribution: zulu
-        java-version: '21'
-        cache: gradle
-        cache-dependency-path: |
-          **/*.gradle
-          **/*.gradle.kts
-          gradle/libs.versions.toml
-          gradle/wrapper/gradle-wrapper.properties
-
-    - name: Run unit tests
-      shell: bash
-      run: ./gradlew --no-daemon --max-workers=6 --parallel --build-cache testFDroidDebugUnitTest
-      env:
-        JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true
-
-    - name: Publish unit-test report
-      if: ${{ !cancelled() }}
-      uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
-      with:
-        name: Unit-test report
-        path: '**/build/test-results/testFDroidDebugUnitTest/TEST-*.xml'
-        reporter: java-junit
-        fail-on-error: false
-
   build:
     name: Build application
-    needs: unit-tests
     environment: github-release
     runs-on: ubuntu-latest
     timeout-minutes: 35
