@@ -357,6 +357,10 @@ class DetectorEngine @Inject constructor(
 
             scalingManager.stopScaling()
             displayRecorder.resizeDisplay(displayConfigManager.displayConfig.sizePx)
+            // Detection bitmaps are loaded again on every start, so retaining them while paused only wastes memory.
+            // Clear after the processing job has ended and the recorder resize has dropped its reference to the last
+            // scaled frame.
+            bitmapRepository.clearCache()
 
             _state.emit(DetectorState.RECORDING)
             processingShutdownJob = null
