@@ -6,7 +6,8 @@ hero:
   text: "Documentation"
   tagline: "Clean, image-aware Android automation."
   image:
-    src: /logo.svg
+    light: /logo-light.svg
+    dark: /logo-dark.svg
     alt: Macrion Logo
   actions:
     - theme: brand

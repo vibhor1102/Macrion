@@ -12,7 +12,11 @@ export default defineConfig({
     ['meta', { name: 'og:image', content: '/macrion/logo.svg' }]
   ],
   themeConfig: {
-    logo: '/logo.svg',
+    logo: {
+      light: '/logo-light.svg',
+      dark: '/logo-dark.svg',
+      alt: 'Macrion'
+    },
     siteTitle: 'Macrion',
     nav: [
       { text: 'Documentation', link: '/docs/getting-started/introduction' },
