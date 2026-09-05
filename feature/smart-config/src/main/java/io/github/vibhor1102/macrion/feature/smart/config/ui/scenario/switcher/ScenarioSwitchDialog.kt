@@ -55,37 +55,40 @@ class ScenarioSwitchDialog(private val onScenarioSelected: suspend (Scenario) ->
             snackbarHost = { SnackbarHost(snackbar) },
             topBar = {
                 Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = ::back, enabled = !isSwitching) { Icon(painterResource(R.drawable.ic_cancel), null) }
+                    IconButton(onClick = ::back, enabled = !isSwitching) {
+                        Icon(painterResource(io.github.vibhor1102.macrion.core.ui.R.drawable.ic_back), null)
+                    }
                     Column(Modifier.weight(1f).padding(horizontal = 8.dp)) {
                         Text(context.getString(R.string.dialog_title_scenario_switcher), style = MaterialTheme.typography.titleLarge)
-                        Text(context.getString(R.string.scenario_switcher_current,
-                            state.currentScenario?.name ?: context.getString(R.string.scenario_switcher_current_unknown)),
-                            style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
             },
         ) { padding ->
             when {
                 state.isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-                state.alternatives.isEmpty() -> Box(Modifier.fillMaxSize().padding(padding).padding(24.dp), contentAlignment = Alignment.Center) {
+                state.scenarios.isEmpty() -> Box(Modifier.fillMaxSize().padding(padding).padding(24.dp), contentAlignment = Alignment.Center) {
                     Text(context.getString(R.string.scenario_switcher_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 else -> LazyVerticalGrid(GridCells.Fixed(columns), Modifier.fillMaxSize().padding(padding),
                     contentPadding = PaddingValues(bottom = 16.dp)) {
-                    items(state.alternatives, key = { it.id.toString() }) { scenario -> ScenarioCard(scenario, enabled) }
+                    items(state.scenarios, key = { it.id.toString() }) { scenario ->
+                        ScenarioCard(scenario, scenario.id == state.currentScenario?.id, enabled)
+                    }
                 }
             }
         }
     }
 
-    @Composable private fun ScenarioCard(scenario: Scenario, enabled: Boolean) {
+    @Composable private fun ScenarioCard(scenario: Scenario, isCurrent: Boolean, enabled: Boolean) {
         Card(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)
             .clickable(enabled = enabled) { onScenarioClicked(scenario) }, shape = RoundedCornerShape(10.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)) {
+            colors = CardDefaults.cardColors(containerColor = if (isCurrent) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow)) {
             Row(Modifier.fillMaxWidth().heightIn(min = 72.dp).padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(painterResource(R.drawable.ic_smart), null, Modifier.size(28.dp))
-                Text(scenario.name, Modifier.weight(1f).padding(horizontal = 12.dp), style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                    Text(scenario.name, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    if (isCurrent) Text(context.getString(R.string.scenario_switcher_current_label), style = MaterialTheme.typography.labelMedium)
+                }
                 if (isSwitching && failedScenario?.id == scenario.id) CircularProgressIndicator(Modifier.size(28.dp), strokeWidth = 3.dp)
             }
         }
@@ -96,7 +99,8 @@ class ScenarioSwitchDialog(private val onScenarioSelected: suspend (Scenario) ->
         when {
             isSwitching -> return
             !state.isPaused || state.currentScenario == null -> showError(R.string.scenario_switcher_error_paused)
-            state.alternatives.none { it.id == scenario.id } -> showError(R.string.scenario_switcher_error_unavailable)
+            state.scenarios.none { it.id == scenario.id } -> showError(R.string.scenario_switcher_error_unavailable)
+            state.currentScenario.id == scenario.id -> super@ScenarioSwitchDialog.back()
             else -> startSwitch(scenario)
         }
     }
@@ -119,7 +123,7 @@ class ScenarioSwitchDialog(private val onScenarioSelected: suspend (Scenario) ->
     }
     private fun showError(message: Int) {
         isSwitching = false
-        val retry = failedScenario?.let { failed -> viewModel.uiState.value.alternatives.firstOrNull { it.id == failed.id } }
+        val retry = failedScenario?.let { failed -> viewModel.uiState.value.scenarios.firstOrNull { it.id == failed.id } }
         lifecycleScope.launch {
             val result = snackbar.showSnackbar(context.getString(message),
                 actionLabel = retry?.let { context.getString(R.string.scenario_switcher_retry) })

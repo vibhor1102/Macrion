@@ -43,6 +43,7 @@ import io.github.vibhor1102.macrion.feature.revenue.IRevenueRepository
 import io.github.vibhor1102.macrion.feature.revenue.UserBillingState
 import io.github.vibhor1102.macrion.core.domain.IRepository
 import io.github.vibhor1102.macrion.feature.smart.config.ui.scenario.switcher.ScenarioSwitchDialog
+import io.github.vibhor1102.macrion.scenarios.ScenarioActivity
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -211,10 +212,13 @@ class LocalService(
 
         startJob = serviceScope.launch {
             val isScenarioSwitcherEnabled = settingsRepository.isScenarioSwitcherEnabled()
+            val isHomeButtonEnabled = settingsRepository.isHomeButtonEnabled()
             val mainMenu = MainMenu(
                 onStopClicked = { stopScenario() },
+                onOpenHomeClicked = ::stopScenarioAndOpenHome,
                 onSwitchScenarioClicked = ::openScenarioSwitcher,
                 isSwitchButtonInitiallyVisible = isScenarioSwitcherEnabled,
+                isHomeButtonInitiallyVisible = isHomeButtonEnabled,
             )
 
             smartProcessingRepository.apply {
@@ -236,6 +240,17 @@ class LocalService(
 
     override fun stopScenario() {
         serviceScope.launch { scenarioChangeMutex.withLock { stopAndWait() } }
+    }
+
+    private fun stopScenarioAndOpenHome() {
+        serviceScope.launch {
+            scenarioChangeMutex.withLock {
+                stopAndWait()
+                context.startActivity(Intent(context, ScenarioActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                })
+            }
+        }
     }
 
     override fun replaceDumbScenario(dumbScenario: DumbScenario) {

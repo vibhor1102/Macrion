@@ -96,7 +96,7 @@ class ScenarioSwitchViewModelTest {
         val state = viewModel.uiState.first { it.currentScenario != null }
 
         assertEquals("Current", state.currentScenario?.name)
-        assertEquals(listOf(2L, 3L), state.alternatives.map { it.id.databaseId })
+        assertEquals(listOf(2L, 3L, 1L), state.scenarios.map { it.id.databaseId })
         assertEquals(true, state.isPaused)
         assertEquals(false, state.isLoading)
     }
@@ -123,7 +123,7 @@ class ScenarioSwitchViewModelTest {
         val state = viewModel.uiState.first { !it.isLoading }
 
         assertEquals(null, state.currentScenario)
-        assertEquals(emptyList<Scenario>(), state.alternatives)
+        assertEquals(emptyList<Scenario>(), state.scenarios)
         assertEquals(false, state.isPaused)
     }
 
@@ -142,6 +142,8 @@ private class TestSettingsRepository(settings: ScenarioSortSettings) : SettingsR
     override val isFilterScenarioUiEnabledFlow: Flow<Boolean> = flowOf(false)
     override val isScenarioSwitcherEnabledFlow: Flow<Boolean> = flowOf(false)
     override suspend fun isScenarioSwitcherEnabled(): Boolean = false
+    override val isHomeButtonEnabledFlow: Flow<Boolean> = flowOf(false)
+    override suspend fun isHomeButtonEnabled(): Boolean = false
     override val isInputBlockWorkaroundEnabledFlow: Flow<Boolean> = flowOf(false)
     override val scenarioSortSettings: Flow<ScenarioSortSettings> = MutableStateFlow(settings)
 
@@ -153,6 +155,7 @@ private class TestSettingsRepository(settings: ScenarioSortSettings) : SettingsR
     override fun toggleForceEntireScreenCapture() = Unit
     override fun toggleFilterScenarioUi() = Unit
     override fun toggleScenarioSwitcher() = Unit
+    override fun toggleHomeButton() = Unit
     override fun isInputBlockWorkaroundEnabled() = false
     override fun toggleInputBlockWorkaround() = Unit
     override fun setScenarioSortType(type: ScenarioSortType) = Unit

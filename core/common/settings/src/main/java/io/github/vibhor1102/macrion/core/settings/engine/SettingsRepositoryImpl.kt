@@ -71,6 +71,13 @@ internal class SettingsRepositoryImpl @Inject constructor(
     override suspend fun isScenarioSwitcherEnabled(): Boolean =
         dataSource.isScenarioSwitcherEnabled().first()
 
+    private val _isHomeButtonEnabled: StateFlow<Boolean> = dataSource.isHomeButtonEnabled()
+        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+    override val isHomeButtonEnabledFlow: Flow<Boolean> = _isHomeButtonEnabled
+
+    override suspend fun isHomeButtonEnabled(): Boolean =
+        dataSource.isHomeButtonEnabled().first()
+
     private val _isInputBlockWorkaroundEnabledFlow: StateFlow<Boolean> = dataSource.isInputBlockWorkaroundEnabled()
         .stateIn(coroutineScope, SharingStarted.Eagerly, false)
     override val isInputBlockWorkaroundEnabledFlow: Flow<Boolean> = _isInputBlockWorkaroundEnabledFlow
@@ -88,6 +95,12 @@ internal class SettingsRepositoryImpl @Inject constructor(
     override fun toggleScenarioSwitcher() {
         coroutineScope.launch {
             dataSource.toggleScenarioSwitcher()
+        }
+    }
+
+    override fun toggleHomeButton() {
+        coroutineScope.launch {
+            dataSource.toggleHomeButton()
         }
     }
 

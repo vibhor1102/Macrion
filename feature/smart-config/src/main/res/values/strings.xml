@@ -16,6 +16,8 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <resources>
+    <string name="content_desc_open_home">Stop scenario and open Macrion home</string>
+    <string name="scenario_switcher_current_label">Current</string>
 
     <!-- Generic =================================================================================================== -->
     <!-- Those values are shared between several dialogs due to their generic meaning, such as name or formatting -->

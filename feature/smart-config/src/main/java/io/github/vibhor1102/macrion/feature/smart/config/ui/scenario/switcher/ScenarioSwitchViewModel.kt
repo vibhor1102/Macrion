@@ -28,7 +28,7 @@ import javax.inject.Inject
 
 data class ScenarioSwitchUiState(
     val currentScenario: Scenario?,
-    val alternatives: List<Scenario>,
+    val scenarios: List<Scenario>,
     val isPaused: Boolean,
     val isLoading: Boolean,
 )
@@ -46,9 +46,8 @@ class ScenarioSwitchViewModel @Inject constructor(
         settingsRepository.scenarioSortSettings,
     ) { scenarios, currentScenarioId, detectionState, sortSettings ->
         val currentScenario = scenarios.firstOrNull { it.id == currentScenarioId }
-        val alternatives = currentScenario?.let {
+        val sortedScenarios = currentScenario?.let {
             scenarios
-                .filterNot { scenario -> scenario.id == currentScenarioId }
                 .sortedByScenarioSortSettings(sortSettings) { scenario ->
                     ScenarioSortItem(
                         id = scenario.id.databaseId,
@@ -61,7 +60,7 @@ class ScenarioSwitchViewModel @Inject constructor(
 
         ScenarioSwitchUiState(
             currentScenario = currentScenario,
-            alternatives = alternatives,
+            scenarios = sortedScenarios,
             isPaused = currentScenario != null && detectionState == DetectionState.RECORDING,
             isLoading = false,
         )
@@ -70,7 +69,7 @@ class ScenarioSwitchViewModel @Inject constructor(
         started = SharingStarted.Eagerly,
         initialValue = ScenarioSwitchUiState(
             currentScenario = null,
-            alternatives = emptyList(),
+            scenarios = emptyList(),
             isPaused = false,
             isLoading = true,
         ),

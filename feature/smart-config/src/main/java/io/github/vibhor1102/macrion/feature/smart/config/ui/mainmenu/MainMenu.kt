@@ -71,8 +71,10 @@ import androidx.compose.runtime.setValue
  */
 class MainMenu(
     private val onStopClicked: () -> Unit,
+    private val onOpenHomeClicked: () -> Unit,
     private val onSwitchScenarioClicked: () -> Unit,
     private val isSwitchButtonInitiallyVisible: Boolean,
+    private val isHomeButtonInitiallyVisible: Boolean,
 ) : OverlayMenu() {
 
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.MAIN_MENU.name
@@ -143,6 +145,7 @@ class MainMenu(
         )
         viewBinding = createMainOverlayMenu(context) { MainLiveDebugPanel(liveDebugUiState) }
         viewBinding.btnSwitchScenario.isVisible = isSwitchButtonInitiallyVisible
+        viewBinding.btnOpenHome.isVisible = isHomeButtonInitiallyVisible
         playPauseButtonController.attachView(viewBinding.btnPlay)
 
         return viewBinding.root
@@ -230,6 +233,7 @@ class MainMenu(
             R.id.btn_play -> onPlayPauseClicked()
             R.id.btn_click_list -> onConfigureClicked()
             R.id.btn_switch_scenario -> onSwitchScenarioClicked()
+            R.id.btn_open_home -> onOpenHomeClicked()
             R.id.btn_stop -> onStopClicked()
         }
     }
@@ -317,12 +321,14 @@ class MainMenu(
                     viewBinding.btnStop.isVisible = true
                     viewBinding.btnClickList.isVisible = true
                     viewBinding.btnSwitchScenario.isVisible = isSwitchButtonInitiallyVisible
+                    viewBinding.btnOpenHome.isVisible = isHomeButtonInitiallyVisible
                     playPauseButtonController.toState1(false)
                 } else {
                     animateLayoutChanges {
                         setMenuItemVisibility(viewBinding.btnStop, true)
                         setMenuItemVisibility(viewBinding.btnClickList, true)
                         setMenuItemVisibility(viewBinding.btnSwitchScenario, viewModel.isSwitchButtonVisible.value)
+                        setMenuItemVisibility(viewBinding.btnOpenHome, isHomeButtonInitiallyVisible)
                         playPauseButtonController.toState1(true)
                     }
                 }
@@ -333,12 +339,14 @@ class MainMenu(
                     viewBinding.btnStop.isVisible = false
                     viewBinding.btnClickList.isVisible = false
                     viewBinding.btnSwitchScenario.isVisible = false
+                    viewBinding.btnOpenHome.isVisible = false
                     playPauseButtonController.toState2(false)
                 } else {
                     animateLayoutChanges {
                         setMenuItemVisibility(viewBinding.btnStop, false)
                         setMenuItemVisibility(viewBinding.btnClickList, false)
                         setMenuItemVisibility(viewBinding.btnSwitchScenario, false)
+                        setMenuItemVisibility(viewBinding.btnOpenHome, false)
                         playPauseButtonController.toState2(true)
                     }
                 }

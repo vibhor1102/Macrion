@@ -52,6 +52,7 @@ internal fun SettingsRoute(
 ) {
     val isScenarioFiltersEnabled by viewModel.isScenarioFiltersUiEnabled.collectAsStateWithLifecycle(false)
     val isScenarioSwitcherEnabled by viewModel.isScenarioSwitcherEnabled.collectAsStateWithLifecycle(false)
+    val isHomeButtonEnabled by viewModel.isHomeButtonEnabled.collectAsStateWithLifecycle(false)
     val isLegacyActionUiEnabled by viewModel.isLegacyActionUiEnabled.collectAsStateWithLifecycle(false)
     val isLegacyNotificationUiEnabled by viewModel.isLegacyNotificationUiEnabled.collectAsStateWithLifecycle(false)
     val isEntireScreenCaptureForced by viewModel.isEntireScreenCaptureForced.collectAsStateWithLifecycle(false)
@@ -66,6 +67,7 @@ internal fun SettingsRoute(
             items = buildList {
                 add(SettingsItem.Switch(R.string.field_show_scenario_filters_ui_title, R.string.field_show_scenario_filters_ui_desc, isScenarioFiltersEnabled, viewModel::toggleScenarioFiltersUi))
                 add(SettingsItem.Switch(R.string.field_scenario_switcher_title, R.string.field_scenario_switcher_desc, isScenarioSwitcherEnabled, viewModel::toggleScenarioSwitcher))
+                add(SettingsItem.Switch(R.string.field_home_button_title, R.string.field_home_button_desc, isHomeButtonEnabled, viewModel::toggleHomeButton))
                 add(SettingsItem.Switch(R.string.field_legacy_action_ui_title, R.string.field_legacy_action_ui_desc, isLegacyActionUiEnabled, viewModel::toggleLegacyActionUi))
                 add(SettingsItem.Switch(R.string.field_legacy_notification_ui_title, R.string.field_legacy_notification_ui_desc, isLegacyNotificationUiEnabled, viewModel::toggleLegacyNotificationUi))
                 if (shouldShowEntireScreenCapture) add(SettingsItem.Switch(R.string.field_force_entire_screen_title, R.string.field_force_entire_screen_desc, isEntireScreenCaptureForced, viewModel::toggleForceEntireScreenCapture))
