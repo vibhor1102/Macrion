@@ -19,8 +19,11 @@ package io.github.vibhor1102.macrion.settings
 
 import android.os.Bundle
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import io.github.vibhor1102.macrion.crash.CrashReportsActivity
 import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
+import io.github.vibhor1102.macrion.BuildConfig
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -44,7 +47,29 @@ class SettingsActivity : AppCompatActivity() {
                 onShowPurchase = { viewModel.showPurchaseActivity(this) },
                 onShowTroubleshooting = { viewModel.showTroubleshootingDialog(this) },
                 onShowCrashReports = { startActivity(Intent(this, CrashReportsActivity::class.java)) },
+                onOpenGithub = { openUrl(GITHUB_URL) },
+                onJoinDiscord = { openUrl(DISCORD_URL) },
+                onReportBug = { openUrl(createBugReportUrl()) },
             )
         }
+    }
+
+    private fun openUrl(url: String) {
+        startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    }
+
+    private fun createBugReportUrl(): String = Uri.parse(BUG_REPORT_URL).buildUpon()
+        .appendQueryParameter("template", BUG_REPORT_TEMPLATE)
+        .appendQueryParameter("app-version", BuildConfig.VERSION_NAME)
+        .appendQueryParameter("device-type", "${Build.MANUFACTURER} ${Build.MODEL}".trim())
+        .appendQueryParameter("android-version", "${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
+        .build()
+        .toString()
+
+    private companion object {
+        const val GITHUB_URL = "https://github.com/vibhor1102/Macrion"
+        const val DISCORD_URL = "https://discord.gg/g3RpJxtWFZ"
+        const val BUG_REPORT_URL = "https://github.com/vibhor1102/Macrion/issues/new"
+        const val BUG_REPORT_TEMPLATE = "bug_report.yml"
     }
 }
