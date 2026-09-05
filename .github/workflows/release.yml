@@ -4,49 +4,147 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: Release tag to create (for example, v0.2.0)
+        description: Release tag to create (for example, vX.Y.Z)
         required: true
         type: string
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag_name }}
+  cancel-in-progress: false
 
 jobs:
-  build:
-    name: Build application
-    environment: github-release
+  unit-tests:
+    name: Run unit tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      checks: write
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-    - name: set up JDK 21
-      uses: actions/setup-java@v4
+    - name: Set up JDK 21 and restore Gradle cache
+      uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
       with:
-        distribution: 'zulu'
+        distribution: zulu
         java-version: '21'
+        cache: gradle
+        cache-dependency-path: |
+          **/*.gradle
+          **/*.gradle.kts
+          gradle/libs.versions.toml
+          gradle/wrapper/gradle-wrapper.properties
+
+    - name: Run unit tests
+      shell: bash
+      run: ./gradlew --no-daemon --max-workers=6 --parallel --build-cache testFDroidDebugUnitTest
+      env:
+        JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true
+
+    - name: Publish unit-test report
+      if: ${{ !cancelled() }}
+      uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
+      with:
+        name: Unit-test report
+        path: '**/build/test-results/testFDroidDebugUnitTest/TEST-*.xml'
+        reporter: java-junit
+        fail-on-error: false
+
+  build:
+    name: Build application
+    needs: unit-tests
+    environment: github-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: write
+
+    steps:
+    - name: Require main branch
+      if: github.ref_name != 'main'
+      shell: bash
+      run: |
+        echo "Releases must be dispatched from main; got '${{ github.ref_name }}'." >&2
+        exit 1
+
+    - name: Checkout repository
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+    - name: Set up JDK 21 and restore Gradle cache
+      uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
+      with:
+        distribution: zulu
+        java-version: '21'
+        cache: gradle
+        cache-dependency-path: |
+          **/*.gradle
+          **/*.gradle.kts
+          gradle/libs.versions.toml
+          gradle/wrapper/gradle-wrapper.properties
 
     - name: set NDK
       shell: bash
       run: |
-        set -x
-        echo "ANDROID_NDK=$ANDROID_NDK_LATEST_HOME" >> $GITHUB_ENV
-        echo "ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> $GITHUB_ENV
-        echo "ANDROID_NDK_ROOT=$ANDROID_NDK_LATEST_HOME" >> $GITHUB_ENV
+        echo "ANDROID_NDK=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
+        echo "ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
+        echo "ANDROID_NDK_ROOT=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
 
-    - name: Restore keystore
+    - name: Validate release metadata
+      id: release
+      shell: bash
       run: |
-        echo "${{ secrets.RELEASE_KEYSTORE }}" > smartautoclicker.jks.asc
-        gpg -d --passphrase "${{ secrets.RELEASE_KEYSTORE_PASSPHRASE }}" --batch smartautoclicker.jks.asc > smartautoclicker/smartautoclicker.jks
+        tag='${{ inputs.tag_name }}'
+        version="${tag#v}"
+        test "$tag" != "$version"
+        [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]
+        source_version="$(sed -n 's/^[[:space:]]*versionName = "\([^"]*\)"$/\1/p' smartautoclicker/build.gradle.kts)"
+        test "$version" = "$source_version"
+        notes_path=".github/release-notes/v${version}.md"
+        test -f "$notes_path"
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+        echo "notes_path=$notes_path" >> "$GITHUB_OUTPUT"
+
+    - name: Install ccache
+      run: sudo apt-get install -y ccache
+
+    - name: Restore ccache
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      with:
+        path: .ccache
+        key: ${{ runner.os }}-release-ccache-${{ hashFiles('**/*.c', '**/*.cc', '**/*.cpp', '**/*.h', '**/CMakeLists.txt', 'gradle/libs.versions.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-release-ccache-
+
+    - name: Restore and validate release keystore
+      shell: bash
+      run: |
+        printf '%s' "${{ secrets.RELEASE_KEYSTORE }}" > smartautoclicker.jks.asc
+        gpg --batch --yes --pinentry-mode loopback \
+          --passphrase "${{ secrets.RELEASE_KEYSTORE_PASSPHRASE }}" \
+          --decrypt --output smartautoclicker/smartautoclicker.jks smartautoclicker.jks.asc
+        keytool -list \
+          -keystore smartautoclicker/smartautoclicker.jks \
+          -storepass "${{ secrets.SIGNING_STORE_PASSWORD }}" \
+          -alias "${{ secrets.SIGNING_KEY_ALIAS }}" \
+          >/dev/null
 
     - name: Build with Gradle
       run: |
-        ./gradlew --info \
+        ccache -M 500M
+        ./gradlew --no-daemon --max-workers=6 --parallel --build-cache \
           -PsigningStorePassword="${{ secrets.SIGNING_STORE_PASSWORD }}" \
           -PsigningKeyAlias="${{ secrets.SIGNING_KEY_ALIAS }}" \
           -PsigningKeyPassword="${{ secrets.SIGNING_KEY_PASSWORD }}" \
-          assembleFDroidRelease
+          :smartautoclicker:assembleFDroidRelease
+        ccache -s
       env:
+        USE_CCACHE: 'true'
+        CCACHE_DIR: ${{ github.workspace }}/.ccache
         JAVA_TOOL_OPTIONS: "-Djava.net.preferIPv4Stack=true"
 
     - name: Prepare Macrion APKs
@@ -58,22 +156,34 @@ jobs:
           filename="${apk##*/}"
 
           case "$filename" in
-            *-arm64-v8a-release.apk) artifact="macrion-0.2.0-arm64-v8a.apk" ;;
-            *-armeabi-v7a-release.apk) artifact="macrion-0.2.0-armeabi-v7a.apk" ;;
-            *-x86_64-release.apk) artifact="macrion-0.2.0-x86_64.apk" ;;
-            *-x86-release.apk) artifact="macrion-0.2.0-x86.apk" ;;
-            *-release.apk) artifact="macrion-0.2.0-universal.apk" ;;
+            *-arm64-v8a-release.apk) artifact="macrion-${{ steps.release.outputs.version }}-arm64-v8a.apk" ;;
+            *-armeabi-v7a-release.apk) artifact="macrion-${{ steps.release.outputs.version }}-armeabi-v7a.apk" ;;
+            *-x86_64-release.apk) artifact="macrion-${{ steps.release.outputs.version }}-x86_64.apk" ;;
+            *-x86-release.apk) artifact="macrion-${{ steps.release.outputs.version }}-x86.apk" ;;
+            *-release.apk) artifact="macrion-${{ steps.release.outputs.version }}-universal.apk" ;;
             *) echo "Unexpected APK filename: $filename" >&2; exit 1 ;;
           esac
 
           cp "$apk" "release-artifacts/$artifact"
         done
 
+    - name: Verify release APKs
+      shell: bash
+      run: |
+        AAPT2="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)/aapt2"
+        APKSIGNER="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)/apksigner"
+        for apk in release-artifacts/*.apk; do
+          "$AAPT2" dump badging "$apk" | grep -q "name='io.github.vibhor1102.macrion'"
+          "$APKSIGNER" verify --verbose --print-certs "$apk"
+        done
+
     - name: Create draft release with APKs
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
       with:
         tag_name: ${{ inputs.tag_name }}
         name: Macrion ${{ inputs.tag_name }}
-        body_path: .github/release-notes/v0.2.0.md
+        target_commitish: ${{ github.sha }}
+        body_path: ${{ steps.release.outputs.notes_path }}
         draft: true
         files: release-artifacts/*.apk
+        fail_on_unmatched_files: true
