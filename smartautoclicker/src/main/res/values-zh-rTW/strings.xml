@@ -75,6 +75,8 @@
 
     <string name="field_scenario_switcher_title">顯示情境切換器</string>
     <string name="field_scenario_switcher_desc">於浮動工具列顯示情境切換器，方便快速切換。</string>
+    <string name="field_home_button_title">顯示 Macrion 主畫面按鈕</string>
+    <string name="field_home_button_desc">在工具列新增按鈕，用於停止情境並開啟 Macrion 主畫面。</string>
 
     <string name="field_legacy_action_ui_title">經典操作介面</string>
     <string name="field_legacy_action_ui_desc">以清單方式顯示操作，適用於複雜情境。</string>

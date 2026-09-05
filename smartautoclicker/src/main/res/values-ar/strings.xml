@@ -135,6 +135,8 @@
 
     <string name="field_scenario_switcher_title">عرض مبدّل السيناريو</string>
     <string name="field_scenario_switcher_desc">يظهر مبدّل السيناريو في شريط الأدوات العائم للتبديل السريع.</string>
+    <string name="field_home_button_title">إظهار زر الصفحة الرئيسية لـ Macrion</string>
+    <string name="field_home_button_desc">يضيف زرًا إلى شريط الأدوات لإيقاف السيناريو وفتح الصفحة الرئيسية لـ Macrion.</string>
 
     <string name="field_legacy_action_ui_title">واجهة الإجراءات القديمة</string>
     <string name="field_legacy_action_ui_desc">تغيير عرض الإجراءات إلى قائمة. مفيد للسيناريوهات المعقدة.</string>

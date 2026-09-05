@@ -75,6 +75,8 @@
 
     <string name="field_scenario_switcher_title">シナリオ切り替えを表示</string>
     <string name="field_scenario_switcher_desc">フローティングツールバーにシナリオ切り替えを表示し、すばやく切り替えられるようにします。</string>
+    <string name="field_home_button_title">Macrionホームボタンを表示</string>
+    <string name="field_home_button_desc">シナリオを停止してMacrionのホーム画面を開くボタンをツールバーに追加します。</string>
 
     <string name="field_legacy_action_ui_title">従来の操作 UI</string>
     <string name="field_legacy_action_ui_desc">操作を一覧で表示します。複雑なシナリオに適しています。</string>

@@ -17,7 +17,6 @@
 -->
 <resources>
     <string name="content_desc_open_home">Stop scenario and open Macrion home</string>
-    <string name="scenario_switcher_current_label">Current</string>
 
     <!-- Generic =================================================================================================== -->
     <!-- Those values are shared between several dialogs due to their generic meaning, such as name or formatting -->
@@ -589,8 +588,6 @@
     <string name="content_desc_switch_scenario">Switch scenario</string>
     <string name="scenario_switcher_dismiss">Close scenario switcher</string>
     <string name="dialog_title_scenario_switcher">Switch scenario</string>
-    <string name="scenario_switcher_current">Current: %1$s</string>
-    <string name="scenario_switcher_current_unknown">Unknown</string>
     <string name="scenario_switcher_empty">No other Smart scenarios available</string>
     <string name="scenario_switcher_error_service">The scenario service is no longer available.</string>
     <string name="scenario_switcher_error_paused">Pause the scenario before switching.</string>

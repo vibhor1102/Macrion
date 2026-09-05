@@ -490,8 +490,7 @@
 
     <string name="scenario_switcher_dismiss">Закрыть переключатель сценариев</string>
     <string name="dialog_title_scenario_switcher">Переключить сценарий</string>
-    <string name="scenario_switcher_current">Текущий: %1$s</string>
-    <string name="scenario_switcher_current_unknown">Неизвестно</string>
+    <string name="content_desc_open_home">Остановить сценарий и открыть главный экран Macrion</string>
     <string name="scenario_switcher_empty">Нет других доступных умных сценариев</string>
     <string name="scenario_switcher_error_service">Служба сценариев больше недоступна.</string>
     <string name="scenario_switcher_error_paused">Приостановите сценарий перед переключением.</string>

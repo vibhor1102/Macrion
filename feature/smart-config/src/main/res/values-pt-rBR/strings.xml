@@ -486,8 +486,7 @@
 
     <string name="scenario_switcher_dismiss">Fechar o seletor de cenários</string>
     <string name="dialog_title_scenario_switcher">Mudar de cenário</string>
-    <string name="scenario_switcher_current">Atual: %1$s</string>
-    <string name="scenario_switcher_current_unknown">Desconhecido</string>
+    <string name="content_desc_open_home">Parar o cenário e abrir a tela inicial do Macrion</string>
     <string name="scenario_switcher_empty">Nenhum outro cenário inteligente disponível</string>
     <string name="scenario_switcher_error_service">O serviço de cenários não está mais disponível.</string>
     <string name="scenario_switcher_error_paused">Pause o cenário antes de trocar.</string>

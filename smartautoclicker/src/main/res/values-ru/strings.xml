@@ -125,6 +125,8 @@
 
     <string name="field_scenario_switcher_title">Показать переключатель сценариев</string>
     <string name="field_scenario_switcher_desc">Показывает переключатель сценариев на плавающей панели инструментов для быстрой смены.</string>
+    <string name="field_home_button_title">Показывать кнопку главного экрана Macrion</string>
+    <string name="field_home_button_desc">Добавляет на панель инструментов кнопку для остановки сценария и открытия главного экрана Macrion.</string>
 
     <string name="field_legacy_action_ui_title">Устаревший пользовательский интерфейс действий</string>
     <string name="field_legacy_action_ui_desc">Измените отображение действий списком. Полезно для сложных сценариев.</string>

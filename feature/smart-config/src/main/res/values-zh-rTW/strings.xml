@@ -466,8 +466,7 @@
 
     <string name="scenario_switcher_dismiss">關閉情境切換器</string>
     <string name="dialog_title_scenario_switcher">切換情境</string>
-    <string name="scenario_switcher_current">目前：%1$s</string>
-    <string name="scenario_switcher_current_unknown">未知</string>
+    <string name="content_desc_open_home">停止情境並開啟 Macrion 主畫面</string>
     <string name="scenario_switcher_empty">沒有其他可用的智慧情境</string>
     <string name="scenario_switcher_error_service">情境服務已無法使用。</string>
     <string name="scenario_switcher_error_paused">切換前請暫停情境。</string>

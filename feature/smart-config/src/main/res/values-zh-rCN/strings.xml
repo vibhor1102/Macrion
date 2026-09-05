@@ -466,8 +466,7 @@
 
     <string name="scenario_switcher_dismiss">关闭场景切换器</string>
     <string name="dialog_title_scenario_switcher">切换场景</string>
-    <string name="scenario_switcher_current">当前：%1$s</string>
-    <string name="scenario_switcher_current_unknown">未知</string>
+    <string name="content_desc_open_home">停止场景并打开 Macrion 主界面</string>
     <string name="scenario_switcher_empty">没有其他可用的智能场景</string>
     <string name="scenario_switcher_error_service">场景服务已不可用。</string>
     <string name="scenario_switcher_error_paused">切换前请暂停场景。</string>

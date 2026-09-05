@@ -328,8 +328,7 @@
 
     <string name="scenario_switcher_dismiss">シナリオ切り替えを閉じる</string>
     <string name="dialog_title_scenario_switcher">シナリオを切り替え</string>
-    <string name="scenario_switcher_current">現在：%1$s</string>
-    <string name="scenario_switcher_current_unknown">不明</string>
+    <string name="content_desc_open_home">シナリオを停止してMacrionのホーム画面を開く</string>
     <string name="scenario_switcher_empty">他に利用可能なスマートシナリオはありません</string>
     <string name="scenario_switcher_error_service">シナリオサービスは利用できなくなりました。</string>
     <string name="scenario_switcher_error_paused">切り替える前にシナリオを一時停止してください。</string>

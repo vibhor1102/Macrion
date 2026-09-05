@@ -128,6 +128,8 @@
 
     <string name="field_scenario_switcher_title">Mostrar selector de escenarios</string>
     <string name="field_scenario_switcher_desc">Muestra el selector de escenarios en la barra de herramientas flotante para cambios rápidos.</string>
+    <string name="field_home_button_title">Mostrar botón de inicio de Macrion</string>
+    <string name="field_home_button_desc">Añade un botón a la barra de herramientas para detener el escenario y abrir la pantalla principal de Macrion.</string>
 
     <string name="field_legacy_action_ui_title">IU de acción heredada</string>
     <string name="field_legacy_action_ui_desc">Cambie la visualización de acciones por una lista. Útil para escenarios complejos.</string>
