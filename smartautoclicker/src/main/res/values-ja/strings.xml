@@ -135,4 +135,6 @@
     <string name="crash_reports_loading">ローカルレポートを読み込み中…</string>
     <string name="crash_reports_sample">合成レポートを作成（デバッグのみ）</string>
     <string name="crash_report_label">レポート %1$s</string>
+    <string name="field_stop_confirmation_title">停止前に確認</string>
+    <string name="field_stop_confirmation_desc">オーバーレイツールバーから Macrion を停止する前に確認します。</string>
 </resources>

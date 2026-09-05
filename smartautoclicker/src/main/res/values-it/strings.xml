@@ -189,4 +189,6 @@
     <string name="crash_reports_loading">Caricamento dei rapporti locali…</string>
     <string name="crash_reports_sample">Crea rapporto sintetico (solo debug)</string>
     <string name="crash_report_label">Rapporto %1$s</string>
+    <string name="field_stop_confirmation_title">Conferma prima di interrompere</string>
+    <string name="field_stop_confirmation_desc">Chiedi conferma prima di interrompere Macrion dalla barra degli strumenti in sovrimpressione.</string>
 </resources>

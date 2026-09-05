@@ -496,4 +496,7 @@
     <string name="message_empty_external_action_list_desc">Inserisci prima un nuovo nome di azione esterna in uno scenario intelligente.</string>
     <string name="content_desc_switch_scenario">Cambia scenario</string>
     <string name="default_external_action_name">Azione esterna</string>
+    <string name="dialog_stop_confirmation_title">Interrompere Macrion?</string>
+    <string name="dialog_stop_confirmation_message">Lo scenario corrente verrà interrotto.</string>
+    <string name="dialog_stop_confirmation_stop">Interrompi</string>
 </resources>

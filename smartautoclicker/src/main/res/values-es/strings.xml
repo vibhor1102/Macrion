@@ -190,4 +190,6 @@
     <string name="crash_reports_loading">Cargando informes locales…</string>
     <string name="crash_reports_sample">Crear informe sintético (solo depuración)</string>
     <string name="crash_report_label">Informe %1$s</string>
+    <string name="field_stop_confirmation_title">Confirmar antes de detener</string>
+    <string name="field_stop_confirmation_desc">Solicita confirmación antes de detener Macrion desde la barra de herramientas superpuesta.</string>
 </resources>

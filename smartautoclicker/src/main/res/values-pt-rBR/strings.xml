@@ -189,4 +189,6 @@
     <string name="crash_reports_loading">Carregando relatórios locais…</string>
     <string name="crash_reports_sample">Criar relatório sintético (somente depuração)</string>
     <string name="crash_report_label">Relatório %1$s</string>
+    <string name="field_stop_confirmation_title">Confirmar antes de parar</string>
+    <string name="field_stop_confirmation_desc">Peça confirmação antes de parar o Macrion pela barra de ferramentas sobreposta.</string>
 </resources>

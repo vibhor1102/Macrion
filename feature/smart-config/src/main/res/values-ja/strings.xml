@@ -355,4 +355,7 @@
     <string name="message_empty_external_action_list_desc">先にスマートシナリオで新しい外部アクション名を入力してください。</string>
     <string name="content_desc_switch_scenario">シナリオを切り替え</string>
     <string name="default_external_action_name">外部アクション</string>
+    <string name="dialog_stop_confirmation_title">Macrion を停止しますか？</string>
+    <string name="dialog_stop_confirmation_message">現在のシナリオが停止します。</string>
+    <string name="dialog_stop_confirmation_stop">停止</string>
 </resources>

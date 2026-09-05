@@ -30,18 +30,23 @@ import io.github.vibhor1102.macrion.core.base.isStopScenarioKey
 import io.github.vibhor1102.macrion.core.common.navigation.TutorialNavigator
 import io.github.vibhor1102.macrion.core.common.navigation.getTutorialNavigator
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
+import io.github.vibhor1102.macrion.core.common.overlays.manager.OverlayManager.Companion.showAsOverlay
 import io.github.vibhor1102.macrion.core.common.overlays.menu.OverlayMenu
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.Tip
+import io.github.vibhor1102.macrion.core.ui.utils.getDynamicColorsContext
 import io.github.vibhor1102.macrion.core.ui.utils.AnimatedStatesImageButtonController
 import io.github.vibhor1102.macrion.feature.dumb.config.R
 import io.github.vibhor1102.macrion.feature.dumb.config.di.DumbConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.brief.DumbScenarioBriefMenu
 import io.github.vibhor1102.macrion.feature.dumb.config.ui.scenario.DumbScenarioDialog
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+
 import kotlinx.coroutines.launch
 
 class DumbMainMenu(
     private val dumbScenarioId: Identifier,
+    private val shouldConfirmStop: suspend () -> Boolean,
     private val onStopClicked: () -> Unit,
 ) : OverlayMenu(theme = R.style.AppTheme) {
 
@@ -160,9 +165,26 @@ class DumbMainMenu(
     override fun onMenuItemClicked(viewId: Int) {
         when (viewId) {
             R.id.btn_play -> onPlayPauseClicked()
-            R.id.btn_stop -> onStopClicked()
+            R.id.btn_stop -> onStopButtonClicked()
             R.id.btn_show_actions -> onShowBriefClicked()
             R.id.btn_action_list -> onDumbScenarioConfigClicked()
+        }
+    }
+
+    private fun onStopButtonClicked() {
+        lifecycleScope.launch {
+            if (!shouldConfirmStop()) {
+                onStopClicked()
+                return@launch
+            }
+
+            MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
+                .setTitle(R.string.dialog_stop_confirmation_title)
+                .setMessage(R.string.dialog_stop_confirmation_message)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.dialog_stop_confirmation_stop) { _, _ -> onStopClicked() }
+                .create()
+                .showAsOverlay()
         }
     }
 

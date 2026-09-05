@@ -135,4 +135,6 @@
     <string name="crash_reports_loading">正在加载本地报告…</string>
     <string name="crash_reports_sample">创建模拟报告（仅限调试）</string>
     <string name="crash_report_label">报告 %1$s</string>
+    <string name="field_stop_confirmation_title">停止前确认</string>
+    <string name="field_stop_confirmation_desc">从悬浮工具栏停止 Macrion 前请求确认。</string>
 </resources>

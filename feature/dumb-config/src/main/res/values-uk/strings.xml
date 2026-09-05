@@ -114,4 +114,7 @@
       - Prompt the user to add an action.
       -->
     <string name="message_empty_secondary_dumb_action_list">Вам потрібна хоча б одна дія для запуску сценарію</string>
+    <string name="dialog_stop_confirmation_title">Зупинити Macrion?</string>
+    <string name="dialog_stop_confirmation_message">Поточний сценарій буде зупинено.</string>
+    <string name="dialog_stop_confirmation_stop">Зупинити</string>
 </resources>

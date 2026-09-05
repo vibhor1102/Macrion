@@ -50,6 +50,9 @@ class SettingsViewModel @Inject constructor(
     val isHomeButtonEnabled: Flow<Boolean> =
         settingsRepository.isHomeButtonEnabledFlow
 
+    val isStopConfirmationEnabled: Flow<Boolean> =
+        settingsRepository.isStopConfirmationEnabledFlow
+
     val isLegacyActionUiEnabled: Flow<Boolean> =
         settingsRepository.isLegacyActionUiEnabledFlow
 
@@ -87,6 +90,10 @@ class SettingsViewModel @Inject constructor(
 
     fun toggleHomeButton() {
         settingsRepository.toggleHomeButton()
+    }
+
+    fun toggleStopConfirmation() {
+        settingsRepository.toggleStopConfirmation()
     }
 
     fun toggleLegacyActionUi() {

@@ -197,4 +197,6 @@
     <string name="crash_reports_loading">جارٍ تحميل التقارير المحلية…</string>
     <string name="crash_reports_sample">إنشاء تقرير اصطناعي (لتصحيح الأخطاء فقط)</string>
     <string name="crash_report_label">التقرير %1$s</string>
+    <string name="field_stop_confirmation_title">تأكيد قبل الإيقاف</string>
+    <string name="field_stop_confirmation_desc">اطلب التأكيد قبل إيقاف Macrion من شريط أدوات التراكب.</string>
 </resources>

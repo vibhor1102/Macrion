@@ -135,4 +135,6 @@
     <string name="crash_reports_loading">正在載入本機報告…</string>
     <string name="crash_reports_sample">建立模擬報告（僅限偵錯）</string>
     <string name="crash_report_label">報告 %1$s</string>
+    <string name="field_stop_confirmation_title">停止前確認</string>
+    <string name="field_stop_confirmation_desc">從浮動工具列停止 Macrion 前要求確認。</string>
 </resources>

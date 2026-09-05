@@ -517,4 +517,7 @@
     <string name="message_empty_external_action_list_desc">Сначала введите новое имя внешнего действия в умном сценарии.</string>
     <string name="content_desc_switch_scenario">Сменить сценарий</string>
     <string name="default_external_action_name">Внешнее действие</string>
+    <string name="dialog_stop_confirmation_title">Остановить Macrion?</string>
+    <string name="dialog_stop_confirmation_message">Текущий сценарий будет остановлен.</string>
+    <string name="dialog_stop_confirmation_stop">Остановить</string>
 </resources>

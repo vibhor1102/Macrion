@@ -191,4 +191,6 @@
     <string name="crash_reports_loading">Chargement des rapports locaux…</string>
     <string name="crash_reports_sample">Créer un rapport synthétique (débogage uniquement)</string>
     <string name="crash_report_label">Rapport %1$s</string>
+    <string name="field_stop_confirmation_title">Confirmer avant l’arrêt</string>
+    <string name="field_stop_confirmation_desc">Demande confirmation avant d’arrêter Macrion depuis la barre d’outils superposée.</string>
 </resources>

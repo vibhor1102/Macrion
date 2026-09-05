@@ -33,4 +33,7 @@
     <string name="content_desc_add_action">向场景添加新操作</string>
     <string name="content_desc_show_actions">显示或隐藏已创建的操作</string>
     <string name="content_desc_open_action_list">打开操作列表</string>
+    <string name="dialog_stop_confirmation_title">停止 Macrion？</string>
+    <string name="dialog_stop_confirmation_message">当前方案将停止。</string>
+    <string name="dialog_stop_confirmation_stop">停止</string>
 </resources>

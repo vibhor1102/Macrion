@@ -144,6 +144,8 @@ private class TestSettingsRepository(settings: ScenarioSortSettings) : SettingsR
     override suspend fun isScenarioSwitcherEnabled(): Boolean = false
     override val isHomeButtonEnabledFlow: Flow<Boolean> = flowOf(false)
     override suspend fun isHomeButtonEnabled(): Boolean = false
+    override val isStopConfirmationEnabledFlow: Flow<Boolean> = flowOf(false)
+    override suspend fun isStopConfirmationEnabled(): Boolean = false
     override val isInputBlockWorkaroundEnabledFlow: Flow<Boolean> = flowOf(false)
     override val scenarioSortSettings: Flow<ScenarioSortSettings> = MutableStateFlow(settings)
 
@@ -156,6 +158,7 @@ private class TestSettingsRepository(settings: ScenarioSortSettings) : SettingsR
     override fun toggleFilterScenarioUi() = Unit
     override fun toggleScenarioSwitcher() = Unit
     override fun toggleHomeButton() = Unit
+    override fun toggleStopConfirmation() = Unit
     override fun isInputBlockWorkaroundEnabled() = false
     override fun toggleInputBlockWorkaround() = Unit
     override fun setScenarioSortType(type: ScenarioSortType) = Unit

@@ -517,4 +517,7 @@
     <string name="message_empty_external_action_list_desc">اكتب أولاً اسم إجراء خارجي جديد في سيناريو ذكي.</string>
     <string name="content_desc_switch_scenario">تبديل السيناريو</string>
     <string name="default_external_action_name">إجراء خارجي</string>
+    <string name="dialog_stop_confirmation_title">إيقاف Macrion؟</string>
+    <string name="dialog_stop_confirmation_message">سيتم إيقاف السيناريو الحالي.</string>
+    <string name="dialog_stop_confirmation_stop">إيقاف</string>
 </resources>

@@ -517,4 +517,7 @@
     <string name="message_empty_external_action_list_desc">Escribe primero un nombre de acción externa nuevo en un escenario inteligente.</string>
     <string name="content_desc_switch_scenario">Cambiar escenario</string>
     <string name="default_external_action_name">Acción externa</string>
+    <string name="dialog_stop_confirmation_title">¿Detener Macrion?</string>
+    <string name="dialog_stop_confirmation_message">Se detendrá el escenario actual.</string>
+    <string name="dialog_stop_confirmation_stop">Detener</string>
 </resources>

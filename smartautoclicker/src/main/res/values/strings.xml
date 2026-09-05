@@ -129,6 +129,8 @@
     <string name="field_scenario_switcher_desc">Shows the scenario switcher in the floating toolbar for quick swaps.</string>
     <string name="field_home_button_title">Show Macrion home button</string>
     <string name="field_home_button_desc">Adds a toolbar button that stops the scenario and opens Macrion’s home screen.</string>
+    <string name="field_stop_confirmation_title">Confirm before stopping</string>
+    <string name="field_stop_confirmation_desc">Ask before stopping Macrion from the overlay toolbar.</string>
 
     <string name="field_legacy_action_ui_title">Legacy Action UI</string>
     <string name="field_legacy_action_ui_desc">Change the action display by a list. Useful for complex scenarios.</string>

@@ -75,6 +75,7 @@ class MainMenu(
     private val onSwitchScenarioClicked: () -> Unit,
     private val isSwitchButtonInitiallyVisible: Boolean,
     private val isHomeButtonInitiallyVisible: Boolean,
+    private val shouldConfirmStop: suspend () -> Boolean,
 ) : OverlayMenu() {
 
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.MAIN_MENU.name
@@ -234,7 +235,24 @@ class MainMenu(
             R.id.btn_click_list -> onConfigureClicked()
             R.id.btn_switch_scenario -> onSwitchScenarioClicked()
             R.id.btn_open_home -> onOpenHomeClicked()
-            R.id.btn_stop -> onStopClicked()
+            R.id.btn_stop -> onStopButtonClicked()
+        }
+    }
+
+    private fun onStopButtonClicked() {
+        lifecycleScope.launch {
+            if (!shouldConfirmStop()) {
+                onStopClicked()
+                return@launch
+            }
+
+            MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
+                .setTitle(R.string.dialog_stop_confirmation_title)
+                .setMessage(R.string.dialog_stop_confirmation_message)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.dialog_stop_confirmation_stop) { _, _ -> onStopClicked() }
+                .create()
+                .showAsOverlay()
         }
     }
 

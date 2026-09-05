@@ -190,4 +190,6 @@
     <string name="crash_reports_loading">Завантаження локальних звітів…</string>
     <string name="crash_reports_sample">Створити тестовий звіт (лише налагодження)</string>
     <string name="crash_report_label">Звіт %1$s</string>
+    <string name="field_stop_confirmation_title">Підтверджувати зупинку</string>
+    <string name="field_stop_confirmation_desc">Запитувати підтвердження перед зупинкою Macrion з панелі накладання.</string>
 </resources>

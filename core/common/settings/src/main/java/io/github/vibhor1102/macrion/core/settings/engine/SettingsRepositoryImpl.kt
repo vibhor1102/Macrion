@@ -78,6 +78,13 @@ internal class SettingsRepositoryImpl @Inject constructor(
     override suspend fun isHomeButtonEnabled(): Boolean =
         dataSource.isHomeButtonEnabled().first()
 
+    private val _isStopConfirmationEnabled: StateFlow<Boolean> = dataSource.isStopConfirmationEnabled()
+        .stateIn(coroutineScope, SharingStarted.Eagerly, false)
+    override val isStopConfirmationEnabledFlow: Flow<Boolean> = _isStopConfirmationEnabled
+
+    override suspend fun isStopConfirmationEnabled(): Boolean =
+        dataSource.isStopConfirmationEnabled().first()
+
     private val _isInputBlockWorkaroundEnabledFlow: StateFlow<Boolean> = dataSource.isInputBlockWorkaroundEnabled()
         .stateIn(coroutineScope, SharingStarted.Eagerly, false)
     override val isInputBlockWorkaroundEnabledFlow: Flow<Boolean> = _isInputBlockWorkaroundEnabledFlow
@@ -101,6 +108,12 @@ internal class SettingsRepositoryImpl @Inject constructor(
     override fun toggleHomeButton() {
         coroutineScope.launch {
             dataSource.toggleHomeButton()
+        }
+    }
+
+    override fun toggleStopConfirmation() {
+        coroutineScope.launch {
+            dataSource.toggleStopConfirmation()
         }
     }
 

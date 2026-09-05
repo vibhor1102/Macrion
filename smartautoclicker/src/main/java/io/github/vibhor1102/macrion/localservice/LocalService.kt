@@ -176,7 +176,11 @@ class LocalService(
 
             overlayManager.navigateTo(
                 context = context,
-                newOverlay = DumbMainMenu(dumbScenario.id) { stopScenario() },
+                newOverlay = DumbMainMenu(
+                    dumbScenarioId = dumbScenario.id,
+                    shouldConfirmStop = settingsRepository::isStopConfirmationEnabled,
+                    onStopClicked = ::stopScenario,
+                ),
             )
         }
     }
@@ -214,11 +218,12 @@ class LocalService(
             val isScenarioSwitcherEnabled = settingsRepository.isScenarioSwitcherEnabled()
             val isHomeButtonEnabled = settingsRepository.isHomeButtonEnabled()
             val mainMenu = MainMenu(
-                onStopClicked = { stopScenario() },
+                onStopClicked = ::stopScenario,
                 onOpenHomeClicked = ::stopScenarioAndOpenHome,
                 onSwitchScenarioClicked = ::openScenarioSwitcher,
                 isSwitchButtonInitiallyVisible = isScenarioSwitcherEnabled,
                 isHomeButtonInitiallyVisible = isHomeButtonEnabled,
+                shouldConfirmStop = settingsRepository::isStopConfirmationEnabled,
             )
 
             smartProcessingRepository.apply {

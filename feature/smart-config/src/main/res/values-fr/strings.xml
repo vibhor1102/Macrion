@@ -497,4 +497,7 @@
     <string name="message_empty_external_action_list_desc">Saisissez d’abord un nouveau nom d’action externe dans un scénario intelligent.</string>
     <string name="content_desc_switch_scenario">Changer de scénario</string>
     <string name="default_external_action_name">Action externe</string>
+    <string name="dialog_stop_confirmation_title">Arrêter Macrion ?</string>
+    <string name="dialog_stop_confirmation_message">Le scénario actuel sera arrêté.</string>
+    <string name="dialog_stop_confirmation_stop">Arrêter</string>
 </resources>

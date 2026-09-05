@@ -33,4 +33,7 @@
     <string name="content_desc_add_action">シナリオに新しい操作を追加します</string>
     <string name="content_desc_show_actions">作成した操作の表示／非表示を切り替えます</string>
     <string name="content_desc_open_action_list">操作一覧を開きます</string>
+    <string name="dialog_stop_confirmation_title">Macrion を停止しますか？</string>
+    <string name="dialog_stop_confirmation_message">現在のシナリオが停止します。</string>
+    <string name="dialog_stop_confirmation_stop">停止</string>
 </resources>

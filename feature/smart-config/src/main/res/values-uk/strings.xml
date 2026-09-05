@@ -520,4 +520,7 @@
     <string name="message_empty_external_action_list_desc">Спочатку введіть нову назву зовнішньої дії в розумному сценарії.</string>
     <string name="content_desc_switch_scenario">Змінити сценарій</string>
     <string name="default_external_action_name">Зовнішня дія</string>
+    <string name="dialog_stop_confirmation_title">Зупинити Macrion?</string>
+    <string name="dialog_stop_confirmation_message">Поточний сценарій буде зупинено.</string>
+    <string name="dialog_stop_confirmation_stop">Зупинити</string>
 </resources>

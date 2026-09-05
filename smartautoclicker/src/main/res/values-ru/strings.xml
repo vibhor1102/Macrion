@@ -187,4 +187,6 @@
     <string name="crash_reports_loading">Загрузка локальных отчётов…</string>
     <string name="crash_reports_sample">Создать тестовый отчёт (только отладка)</string>
     <string name="crash_report_label">Отчёт %1$s</string>
+    <string name="field_stop_confirmation_title">Подтверждать остановку</string>
+    <string name="field_stop_confirmation_desc">Запрашивать подтверждение перед остановкой Macrion с панели наложения.</string>
 </resources>
