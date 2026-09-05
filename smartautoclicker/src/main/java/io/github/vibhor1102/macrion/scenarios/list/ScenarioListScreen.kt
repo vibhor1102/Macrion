@@ -21,10 +21,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -165,6 +165,7 @@ private fun ScenarioListOverlay(
                             text = stringResource(R.string.message_empty_scenario_list),
                             modifier = Modifier.weight(1f).padding(end = 42.dp),
                             style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Center,
                         )
                     }
@@ -179,11 +180,12 @@ private fun ScenarioListOverlay(
                             text = stringResource(R.string.message_empty_scenario_list),
                             modifier = Modifier.fillMaxWidth().padding(horizontal = dimensionResource(R.dimen.margin_horizontal_default)),
                             style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Center,
                         )
                     }
                 }
-                TextButton(
+                Button(
                     onClick = onCreateClicked,
                     modifier = Modifier
                         .fillMaxWidth()
