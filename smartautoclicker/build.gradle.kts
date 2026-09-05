@@ -156,7 +156,11 @@ if (project.isBuildForVariant(MacrionFlavour.F_DROID)) {
 apply(plugin = libs.plugins.buzbuz.androidSigning.get().pluginId)
 
 dependencies {
-    implementation(libs.acra.core)
+    implementation(libs.acra.core) {
+        // AutoService is an annotation processor accidentally exposed by ACRA at runtime.
+        // It is not needed on Android and makes R8 look for unavailable javax.annotation APIs.
+        exclude(group = "com.google.auto.service", module = "auto-service")
+    }
     val composeBom = platform(libs.androidx.compose.bom)
 
     implementation(libs.kotlinx.coroutines.core)
