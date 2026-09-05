@@ -6,7 +6,7 @@ export default defineConfig({
   base: '/macrion/',
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/macrion/logo.svg' }],
-    ['meta', { name: 'theme-color', content: '#0B5F63' }],
+    ['meta', { name: 'theme-color', content: '#000000' }],
     ['meta', { name: 'og:title', content: 'Macrion - Android Automation' }],
     ['meta', { name: 'og:description', content: 'Clean, open-source, image-aware Android automation app.' }],
     ['meta', { name: 'og:image', content: '/macrion/logo.svg' }]
