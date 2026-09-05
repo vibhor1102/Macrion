@@ -124,7 +124,8 @@ class TextConditionDialog(private val listener: OnConditionConfigCompleteListene
             TutorialViewAnchor({ textAnchor = it; viewModel.monitorTextToDetectField(it) },
                 { focusRequester.requestFocus() }, Modifier.matchParentSize())
             MacrionTextField(value, onValueChange, context.getString(R.string.field_text_to_detect_label),
-                Modifier.focusRequester(focusRequester), maxLength = context.resources.getInteger(R.integer.text_condition_max_length))
+                Modifier.focusRequester(focusRequester), maxLength = context.resources.getInteger(R.integer.text_condition_max_length),
+                trimWhitespace = false)
         }
     }
 

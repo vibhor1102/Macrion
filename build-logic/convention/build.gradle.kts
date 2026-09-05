@@ -40,7 +40,6 @@ dependencies {
     compileOnly(libs.android.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
     compileOnly(libs.androidx.room.gradlePlugin)
-    compileOnly(libs.google.firebase.crashlytics.gradlePlugin)
     compileOnly(libs.google.gms.gradlePlugin)
     compileOnly(libs.google.protobuf.gradlePlugin)
 }
@@ -87,11 +86,6 @@ gradlePlugin {
         register("androidSigning") {
             id = "com.buzbuz.gradle.android.signing"
             implementationClass = "com.buzbuz.gradle.convention.plugins.AndroidSigningConvention"
-        }
-
-        register("crashlytics") {
-            id = "com.buzbuz.gradle.crashlytics"
-            implementationClass = "com.buzbuz.gradle.convention.plugins.CrashlyticsConventionPlugin"
         }
 
         register("protobuf") {

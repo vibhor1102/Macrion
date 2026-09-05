@@ -140,9 +140,12 @@ internal class RevenueRepository @Inject constructor(
     }
 
 
-    override fun startUserConsentRequestUiFlowIfNeeded(activity: Activity) {
-        if (userBillingState.value == UserBillingState.PURCHASED) return
-        userConsentDataSource.requestUserConsent(activity)
+    override fun startUserConsentRequestUiFlowIfNeeded(activity: Activity, onComplete: () -> Unit) {
+        if (userBillingState.value == UserBillingState.PURCHASED) {
+            onComplete()
+            return
+        }
+        userConsentDataSource.requestUserConsent(activity, onComplete)
     }
 
     override fun startPrivacySettingUiFlow(activity: Activity) {

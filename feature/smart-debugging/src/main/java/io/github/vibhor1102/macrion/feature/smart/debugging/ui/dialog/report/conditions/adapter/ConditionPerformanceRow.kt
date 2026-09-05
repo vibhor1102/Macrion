@@ -25,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,8 +49,8 @@ internal data class ConditionPerformanceRowState(
 
 @Composable
 internal fun ConditionPerformanceRow(state: ConditionPerformanceRowState) {
-    val primary = colorResource(R.color.overlayViewPrimary)
-    val secondary = primary.copy(alpha = 0.7f)
+    val primary = MaterialTheme.colorScheme.onSurface
+    val secondary = MaterialTheme.colorScheme.onSurfaceVariant
     ElevatedCard(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -119,7 +118,7 @@ internal fun ConditionPerformanceFooter() {
         text = stringResource(R.string.desc_condition_performance_footer),
         modifier = Modifier.fillMaxWidth().padding(start = 24.dp, top = 8.dp, end = 24.dp, bottom = 16.dp),
         style = MaterialTheme.typography.bodySmall,
-        color = colorResource(R.color.overlayViewPrimary).copy(alpha = 0.7f),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
     )
 }

@@ -71,8 +71,11 @@ import androidx.compose.runtime.setValue
  */
 class MainMenu(
     private val onStopClicked: () -> Unit,
+    private val onOpenHomeClicked: () -> Unit,
     private val onSwitchScenarioClicked: () -> Unit,
     private val isSwitchButtonInitiallyVisible: Boolean,
+    private val isHomeButtonInitiallyVisible: Boolean,
+    private val shouldConfirmStop: suspend () -> Boolean,
 ) : OverlayMenu() {
 
     override fun tutorialMonitoringTag(): String = MonitoredOverlayType.MAIN_MENU.name
@@ -143,6 +146,7 @@ class MainMenu(
         )
         viewBinding = createMainOverlayMenu(context) { MainLiveDebugPanel(liveDebugUiState) }
         viewBinding.btnSwitchScenario.isVisible = isSwitchButtonInitiallyVisible
+        viewBinding.btnOpenHome.isVisible = isHomeButtonInitiallyVisible
         playPauseButtonController.attachView(viewBinding.btnPlay)
 
         return viewBinding.root
@@ -230,7 +234,25 @@ class MainMenu(
             R.id.btn_play -> onPlayPauseClicked()
             R.id.btn_click_list -> onConfigureClicked()
             R.id.btn_switch_scenario -> onSwitchScenarioClicked()
-            R.id.btn_stop -> onStopClicked()
+            R.id.btn_open_home -> onOpenHomeClicked()
+            R.id.btn_stop -> onStopButtonClicked()
+        }
+    }
+
+    private fun onStopButtonClicked() {
+        lifecycleScope.launch {
+            if (!shouldConfirmStop()) {
+                onStopClicked()
+                return@launch
+            }
+
+            MaterialAlertDialogBuilder(context.getDynamicColorsContext(R.style.AppTheme))
+                .setTitle(R.string.dialog_stop_confirmation_title)
+                .setMessage(R.string.dialog_stop_confirmation_message)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.dialog_stop_confirmation_stop) { _, _ -> onStopClicked() }
+                .create()
+                .showAsOverlay()
         }
     }
 
@@ -317,12 +339,14 @@ class MainMenu(
                     viewBinding.btnStop.isVisible = true
                     viewBinding.btnClickList.isVisible = true
                     viewBinding.btnSwitchScenario.isVisible = isSwitchButtonInitiallyVisible
+                    viewBinding.btnOpenHome.isVisible = isHomeButtonInitiallyVisible
                     playPauseButtonController.toState1(false)
                 } else {
                     animateLayoutChanges {
                         setMenuItemVisibility(viewBinding.btnStop, true)
                         setMenuItemVisibility(viewBinding.btnClickList, true)
                         setMenuItemVisibility(viewBinding.btnSwitchScenario, viewModel.isSwitchButtonVisible.value)
+                        setMenuItemVisibility(viewBinding.btnOpenHome, isHomeButtonInitiallyVisible)
                         playPauseButtonController.toState1(true)
                     }
                 }
@@ -333,12 +357,14 @@ class MainMenu(
                     viewBinding.btnStop.isVisible = false
                     viewBinding.btnClickList.isVisible = false
                     viewBinding.btnSwitchScenario.isVisible = false
+                    viewBinding.btnOpenHome.isVisible = false
                     playPauseButtonController.toState2(false)
                 } else {
                     animateLayoutChanges {
                         setMenuItemVisibility(viewBinding.btnStop, false)
                         setMenuItemVisibility(viewBinding.btnClickList, false)
                         setMenuItemVisibility(viewBinding.btnSwitchScenario, false)
+                        setMenuItemVisibility(viewBinding.btnOpenHome, false)
                         playPauseButtonController.toState2(true)
                     }
                 }

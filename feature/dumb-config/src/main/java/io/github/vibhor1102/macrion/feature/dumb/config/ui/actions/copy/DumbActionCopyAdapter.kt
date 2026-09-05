@@ -29,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.recyclerview.widget.DiffUtil
@@ -99,7 +98,7 @@ class HeaderViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(ComposeView(
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindowOrReleasedFromPool)
             setContent {
                 MacrionTheme {
-                    val foreground = colorResource(UiR.color.overlayViewPrimary)
+                    val foreground = MaterialTheme.colorScheme.onSurface
                     title.value?.let { titleRes ->
                         Column(
                             modifier = Modifier
@@ -114,7 +113,7 @@ class HeaderViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(ComposeView(
                                 overflow = TextOverflow.Ellipsis,
                                 color = foreground,
                             )
-                            HorizontalDivider(color = foreground.copy(alpha = 0.3f))
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         }
                     }
                 }

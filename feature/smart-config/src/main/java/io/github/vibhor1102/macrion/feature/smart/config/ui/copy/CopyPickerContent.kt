@@ -6,11 +6,16 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.feature.smart.config.R
 
@@ -28,6 +33,8 @@ internal fun CopyPickerContent(
     onCopy: () -> Unit,
     items: LazyListScope.() -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     Surface(
         Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.surfaceContainerLowest,
@@ -51,6 +58,11 @@ internal fun CopyPickerContent(
                 placeholder = { Text(searchHint) },
                 leadingIcon = { Icon(painterResource(R.drawable.ic_search), null) },
                 singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                }),
             )
             when {
                 loading -> Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {

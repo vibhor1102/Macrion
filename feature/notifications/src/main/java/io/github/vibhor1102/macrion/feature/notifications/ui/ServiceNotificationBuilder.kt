@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2024 Kevin Buzeau
+ * Copyright (C) 2026 Vibhor Goel
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +19,9 @@ package io.github.vibhor1102.macrion.feature.notifications.ui
 
 import android.content.Context
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import io.github.vibhor1102.macrion.core.base.data.AppComponentsProvider
+import io.github.vibhor1102.macrion.feature.notifications.R
 import io.github.vibhor1102.macrion.feature.notifications.model.ServiceNotificationState
 
 
@@ -26,6 +29,10 @@ internal abstract class ServiceNotificationBuilder(
     context: Context,
     channelId: String,
 ) : NotificationCompat.Builder(context, channelId) {
+
+    init {
+        setColor(ContextCompat.getColor(context, R.color.macrion_icon_background))
+    }
 
     abstract fun updateState(context: Context, state: ServiceNotificationState)
 }
@@ -45,4 +52,3 @@ internal fun Context.newServiceNotificationBuilder(
         LegacyNotificationBuilder(this, channelId, initialState, appComponentsProvider)
     }
 }
-

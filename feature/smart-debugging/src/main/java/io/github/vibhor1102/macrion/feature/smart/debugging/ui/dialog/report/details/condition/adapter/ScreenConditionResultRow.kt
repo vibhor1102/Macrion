@@ -20,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,8 +40,8 @@ internal data class ScreenConditionResultState(
 @Composable
 internal fun ScreenConditionResultRow(state: ScreenConditionResultState) {
     val item = state.item
-    val primary = colorResource(R.color.overlayViewPrimary)
-    val secondary = primary.copy(alpha = 0.7f)
+    val primary = MaterialTheme.colorScheme.onSurface
+    val secondary = MaterialTheme.colorScheme.onSurfaceVariant
     ElevatedCard(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
         Row(
             Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -85,9 +84,9 @@ internal fun ScreenConditionResultRow(state: ScreenConditionResultState) {
 
 @Composable
 private fun ResultLine(text: String, valid: Boolean) {
-    val primary = colorResource(R.color.overlayViewPrimary)
+    val primary = MaterialTheme.colorScheme.onSurface
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(text, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = primary.copy(alpha = 0.7f))
+        Text(text, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Image(
             painter = painterResource(if (valid) R.drawable.ic_debug_confirm else R.drawable.ic_debug_cancel),
             contentDescription = null,

@@ -490,8 +490,7 @@
 
     <string name="scenario_switcher_dismiss">Cerrar el selector de escenarios</string>
     <string name="dialog_title_scenario_switcher">Cambiar escenario</string>
-    <string name="scenario_switcher_current">Actual: %1$s</string>
-    <string name="scenario_switcher_current_unknown">Desconocido</string>
+    <string name="content_desc_open_home">Detener el escenario y abrir la pantalla principal de Macrion</string>
     <string name="scenario_switcher_empty">No hay otros escenarios inteligentes disponibles</string>
     <string name="scenario_switcher_error_service">El servicio de escenarios ya no está disponible.</string>
     <string name="scenario_switcher_error_paused">Pausa el escenario antes de cambiar.</string>
@@ -516,4 +515,9 @@
     <string name="dialog_title_external_action_selection">Acciones externas</string>
     <string name="message_empty_external_action_list_title">No se encontró ninguna acción externa</string>
     <string name="message_empty_external_action_list_desc">Escribe primero un nombre de acción externa nuevo en un escenario inteligente.</string>
+    <string name="content_desc_switch_scenario">Cambiar escenario</string>
+    <string name="default_external_action_name">Acción externa</string>
+    <string name="dialog_stop_confirmation_title">¿Detener Macrion?</string>
+    <string name="dialog_stop_confirmation_message">Se detendrá el escenario actual.</string>
+    <string name="dialog_stop_confirmation_stop">Detener</string>
 </resources>

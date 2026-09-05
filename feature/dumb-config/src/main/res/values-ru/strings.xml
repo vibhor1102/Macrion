@@ -102,4 +102,7 @@
     <string name="content_desc_show_actions">Показать или скрыть созданные действия</string>
     <string name="content_desc_open_action_list">Открыть список действий</string>
 
+    <string name="dialog_stop_confirmation_title">Остановить Macrion?</string>
+    <string name="dialog_stop_confirmation_message">Текущий сценарий будет остановлен.</string>
+    <string name="dialog_stop_confirmation_stop">Остановить</string>
 </resources>

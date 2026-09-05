@@ -31,6 +31,8 @@ import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.core.ui.views.clickoffset.ClickOffsetView
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
@@ -106,7 +108,8 @@ class ClickOffsetDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
                 onTextChanged(filtered); parsed?.let(onValueChanged)
             }
         }, Modifier.fillMaxWidth(), label = { Text(label) }, singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+            keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Number),
+            keyboardActions = macrionDoneKeyboardActions())
     }
 
     @Composable private fun OffsetCanvas(offsetState: ClickOffsetState?, image: Any?, modifier: Modifier) {

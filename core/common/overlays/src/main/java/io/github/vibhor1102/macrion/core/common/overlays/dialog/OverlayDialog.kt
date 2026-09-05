@@ -46,9 +46,12 @@ abstract class OverlayDialog(@StyleRes theme: Int? = null) : BaseOverlay(theme, 
     /** The Android InputMethodManger, for ensuring the keyboard dismiss on dialog dismiss. */
     private lateinit var inputMethodManager: InputMethodManager
     /** Touch listener hiding the software keyboard and propagating the touch event normally. */
-    protected val hideSoftInputTouchListener = { view: View, _: MotionEvent ->
-        hideSoftInput()
-        view.performClick()
+    protected val hideSoftInputTouchListener = View.OnTouchListener { view, event ->
+        if (event.action == MotionEvent.ACTION_DOWN) {
+            view.findFocus()?.clearFocus()
+            hideSoftInput()
+        }
+        false
     }
 
     /** Tells if the dialog is visible. */

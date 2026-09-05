@@ -38,7 +38,7 @@ interface IRevenueRepository : Dumpable {
     val userBillingState: StateFlow<UserBillingState>
     val isBillingFlowInProgress: Flow<Boolean>
 
-    fun startUserConsentRequestUiFlowIfNeeded(activity: Activity)
+    fun startUserConsentRequestUiFlowIfNeeded(activity: Activity, onComplete: () -> Unit)
     fun startPrivacySettingUiFlow(activity: Activity)
 
     fun loadAdIfNeeded(context: Context)

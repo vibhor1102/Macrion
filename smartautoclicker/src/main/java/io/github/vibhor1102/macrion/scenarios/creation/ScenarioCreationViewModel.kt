@@ -41,7 +41,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.math.floor
@@ -60,9 +59,8 @@ class ScenarioCreationViewModel @Inject constructor(
         MutableStateFlow(context.getString(R.string.default_scenario_name))
     val name: Flow<String> = _name
         .map { it ?: "" }
-        .take(1)
     val nameError: Flow<Boolean> = _name
-        .map { it.isNullOrEmpty() }
+        .map { it.isNullOrBlank() }
     val showPaidLimitationWarning: Flow<Boolean> = revenueRepository.userBillingState
         .map { it != UserBillingState.PURCHASED }
 
@@ -77,7 +75,7 @@ class ScenarioCreationViewModel @Inject constructor(
             )
         }
 
-    private val canBeCreated: Flow<Boolean> = _name.map { name -> !name.isNullOrEmpty() }
+    private val canBeCreated: Flow<Boolean> = _name.map { name -> !name.isNullOrBlank() }
     private val _creationState: MutableStateFlow<CreationState> =
         MutableStateFlow(CreationState.CONFIGURING)
     val creationState: Flow<CreationState> = _creationState.combine(canBeCreated) { state, valid ->
@@ -110,7 +108,7 @@ class ScenarioCreationViewModel @Inject constructor(
         dumbRepository.addDumbScenario(
             DumbScenario(
                 id = Identifier(databaseId = DATABASE_ID_INSERTION, tempId = 0L),
-                name = _name.value!!,
+                name = _name.value!!.trim(),
                 dumbActions = emptyList(),
                 repeatCount = 1,
                 isRepeatInfinite = false,
@@ -125,7 +123,7 @@ class ScenarioCreationViewModel @Inject constructor(
         smartRepository.addScenario(
             Scenario(
                 id = Identifier(databaseId = DATABASE_ID_INSERTION, tempId = 0L),
-                name = _name.value!!,
+                name = _name.value!!.trim(),
                 detectionQuality = getDefaultDetectionQuality(),
                 randomize = false,
             )
@@ -142,7 +140,7 @@ class ScenarioCreationViewModel @Inject constructor(
         )
     }
 
-    private fun isInvalidForCreation(): Boolean = _name.value.isNullOrEmpty()
+    private fun isInvalidForCreation(): Boolean = _name.value.isNullOrBlank()
 }
 
 

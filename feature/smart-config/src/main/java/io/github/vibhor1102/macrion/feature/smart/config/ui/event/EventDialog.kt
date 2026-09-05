@@ -45,11 +45,14 @@ import io.github.vibhor1102.macrion.core.domain.model.OR
 import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.TimeUnitDropDownItem
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartActionsBriefMenu
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.brief.SmartActionsLegacyDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
+import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialViewAnchor
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showCloseWithoutSavingDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.showDeleteEventWithAssociatedActionsDialog
 import io.github.vibhor1102.macrion.feature.smart.config.ui.condition.screen.brief.ScreenConditionsBriefMenu
@@ -119,11 +122,17 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
 
     @Composable private fun ConditionsCard(ui: EventDialogUiState) {
         EventCard(context.getString(R.string.menu_item_title_conditions), colorResource(R.color.event_conditions_color)) {
-            Box { when (ui) {
+            Box {
+                TutorialViewAnchor(
+                    { conditionsAnchor = it; viewModel.monitorConditionsView(it) },
+                    ::showConditions,
+                    Modifier.matchParentSize(),
+                )
+                when (ui) {
                     is EventDialogUiState.ScreenEvent -> ScreenConditionSelector(ui.imageConditionsItems)
                     is EventDialogUiState.TriggerEvent -> ChildrenSelector(ui.triggerConditionsItems, true, ::showConditions)
                 }
-                TutorialClickAnchor({ conditionsAnchor = it; viewModel.monitorConditionsView(it) }, ::showConditions) }
+            }
             HorizontalDivider()
             Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f).padding(end = 16.dp)) { Text(context.getString(R.string.field_operator_title), style = MaterialTheme.typography.bodyLarge)
@@ -138,8 +147,14 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
 
     @Composable private fun ActionsCard(items: List<EventChildrenItem>) = EventCard(
         context.getString(R.string.menu_item_title_actions), colorResource(R.color.event_actions_color)) {
-        Box { ChildrenSelector(items, false, ::showActionsOverlay)
-            TutorialClickAnchor({ actionsAnchor = it; viewModel.monitorActionsView(it) }, { showActionsOverlay() }) }
+        Box {
+            TutorialViewAnchor(
+                { actionsAnchor = it; viewModel.monitorActionsView(it) },
+                { showActionsOverlay() },
+                Modifier.matchParentSize(),
+            )
+            ChildrenSelector(items, false, ::showActionsOverlay)
+        }
     }
 
     @Composable private fun EventCard(title: String, accent: Color, content: @Composable ColumnScope.() -> Unit) {
@@ -152,26 +167,32 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
 
     @Composable private fun ScreenConditionSelector(items: List<io.github.vibhor1102.macrion.feature.smart.config.ui.common.model.condition.UiScreenCondition>) {
         if (items.isEmpty()) { EmptySelector(true, ::showConditions); return }
-        Row(Modifier.fillMaxWidth().height(116.dp).clickable(onClick = ::showConditions), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().height(116.dp), verticalAlignment = Alignment.CenterVertically) {
             AndroidView(factory = { ctx -> RecyclerView(ctx).apply {
                 layoutManager = LinearLayoutManager(ctx, RecyclerView.HORIZONTAL, false)
                 adapter = EventImageConditionsAdapter(::showImageConditionsBriefMenu, viewModel::getConditionBitmap)
                 overScrollMode = View.OVER_SCROLL_NEVER
             } }, update = { (it.adapter as EventImageConditionsAdapter).submitList(items) }, modifier = Modifier.weight(1f).fillMaxHeight())
-            Icon(painterResource(R.drawable.ic_chevron_right), null)
+            Spacer(Modifier.width(8.dp))
+            FilledTonalIconButton(onClick = ::showConditions, modifier = Modifier.size(40.dp)) {
+                Icon(painterResource(R.drawable.ic_chevron_right), null)
+            }
         }
     }
 
     @Composable private fun ChildrenSelector(items: List<EventChildrenItem>, conditions: Boolean, onClick: () -> Unit) {
         if (items.isEmpty()) { EmptySelector(conditions, onClick); return }
-        Row(Modifier.fillMaxWidth().heightIn(min = 62.dp).clickable(onClick = onClick).padding(vertical = 8.dp),
+        Row(Modifier.fillMaxWidth().heightIn(min = 62.dp).padding(vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically) {
             AndroidView(factory = { ctx -> RecyclerView(ctx).apply {
                 layoutManager = LinearLayoutManager(ctx, RecyclerView.HORIZONTAL, false)
                 adapter = EventChildrenCardsAdapter { index -> if (conditions) showTriggerConditionsDialog() else showActionsOverlay(index) }
                 overScrollMode = View.OVER_SCROLL_NEVER
             } }, update = { (it.adapter as EventChildrenCardsAdapter).submitList(items) }, modifier = Modifier.weight(1f).height(64.dp))
-            Icon(painterResource(R.drawable.ic_chevron_right), null)
+            Spacer(Modifier.width(8.dp))
+            FilledTonalIconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
+                Icon(painterResource(R.drawable.ic_chevron_right), null)
+            }
         }
     }
 
@@ -181,7 +202,7 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
             Column(Modifier.weight(1f)) {
                 Text(context.getString(if (conditions) { if (viewModel.isConfiguringScreenEvent()) R.string.message_empty_screen_condition_list_title
                     else R.string.message_empty_trigger_condition_list_title } else R.string.message_empty_action_list_title),
-                    style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.error)
+                    style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
                 Text(context.getString(if (conditions) { if (viewModel.isConfiguringScreenEvent()) R.string.message_empty_screen_condition_list_desc
                     else R.string.message_empty_trigger_condition_list_desc } else R.string.message_empty_action_list_desc),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
@@ -233,7 +254,8 @@ class EventDialog(private val onConfigComplete: () -> Unit, private val onDelete
             OutlinedTextField(value, { text -> val filtered = text.filter(Char::isDigit); value = filtered
                 viewModel.setCooldownValue(filtered.toLongOrNull()) }, Modifier.weight(.7f), enabled = ui.cooldownEnabled,
                 label = { Text(context.getString(R.string.field_event_cooldown_edit_label)) }, singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Number),
+                keyboardActions = macrionDoneKeyboardActions())
             Spacer(Modifier.width(12.dp)); TimeUnitDropdown(ui.cooldownUnit, ui.cooldownEnabled, Modifier.weight(.3f))
         }
     }

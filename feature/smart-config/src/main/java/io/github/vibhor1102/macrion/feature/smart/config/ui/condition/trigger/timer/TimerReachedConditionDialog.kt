@@ -35,6 +35,8 @@ import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.TimeUnitDropDownIt
 import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.timeUnitDropdownItems
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.compose.TutorialClickAnchor
@@ -108,7 +110,8 @@ class TimerReachedConditionDialog(private val listener: OnConditionConfigComplet
                             }, Modifier.fillMaxWidth().focusRequester(durationFocusRequester),
                                 label = { Text(context.getString(R.string.input_field_label_timer_duration_no_unit)) },
                                 isError = durationError, singleLine = true,
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                                keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Number),
+                                keyboardActions = macrionDoneKeyboardActions())
                         }
                         Spacer(Modifier.width(16.dp))
                         TimeUnitDropdown(unit, Modifier.weight(0.3f))

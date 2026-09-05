@@ -33,4 +33,7 @@
     <string name="content_desc_add_action">向情境新增動作</string>
     <string name="content_desc_show_actions">顯示或隱藏已建立的動作</string>
     <string name="content_desc_open_action_list">開啟動作清單</string>
+    <string name="dialog_stop_confirmation_title">停止 Macrion？</string>
+    <string name="dialog_stop_confirmation_message">目前的情境將會停止。</string>
+    <string name="dialog_stop_confirmation_stop">停止</string>
 </resources>

@@ -16,4 +16,12 @@
     <string name="message_backup_import_compatibility">インポートしたシナリオの一部は画面サイズの異なる端末で作成されたため、検出や操作座標に影響する場合があります。\n\n条件のスクリーンショットを取り直し、タップ／スワイプ位置を更新してください。</string>
     <string name="message_backup_error_no_zip_app">Zip ファイルの保存／読み込みを行えるアプリが見つかりません。</string>
     <string name="content_desc_backup_state">バックアップの状態</string>
+    <string name="item_title_backup_klickr_compatible">Klick’r 互換バックアップを作成</string>
+    <string name="message_backup_import_malformed">このバックアップは破損しているか、Macrion と Klick’r のバックアップ形式が混在しています。</string>
+    <string name="message_backup_klickr_compatibility_loss">Klick’r でインポートできるように、Macrion 専用機能がこのバックアップから削除されます。</string>
+    <string name="message_backup_klickr_compatibility_analysis">選択したシナリオの Klick’r 互換性を確認中…</string>
+    <string name="message_backup_klickr_compatibility_review_without_loss">互換性の対象: %1$s\n\n削除が必要な Macrion 専用コンポーネントはありません。続行してバックアップの保存先を選択してください。</string>
+    <string name="message_backup_klickr_compatibility_review">互換性の対象: %1$s\n\n削除されるコンポーネント: %2$d\nエクスポートできないシナリオ: %3$d\n\n続行してバックアップの保存先を選択するか、ファイルを作成せずにキャンセルしてください。</string>
+    <string name="message_backup_create_klickr_compatible_completed">Klick’r 互換バックアップが完了しました。削除された Macrion 専用コンポーネント: %1$d。</string>
+    <string name="message_backup_create_klickr_compatible_completed_without_loss">Klick’r 互換バックアップが完了しました。削除が必要な Macrion 専用機能はありませんでした。</string>
 </resources>

@@ -25,6 +25,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.vibhor1102.macrion.core.common.overlays.base.viewModels
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.DropdownItem
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
@@ -158,7 +160,8 @@ class ExtraConfigDialog(
             modifier = Modifier.fillMaxWidth(),
             isError = isError,
             singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType(state.value)),
+            keyboardOptions = macrionDoneKeyboardOptions(keyboardType(state.value)),
+            keyboardActions = macrionDoneKeyboardActions(),
         )
     }
 

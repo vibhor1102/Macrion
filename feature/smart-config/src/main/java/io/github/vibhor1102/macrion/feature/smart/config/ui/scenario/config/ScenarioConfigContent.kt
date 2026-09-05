@@ -24,7 +24,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionAnimatedDescription
+import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.formatters.toNaturalDisplayString
@@ -49,6 +53,8 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surfaceContainerLowest) {
             state?.let {
+                val antiDetectionEnabledDescription = stringResource(R.string.dropdown_helper_text_anti_detection_enabled)
+                val antiDetectionDisabledDescription = stringResource(R.string.dropdown_helper_text_anti_detection_disabled)
                 Column(
                     Modifier.fillMaxSize().verticalScroll(rememberScrollState()).imePadding()
                         .padding(horizontal = 16.dp, vertical = 12.dp),
@@ -57,10 +63,10 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
                     ScenarioName(it.name)
                     SwitchCard(
                         stringResource(R.string.input_field_label_anti_detection),
-                        stringResource(if (it.randomizeChecked) R.string.dropdown_helper_text_anti_detection_enabled
-                        else R.string.dropdown_helper_text_anti_detection_disabled),
+                        if (it.randomizeChecked) antiDetectionEnabledDescription else antiDetectionDisabledDescription,
                         it.randomizeChecked,
                         viewModel::toggleRandomization,
+                        animateDescription = true,
                     )
                     SwitchCard(
                         stringResource(R.string.field_scenario_keep_screen_on_title),
@@ -83,17 +89,23 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
         var focused by remember { mutableStateOf(false) }
         LaunchedEffect(repositoryName, focused) { if (!focused) name = repositoryName }
         val maxLength = context.resources.getInteger(R.integer.name_max_length)
-        OutlinedTextField(
-            name,
-            { value -> if (value.length <= maxLength) { name = value; viewModel.setScenarioName(value) } },
-            Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused },
-            label = { Text(stringResource(R.string.input_field_label_scenario_name)) },
-            singleLine = true,
+        MacrionTextField(
+            value = name,
+            onValueChange = { value -> name = value; viewModel.setScenarioName(value) },
+            modifier = Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused },
+            label = stringResource(R.string.input_field_label_scenario_name),
+            maxLength = maxLength,
         )
     }
 
     @Composable
-    private fun SwitchCard(title: String, description: String, checked: Boolean, onToggle: () -> Unit) {
+    private fun SwitchCard(
+        title: String,
+        description: String,
+        checked: Boolean,
+        onToggle: () -> Unit,
+        animateDescription: Boolean = false,
+    ) {
         ElevatedCard(Modifier.fillMaxWidth()) {
             Row(
                 Modifier.fillMaxWidth().clickable(onClick = onToggle).padding(horizontal = 16.dp, vertical = 8.dp),
@@ -101,7 +113,9 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
             ) {
                 Column(Modifier.weight(1f).padding(end = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(title, style = MaterialTheme.typography.bodyLarge)
-                    Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (animateDescription) MacrionAnimatedDescription(description)
+                    else Text(description, style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 VerticalDivider(Modifier.height(48.dp))
                 Spacer(Modifier.width(12.dp))
@@ -148,7 +162,8 @@ class ScenarioConfigContent(appContext: Context) : NavBarDialogContent(appContex
                         enabled = state.isEnabled,
                         label = { Text(stringResource(R.string.field_scenario_fps_rate_label)) },
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Decimal),
+                        keyboardActions = macrionDoneKeyboardActions(),
                     )
                     Text("/", Modifier.padding(horizontal = 8.dp), style = MaterialTheme.typography.headlineMedium)
                     ExposedDropdownMenuBox(menuExpanded, { if (state.isEnabled) menuExpanded = !menuExpanded }, Modifier.weight(.8f)) {

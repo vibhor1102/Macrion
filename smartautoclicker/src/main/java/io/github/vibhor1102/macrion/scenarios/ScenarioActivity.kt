@@ -28,6 +28,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentContainerView
 import androidx.fragment.app.commitNow
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.withResumed
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import io.github.vibhor1102.macrion.crash.CrashReportPrompt
+import io.github.vibhor1102.macrion.crash.crashReportStore
+import io.github.vibhor1102.macrion.core.base.crash.CrashDiagnostics
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Job
 
 import io.github.vibhor1102.macrion.R
 import io.github.vibhor1102.macrion.scenarios.list.ScenarioListFragment
@@ -65,10 +77,21 @@ class ScenarioActivity : AppCompatActivity(), ScenarioListFragment.Listener {
 
     /** Scenario clicked by the user. */
     private var requestedItem: ScenarioListUiState.Item.ScenarioItem? = null
+    private var startupHelpChecked = false
+    private var startupCheckJob: Job? = null
+    private var checkingCrashReport = false
+    private var crashPromptOffered = false
+    private val startupConsentFinished = CompletableDeferred<Unit>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        CrashDiagnostics.record(CrashDiagnostics.Event.HOME_OPENED)
+        supportFragmentManager.registerFragmentLifecycleCallbacks(object : FragmentManager.FragmentLifecycleCallbacks() {
+            override fun onFragmentDetached(fm: FragmentManager, f: Fragment) {
+                if (f is DialogFragment) window.decorView.post { offerLocalCrashReport() }
+            }
+        }, false)
         setContentView(
             FragmentContainerView(this).apply {
                 id = R.id.fragment
@@ -85,7 +108,7 @@ class ScenarioActivity : AppCompatActivity(), ScenarioListFragment.Listener {
         }
 
         scenarioViewModel.stopScenario()
-        scenarioViewModel.requestUserConsentIfNeeded(this)
+        scenarioViewModel.requestUserConsentIfNeeded(this) { startupConsentFinished.complete(Unit) }
 
         mediaProjectionRequest.registerForActivityResult(this)
 
@@ -102,10 +125,43 @@ class ScenarioActivity : AppCompatActivity(), ScenarioListFragment.Listener {
 
     override fun onPostResume() {
         super.onPostResume()
-        lifecycleScope.launch {
-            if (localePluginLaunchFailureStore.consumePendingDirectLaunchFailure()) {
-                showLocalePluginBackgroundLaunchHelp()
+        if (startupCheckJob?.isActive == true) return
+        startupHelpChecked = false
+        startupCheckJob = lifecycleScope.launch {
+            startupConsentFinished.await()
+            val needsHelp = localePluginLaunchFailureStore.consumePendingDirectLaunchFailure()
+            lifecycle.withResumed {
+                if (needsHelp) showLocalePluginBackgroundLaunchHelp()
+                startupHelpChecked = true
+                if (!needsHelp) offerLocalCrashReport()
             }
+        }
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) offerLocalCrashReport()
+    }
+
+    private fun canOfferCrashReport() = startupHelpChecked && !crashPromptOffered &&
+        !isFinishing && requestedItem == null && hasWindowFocus() &&
+        lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) &&
+        !supportFragmentManager.isStateSaved &&
+        supportFragmentManager.fragments.none { it is DialogFragment }
+
+    private fun offerLocalCrashReport() {
+        if (checkingCrashReport || !canOfferCrashReport()) return
+        checkingCrashReport = true
+        lifecycleScope.launch {
+            try {
+                val store = applicationContext.crashReportStore()
+                val report = withContext(Dispatchers.IO) { runCatching { store.pending().firstOrNull { !it.prompted } }.getOrNull() }
+                if (report != null && canOfferCrashReport()) {
+                    crashPromptOffered = true
+                    CrashReportPrompt.newInstance(report.id).showNow(supportFragmentManager, CrashReportPrompt.TAG)
+                    withContext(Dispatchers.IO) { runCatching { store.markPrompted(report.id) } }
+                }
+            } finally { checkingCrashReport = false }
         }
     }
 

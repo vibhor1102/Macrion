@@ -75,6 +75,8 @@
 
     <string name="field_scenario_switcher_title">顯示情境切換器</string>
     <string name="field_scenario_switcher_desc">於浮動工具列顯示情境切換器，方便快速切換。</string>
+    <string name="field_home_button_title">顯示 Macrion 主畫面按鈕</string>
+    <string name="field_home_button_desc">在工具列新增按鈕，用於停止情境並開啟 Macrion 主畫面。</string>
 
     <string name="field_legacy_action_ui_title">經典操作介面</string>
     <string name="field_legacy_action_ui_desc">以清單方式顯示操作，適用於複雜情境。</string>
@@ -113,4 +115,26 @@
     <string name="message_locale_plugin_background_launch">Klick\'r 無法自動開啟螢幕擷取提示。\n\n為了完成情境啟動，Klick\'r 改為顯示通知。\n\n部分 Android 手機對背景應用程式限制更嚴格。請參考此指南以提高權限穩定性。</string>
     <string name="field_tutorial_title">教學</string>
     <string name="field_tutorial_desc">瞭解如何使用 Klick\'r</string>
+    <string name="dialog_title_copy_scenario">複製情境</string>
+    <string name="content_desc_back">返回</string>
+    <string name="crash_reports_title">本機當機報告</string>
+    <string name="crash_report_prompt_title">糟糕，Macrion 當機了</string>
+    <string name="crash_report_prompt_message">Macrion 遇到問題而必須關閉。傳送當機報告可以協助 Vibhor 找出並修正問題，他會儘快查看。\n\n報告包含當機與裝置的技術詳細資料，並會經過檢查以減少個人資訊。除非你選擇「傳送報告」，否則不會傳送任何內容。</string>
+    <string name="crash_report_local_notice">技術報告已儲存在此裝置上。除非你選擇「傳送報告」，否則不會傳送任何內容。報告包含當機與裝置詳細資料。我們會盡量移除個人資訊，但錯誤詳細資料中仍可能留有部分資訊。本機報告會在七天後到期；已傳送的報告最多保留 30 天。</string>
+    <string name="crash_report_send">傳送報告</string>
+    <string name="crash_report_sending">正在傳送…</string>
+    <string name="crash_report_sent">當機報告已傳送。謝謝。</string>
+    <string name="crash_report_send_failed">無法傳送報告。報告仍保留在此裝置上。</string>
+    <string name="crash_report_rejected">伺服器無法接受此報告。報告仍保留在此裝置上。</string>
+    <string name="crash_report_review">查看</string>
+    <string name="crash_report_discard">略過</string>
+    <string name="crash_report_copy">複製</string>
+    <string name="crash_report_copied">報告已複製</string>
+    <string name="crash_reports_empty">沒有本機當機報告。</string>
+    <string name="crash_reports_error">無法存取本機當機報告。請再試一次。</string>
+    <string name="crash_reports_loading">正在載入本機報告…</string>
+    <string name="crash_reports_sample">建立模擬報告（僅限偵錯）</string>
+    <string name="crash_report_label">報告 %1$s</string>
+    <string name="field_stop_confirmation_title">停止前確認</string>
+    <string name="field_stop_confirmation_desc">從浮動工具列停止 Macrion 前要求確認。</string>
 </resources>

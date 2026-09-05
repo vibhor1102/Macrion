@@ -125,6 +125,8 @@
 
     <string name="field_scenario_switcher_title">Показать переключатель сценариев</string>
     <string name="field_scenario_switcher_desc">Показывает переключатель сценариев на плавающей панели инструментов для быстрой смены.</string>
+    <string name="field_home_button_title">Показывать кнопку главного экрана Macrion</string>
+    <string name="field_home_button_desc">Добавляет на панель инструментов кнопку для остановки сценария и открытия главного экрана Macrion.</string>
 
     <string name="field_legacy_action_ui_title">Устаревший пользовательский интерфейс действий</string>
     <string name="field_legacy_action_ui_desc">Измените отображение действий списком. Полезно для сложных сценариев.</string>
@@ -165,4 +167,26 @@
     <string name="message_locale_plugin_background_launch">Klick\'r не удалось автоматически открыть окно записи экрана.\n\nЧтобы завершить запуск сценария, было показано уведомление.\n\nНекоторые телефоны Android сильнее ограничивают фоновые приложения. Обратитесь к этому руководству, чтобы повысить стабильность разрешений.</string>
     <string name="field_tutorial_title">Обучение</string>
     <string name="field_tutorial_desc">Узнайте, как пользоваться Klick\'r</string>
+    <string name="dialog_title_copy_scenario">Копировать сценарий</string>
+    <string name="content_desc_back">Назад</string>
+    <string name="crash_reports_title">Локальные отчёты о сбоях</string>
+    <string name="crash_report_prompt_title">Ой, в Macrion произошёл сбой</string>
+    <string name="crash_report_prompt_message">В Macrion возникла проблема, и приложение пришлось закрыть. Отправка отчёта поможет Вибхору найти и исправить причину, и он изучит её как можно скорее.\n\nОтчёт содержит технические сведения о сбое и устройстве и проверяется, чтобы сократить объём личной информации. Без выбора «Отправить отчёт» ничего не отправляется.</string>
+    <string name="crash_report_local_notice">Технический отчёт сохранён на этом устройстве. Без выбора «Отправить отчёт» ничего не отправляется. Отчёты содержат сведения о сбое и устройстве. Мы стараемся удалять личную информацию, но часть данных может остаться в описании ошибки. Локальные отчёты удаляются через семь дней, отправленные хранятся до 30 дней.</string>
+    <string name="crash_report_send">Отправить отчёт</string>
+    <string name="crash_report_sending">Отправка…</string>
+    <string name="crash_report_sent">Отчёт о сбое отправлен. Спасибо.</string>
+    <string name="crash_report_send_failed">Не удалось отправить отчёт. Он остался на этом устройстве.</string>
+    <string name="crash_report_rejected">Сервер не принял этот отчёт. Он остался на этом устройстве.</string>
+    <string name="crash_report_review">Просмотреть</string>
+    <string name="crash_report_discard">Отклонить</string>
+    <string name="crash_report_copy">Копировать</string>
+    <string name="crash_report_copied">Отчёт скопирован</string>
+    <string name="crash_reports_empty">Локальных отчётов о сбоях нет.</string>
+    <string name="crash_reports_error">Не удалось получить доступ к локальным отчётам. Повторите попытку.</string>
+    <string name="crash_reports_loading">Загрузка локальных отчётов…</string>
+    <string name="crash_reports_sample">Создать тестовый отчёт (только отладка)</string>
+    <string name="crash_report_label">Отчёт %1$s</string>
+    <string name="field_stop_confirmation_title">Подтверждать остановку</string>
+    <string name="field_stop_confirmation_desc">Запрашивать подтверждение перед остановкой Macrion с панели наложения.</string>
 </resources>

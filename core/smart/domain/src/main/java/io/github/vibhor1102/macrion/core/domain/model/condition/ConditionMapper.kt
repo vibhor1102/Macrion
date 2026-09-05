@@ -40,7 +40,7 @@ internal fun Condition.toEntity() = when (this) {
 private fun ScreenCondition.Color.toColorConditionEntity() = ConditionEntity(
     id = id.databaseId,
     eventId = eventId.databaseId,
-    name = name,
+    name = name.trim(),
     priority = priority,
     type = ConditionType.ON_COLOR_DETECTED,
     threshold = threshold,
@@ -56,7 +56,7 @@ private fun ScreenCondition.Color.toColorConditionEntity() = ConditionEntity(
 private fun ScreenCondition.Image.toImageConditionEntity() = ConditionEntity(
     id = id.databaseId,
     eventId = eventId.databaseId,
-    name = name,
+    name = name.trim(),
     priority = priority,
     type = ConditionType.ON_IMAGE_DETECTED,
     threshold = threshold,
@@ -79,7 +79,7 @@ private fun ScreenCondition.Number.toNumberConditionEntity(): ConditionEntity {
     return ConditionEntity(
         id = id.databaseId,
         eventId = eventId.databaseId,
-        name = name,
+        name = name.trim(),
         priority = priority,
         type = ConditionType.ON_NUMBER_DETECTED,
         threshold = threshold,
@@ -99,7 +99,7 @@ private fun ScreenCondition.Number.toNumberConditionEntity(): ConditionEntity {
 private fun ScreenCondition.Text.toTextConditionEntity() = ConditionEntity(
     id = id.databaseId,
     eventId = eventId.databaseId,
-    name = name,
+    name = name.trim(),
     priority = priority,
     type = ConditionType.ON_TEXT_DETECTED,
     threshold = threshold,
@@ -116,7 +116,7 @@ private fun TriggerCondition.OnBroadcastReceived.toBroadcastReceivedEntity(): Co
     ConditionEntity(
         id = id.databaseId,
         eventId = eventId.databaseId,
-        name = name,
+        name = name.trim(),
         type = ConditionType.ON_BROADCAST_RECEIVED,
         broadcastAction = intentAction,
         priority = 0,
@@ -128,7 +128,7 @@ private fun TriggerCondition.OnCounterCountReached.toCounterReachedEntity(): Con
     return ConditionEntity(
         id = id.databaseId,
         eventId = eventId.databaseId,
-        name = name,
+        name = name.trim(),
         type = ConditionType.ON_COUNTER_REACHED,
         counterName = counterName,
         counterComparisonOperation = comparisonOperation.toEntity(),
@@ -143,7 +143,7 @@ private fun TriggerCondition.OnTimerReached.toTimerReachedEntity(): ConditionEnt
     ConditionEntity(
         id = id.databaseId,
         eventId = eventId.databaseId,
-        name = name,
+        name = name.trim(),
         type = ConditionType.ON_TIMER_REACHED,
         timerValueMs = durationMs,
         restartWhenReached = restartWhenReached,

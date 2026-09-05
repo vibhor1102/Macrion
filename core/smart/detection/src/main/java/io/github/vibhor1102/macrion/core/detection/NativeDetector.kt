@@ -20,7 +20,8 @@ import android.graphics.Bitmap
 import android.graphics.Point
 import android.graphics.Rect
 import androidx.annotation.Keep
-import io.github.vibhor1102.macrion.core.base.extensions.throwWithKeys
+import io.github.vibhor1102.macrion.core.base.crash.DetectionCrashContext
+import io.github.vibhor1102.macrion.core.base.crash.throwWithContext
 
 /**
  * Native implementation of the image detector.
@@ -98,16 +99,10 @@ class NativeDetector private constructor() : ImageDetector {
                 threshold
             ).toDetectionResult()
         } catch (ex: Exception) {
-            ex.throwWithKeys(
-                keys = mapOf(
-                    "screenSize" to "${screenDimensions.x}x${screenDimensions.y}",
-                    "originalConditionSize" to "${conditionBitmap.width}x${conditionBitmap.height}",
-                    "conditionSize" to "${conditionWidth}x$conditionHeight",
-                    "detectionArea" to detectionArea.toString(),
-                    "threshold" to threshold.toString(),
-                ),
-            )
-            DetectionResult()
+            ex.throwWithContext(crashContext(DetectionCrashContext.Operation.IMAGE, detectionArea, threshold).copy(
+                originalWidth = conditionBitmap.width, originalHeight = conditionBitmap.height,
+                scaledWidth = conditionWidth, scaledHeight = conditionHeight,
+            ))
         }
     }
 
@@ -124,15 +119,7 @@ class NativeDetector private constructor() : ImageDetector {
                 threshold
             ).toDetectionResult()
         } catch (ex: Exception) {
-            ex.throwWithKeys(
-                keys = mapOf(
-                    "screenSize" to "${screenDimensions.x}x${screenDimensions.y}",
-                    "conditionColor" to conditionColor.toString(),
-                    "detectionArea" to detectionArea.toString(),
-                    "threshold" to threshold.toString(),
-                ),
-            )
-            DetectionResult()
+            ex.throwWithContext(crashContext(DetectionCrashContext.Operation.COLOR, detectionArea, threshold).copy(color = conditionColor))
         }
     }
 
@@ -156,16 +143,9 @@ class NativeDetector private constructor() : ImageDetector {
                 threshold
             ).toDetectionResult()
         } catch (ex: Exception) {
-            ex.throwWithKeys(
-                keys = mapOf(
-                    "screenSize" to "${screenDimensions.x}x${screenDimensions.y}",
-                    "recognitionModelId" to recognitionModelId,
-                    "conditionText" to conditionText,
-                    "detectionArea" to detectionArea.toString(),
-                    "threshold" to threshold.toString(),
-                ),
-            )
-            DetectionResult()
+            ex.throwWithContext(crashContext(DetectionCrashContext.Operation.TEXT, detectionArea, threshold).copy(
+                textLength = conditionText.length, modelId = recognitionModelId,
+            ))
         }
     }
 
@@ -182,16 +162,13 @@ class NativeDetector private constructor() : ImageDetector {
                 numberFormat = numberFormatType.ordinal,
             ).toDetectionResult()
         } catch (ex: Exception) {
-            ex.throwWithKeys(
-                keys = mapOf(
-                    "screenSize" to "${screenDimensions.x}x${screenDimensions.y}",
-                    "detectionArea" to detectionArea.toString(),
-                    "threshold" to threshold.toString(),
-                ),
-            )
-            DetectionResult()
+            ex.throwWithContext(crashContext(DetectionCrashContext.Operation.NUMBER, detectionArea, threshold).copy(numberFormat = numberFormatType.ordinal))
         }
     }
+
+    private fun crashContext(operation: DetectionCrashContext.Operation, area: Rect, threshold: Int) =
+        DetectionCrashContext(operation, screenDimensions.x, screenDimensions.y,
+            area.left, area.top, area.width(), area.height(), threshold)
 
     override fun releaseScreenBitmap(screenBitmap: Bitmap) {
         if (isClosed) return

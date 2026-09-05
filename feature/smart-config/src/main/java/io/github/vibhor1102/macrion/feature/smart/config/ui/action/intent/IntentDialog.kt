@@ -40,6 +40,8 @@ import io.github.vibhor1102.macrion.core.domain.model.action.intent.IntentExtra
 import io.github.vibhor1102.macrion.core.ui.bindings.dropdown.DropdownItem
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.action.OnActionConfigCompleteListener
@@ -280,7 +282,8 @@ class IntentDialog(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             isError = isError,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            keyboardOptions = macrionDoneKeyboardOptions(keyboardType),
+            keyboardActions = macrionDoneKeyboardActions(),
             trailingIcon = if (showPicker) ({
                 IconButton(onClick = onPickerClick) { Icon(painterResource(R.drawable.ic_search), null) }
             }) else null,

@@ -42,7 +42,7 @@ internal class UserConsentDataSource @Inject constructor() {
     private val _isPrivacyOptionsRequired: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isPrivacyOptionsRequired: Flow<Boolean> = _isPrivacyOptionsRequired
 
-    fun requestUserConsent(activity: Activity) {
+    fun requestUserConsent(activity: Activity, onComplete: () -> Unit) {
         Log.d(TAG, "Requesting user consent...")
 
         val params = ConsentRequestParameters.Builder()
@@ -52,10 +52,11 @@ internal class UserConsentDataSource @Inject constructor() {
         consentInfo.requestConsentInfoUpdate(
             activity,
             params.build(),
-            { onUserConsentInfoUpdated(activity, consentInfo) },
+            { onUserConsentInfoUpdated(activity, consentInfo, onComplete) },
             {
                 Log.w(TAG, "User consent info update failure: [${it.errorCode}] ${it.message}")
                 refreshConsentInfo(consentInfo, isError = true)
+                onComplete()
             },
         )
 
@@ -73,7 +74,7 @@ internal class UserConsentDataSource @Inject constructor() {
         }
     }
 
-    private fun onUserConsentInfoUpdated(activity: Activity, consentInfo: ConsentInformation) {
+    private fun onUserConsentInfoUpdated(activity: Activity, consentInfo: ConsentInformation, onComplete: () -> Unit) {
         Log.d(TAG, "User content info updated, load and show consent form if required...")
 
         UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity) { error ->
@@ -82,6 +83,7 @@ internal class UserConsentDataSource @Inject constructor() {
             }
 
             refreshConsentInfo(consentInfo)
+            onComplete()
         }
     }
 

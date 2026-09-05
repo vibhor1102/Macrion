@@ -53,6 +53,7 @@ internal class MainMenuViews(val root: ViewGroup) {
     val btnStop: ImageButton = root.findViewById(R.id.btn_stop)
     val btnClickList: ImageButton = root.findViewById(R.id.btn_click_list)
     val btnSwitchScenario: ImageButton = root.findViewById(R.id.btn_switch_scenario)
+    val btnOpenHome: ImageButton = root.findViewById(R.id.btn_open_home)
     val layoutDebug: View = root.findViewById(R.id.layout_debug)
     val errorBadge: ImageView = root.findViewById(R.id.error_badge)
 }
@@ -93,12 +94,14 @@ internal fun createMainOverlayMenu(
             OverlayMenuButton(R.id.btn_stop, R.drawable.ic_stop, R.string.content_desc_stop_clicker),
             OverlayMenuButton(R.id.btn_click_list, R.drawable.ic_settings_filled, R.string.content_desc_open_event_list),
             OverlayMenuButton(R.id.btn_switch_scenario, R.drawable.ic_swap_horiz, R.string.content_desc_switch_scenario),
+            OverlayMenuButton(R.id.btn_open_home, R.drawable.ic_home, R.string.content_desc_open_home),
             OverlayMenuButton(R.id.btn_move, R.drawable.ic_move, R.string.content_desc_move_menu),
         ),
         content = debugContainer,
         contentLayoutParams = LinearLayout.LayoutParams(dp(200), dp(100)),
     )
     root.findViewById<View>(R.id.btn_switch_scenario).isVisible = false
+    root.findViewById<View>(R.id.btn_open_home).isVisible = false
     root.addView(ImageView(context).apply {
         id = R.id.error_badge
         setImageResource(R.drawable.ic_badge_error)

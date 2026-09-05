@@ -52,7 +52,7 @@ internal class ScenarioEditor {
             if (ref == null || edit == null) false
             else ref != edit
 
-        val canBeSaved = edit != null && edit.name.isNotEmpty()
+        val canBeSaved = edit != null && edit.name.isNotBlank()
 
         EditedElementState(edit, hasChanged, canBeSaved)
     }

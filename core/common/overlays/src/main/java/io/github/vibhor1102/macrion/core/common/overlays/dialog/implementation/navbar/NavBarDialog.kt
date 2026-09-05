@@ -34,6 +34,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
 
+import io.github.vibhor1102.macrion.core.common.overlays.R
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.NavBarDialogScaffold
 import io.github.vibhor1102.macrion.core.ui.bindings.dialogs.DialogNavigationButton
@@ -203,6 +204,8 @@ abstract class NavBarDialog(@StyleRes theme: Int) : OverlayDialog(theme) {
                     CoordinatorLayout.LayoutParams.WRAP_CONTENT,
                 ).apply {
                     gravity = Gravity.BOTTOM or Gravity.END
+                    marginEnd = resources.getDimensionPixelSize(R.dimen.margin_horizontal_default)
+                    bottomMargin = resources.getDimensionPixelSize(R.dimen.dialog_create_copy_buttons_bottom_margin)
                 }
             )
 

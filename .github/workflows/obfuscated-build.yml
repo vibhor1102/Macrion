@@ -1,0 +1,165 @@
+name: Refresh obfuscated APKs
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: obfuscated-apks
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build latest stable release with randomized identity
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+    - name: Resolve the latest stable release
+      id: release
+      uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+      with:
+        script: |
+          const latest = await github.rest.repos.getLatestRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+          });
+          core.setOutput('tag', latest.data.tag_name);
+          core.setOutput('target', latest.data.target_commitish);
+
+    - name: Checkout latest stable release
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      with:
+        ref: ${{ steps.release.outputs.tag }}
+
+    - name: Set up JDK 21 and restore Gradle cache
+      uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
+      with:
+        distribution: zulu
+        java-version: '21'
+        cache: gradle
+        cache-dependency-path: |
+          **/*.gradle
+          **/*.gradle.kts
+          gradle/libs.versions.toml
+          gradle/wrapper/gradle-wrapper.properties
+
+    - name: Set NDK
+      shell: bash
+      run: |
+        echo "ANDROID_NDK=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
+        echo "ANDROID_NDK_HOME=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
+        echo "ANDROID_NDK_ROOT=$ANDROID_NDK_LATEST_HOME" >> "$GITHUB_ENV"
+
+    - name: Install ccache
+      run: sudo apt-get install -y ccache
+
+    - name: Restore ccache
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      with:
+        path: .ccache
+        key: ${{ runner.os }}-obfuscation-ccache-${{ hashFiles('**/*.c', '**/*.cc', '**/*.cpp', '**/*.h', '**/CMakeLists.txt', 'gradle/libs.versions.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-obfuscation-ccache-
+
+    - name: Restore and validate release keystore
+      shell: bash
+      run: |
+        printf '%s' "${{ secrets.RELEASE_KEYSTORE }}" > smartautoclicker.jks.asc
+        gpg --batch --yes --pinentry-mode loopback \
+          --passphrase "${{ secrets.RELEASE_KEYSTORE_PASSPHRASE }}" \
+          --decrypt --output smartautoclicker/smartautoclicker.jks smartautoclicker.jks.asc
+        keytool -list \
+          -keystore smartautoclicker/smartautoclicker.jks \
+          -storepass "${{ secrets.SIGNING_STORE_PASSWORD }}" \
+          -alias "${{ secrets.SIGNING_KEY_ALIAS }}" \
+          >/dev/null
+
+    - name: Build obfuscated release APKs
+      shell: bash
+      env:
+        USE_CCACHE: 'true'
+        CCACHE_DIR: ${{ github.workspace }}/.ccache
+        JAVA_TOOL_OPTIONS: -Djava.net.preferIPv4Stack=true
+      run: |
+        ccache -M 500M
+        ./gradlew --no-daemon --max-workers=6 --parallel --build-cache \
+          -PrandomizeAppId=true \
+          -PsigningStorePassword="${{ secrets.SIGNING_STORE_PASSWORD }}" \
+          -PsigningKeyAlias="${{ secrets.SIGNING_KEY_ALIAS }}" \
+          -PsigningKeyPassword="${{ secrets.SIGNING_KEY_PASSWORD }}" \
+          :smartautoclicker:assembleFDroidRelease
+        ccache -s
+
+    - name: Verify and name obfuscated APKs
+      id: artifacts
+      shell: bash
+      run: |
+        tag='${{ steps.release.outputs.tag }}'
+        version="${tag#v}"
+        AAPT2="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)/aapt2"
+        APKSIGNER="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)/apksigner"
+        mkdir obfuscated-artifacts
+
+        for apk in smartautoclicker/build/outputs/apk/fDroid/release/*.apk; do
+          filename="${apk##*/}"
+          package_name="$($AAPT2 dump badging "$apk" | sed -n "s/^package: name='\([^']*\)'.*/\1/p")"
+          test -n "$package_name"
+          test "$package_name" != 'io.github.vibhor1102.macrion'
+          "$APKSIGNER" verify --verbose --print-certs "$apk"
+
+          case "$filename" in
+            *-arm64-v8a-release.apk) asset="macrion-obfuscated-${version}-arm64-v8a.apk" ;;
+            *-armeabi-v7a-release.apk) asset="macrion-obfuscated-${version}-armeabi-v7a.apk" ;;
+            *-x86_64-release.apk) asset="macrion-obfuscated-${version}-x86_64.apk" ;;
+            *-x86-release.apk) asset="macrion-obfuscated-${version}-x86.apk" ;;
+            *-release.apk) asset="macrion-obfuscated-${version}-universal.apk" ;;
+            *) echo "Unexpected APK filename: $filename" >&2; exit 1 ;;
+          esac
+          cp "$apk" "obfuscated-artifacts/$asset"
+        done
+
+        test -n "$(find obfuscated-artifacts -name '*.apk' -print -quit)"
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+
+    - name: Update persistent obfuscated-APK release
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        tag='obfuscation-start'
+        source_tag='${{ steps.release.outputs.tag }}'
+        source_sha="$(git rev-parse HEAD)"
+        cat > obfuscation-release-notes.md <<EOF
+        Current obfuscated Macrion APKs are built from [${source_tag}](https://github.com/${{ github.repository }}/releases/tag/${source_tag}) at \`${source_sha}\`.
+
+        These APKs use a randomized Android application identity, so they install alongside the standard Macrion release instead of updating it.
+        EOF
+
+        gh release create "$tag" \
+          --title 'Latest obfuscated Macrion APKs' \
+          --notes-file obfuscation-release-notes.md \
+          --prerelease \
+          --repo '${{ github.repository }}' \
+          || true
+        gh release edit "$tag" \
+          --title 'Latest obfuscated Macrion APKs' \
+          --notes-file obfuscation-release-notes.md \
+          --prerelease \
+          --repo '${{ github.repository }}'
+        while IFS= read -r asset; do
+          gh release delete-asset "$tag" "$asset" --yes --repo '${{ github.repository }}'
+        done < <(gh release view "$tag" --json assets --jq '.assets[].name | select(endswith(".apk"))' --repo '${{ github.repository }}')
+        gh release upload "$tag" obfuscated-artifacts/*.apk --clobber --repo '${{ github.repository }}'
+
+    - name: Upload workflow artifacts
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: macrion-obfuscated-${{ steps.artifacts.outputs.version }}
+        retention-days: 14
+        path: obfuscated-artifacts/*.apk

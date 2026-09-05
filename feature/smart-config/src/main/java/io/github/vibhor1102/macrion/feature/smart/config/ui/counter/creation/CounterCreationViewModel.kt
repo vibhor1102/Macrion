@@ -54,7 +54,7 @@ class CountersCreationViewModel @Inject constructor(
 
     fun createCounter() {
         val scenarioId = editionRepository.editionState.getScenario()?.id ?: return
-        val counterName = _name.value
+        val counterName = _name.value?.trim()
         val startingValue = startingValue.value
 
         if (counterName.isNullOrBlank() || editionRepository.editionState.getCounter(counterName) != null) return
@@ -69,8 +69,9 @@ class CountersCreationViewModel @Inject constructor(
     }
 
     private fun toUiState(name: String?): CounterCreationUiState {
-        val nameIsValid = !name.isNullOrBlank()
-        val isAlreadyDefined = nameIsValid && editionRepository.editionState.getCounter(name) != null
+        val normalizedName = name?.trim()
+        val nameIsValid = !normalizedName.isNullOrEmpty()
+        val isAlreadyDefined = nameIsValid && editionRepository.editionState.getCounter(normalizedName) != null
 
         return CounterCreationUiState(
             canBeSaved = nameIsValid && !isAlreadyDefined,

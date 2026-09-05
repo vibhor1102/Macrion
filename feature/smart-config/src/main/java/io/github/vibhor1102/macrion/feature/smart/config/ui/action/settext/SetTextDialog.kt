@@ -6,15 +6,20 @@ import android.util.Log
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -63,7 +68,11 @@ class SetTextDialog(
     private fun Content() {
         val state by viewModel.uiState.collectAsStateWithLifecycle()
         val ui = state ?: return
-        var textFieldValue by remember { mutableStateOf(TextFieldValue(ui.textToWrite)) }
+        val focusManager = LocalFocusManager.current
+        val keyboardController = LocalSoftwareKeyboardController.current
+        var textFieldValue by remember {
+            mutableStateOf(TextFieldValue(ui.textToWrite, TextRange(ui.textToWrite.length)))
+        }
         LaunchedEffect(ui.textToWrite) {
             if (ui.textToWrite != textFieldValue.text) {
                 textFieldValue = TextFieldValue(
@@ -110,6 +119,11 @@ class SetTextDialog(
                             }
                         },
                         singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = {
+                            focusManager.clearFocus()
+                            keyboardController?.hide()
+                        }),
                     )
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         Card(Modifier.fillMaxWidth()) {

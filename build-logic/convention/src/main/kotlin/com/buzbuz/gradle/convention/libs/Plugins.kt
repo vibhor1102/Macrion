@@ -53,8 +53,6 @@ internal class Plugins internal constructor(private val libs: VersionCatalog) {
             get() = libs.getPluginId("googleKsp")
         val daggerHiltAndroid: String
             get() = libs.getPluginId("googleDaggerHiltAndroid")
-        val crashlytics: String
-            get() = libs.getPluginId("googleCrashlytics")
         val gms: String
             get() = libs.getPluginId("googleGms")
         val protobuf: String

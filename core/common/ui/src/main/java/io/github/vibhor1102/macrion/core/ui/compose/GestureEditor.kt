@@ -1,6 +1,7 @@
 /* Copyright (C) 2026 Vibhor Goel */
 package io.github.vibhor1102.macrion.core.ui.compose
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -65,7 +66,8 @@ fun MacrionGestureEditor(
     positionTitle: String, positionDescription: String, nameLabel: String, durationLabel: String,
     repeatCountLabel: String, repeatDelayLabel: String, nameError: Boolean, durationError: Boolean,
     repeatCountError: Boolean, repeatDelayError: Boolean, infiniteRepeat: Boolean,
-    saveEnabled: Boolean, maxNameLength: Int, onNameChanged: (String) -> Unit,
+    saveEnabled: Boolean, maxNameLength: Int, @DrawableRes infiniteRepeatIcon: Int,
+    onNameChanged: (String) -> Unit,
     onDurationChanged: (String) -> Unit, onRepeatCountChanged: (String) -> Unit,
     onRepeatDelayChanged: (String) -> Unit, onInfiniteRepeatChanged: () -> Unit,
     onPositionClicked: () -> Unit, onDismiss: () -> Unit, onDelete: () -> Unit, onSave: () -> Unit,
@@ -84,11 +86,17 @@ fun MacrionGestureEditor(
             ) {
                 MacrionTextField(name, onNameChanged, nameLabel, isError = nameError, maxLength = maxNameLength)
                 NumericField(duration, durationLabel, durationError, onDurationChanged)
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(verticalAlignment = Alignment.Top) {
                     NumericField(repeatCount, repeatCountLabel, repeatCountError, onRepeatCountChanged,
                         Modifier.weight(1f), enabled = !infiniteRepeat)
-                    Checkbox(checked = infiniteRepeat, onCheckedChange = { onInfiniteRepeatChanged() })
-                    Text("∞", style = MaterialTheme.typography.titleLarge)
+                    Spacer(Modifier.width(16.dp))
+                    OutlinedIconToggleButton(
+                        checked = infiniteRepeat,
+                        onCheckedChange = { onInfiniteRepeatChanged() },
+                        modifier = Modifier.padding(top = 8.dp).size(48.dp),
+                    ) {
+                        Icon(painterResource(infiniteRepeatIcon), repeatCountLabel, Modifier.size(24.dp))
+                    }
                 }
                 NumericField(repeatDelay, repeatDelayLabel, repeatDelayError, onRepeatDelayChanged)
                 PositionCard(positionTitle, positionDescription, false, onPositionClicked)
@@ -147,6 +155,7 @@ private fun NumericField(
         value = value, onValueChange = { onValueChanged(it.filter(Char::isDigit)) },
         label = { Text(label) }, modifier = modifier.fillMaxWidth(), isError = isError,
         enabled = enabled, singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Number),
+        keyboardActions = macrionDoneKeyboardActions(),
     )
 }

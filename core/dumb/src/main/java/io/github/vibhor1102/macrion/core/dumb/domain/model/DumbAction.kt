@@ -51,7 +51,7 @@ sealed class DumbAction : Identifiable {
     ) : DumbAction(), RepeatableWithDelay {
 
         override fun isValid(): Boolean =
-            name.isNotEmpty() && pressDurationMs > 0 && isRepeatCountValid() && isRepeatDelayValid()
+            name.isNotBlank() && pressDurationMs > 0 && isRepeatCountValid() && isRepeatDelayValid()
     }
 
     data class DumbSwipe(
@@ -67,7 +67,7 @@ sealed class DumbAction : Identifiable {
         val swipeDurationMs: Long,
     ) : DumbAction(), RepeatableWithDelay {
         override fun isValid(): Boolean =
-            name.isNotEmpty() && swipeDurationMs > 0 && isRepeatCountValid() && isRepeatDelayValid()
+            name.isNotBlank() && swipeDurationMs > 0 && isRepeatCountValid() && isRepeatDelayValid()
     }
 
     data class DumbPause(
@@ -78,6 +78,6 @@ sealed class DumbAction : Identifiable {
         val pauseDurationMs: Long,
     ) : DumbAction() {
 
-        override fun isValid(): Boolean = name.isNotEmpty()
+        override fun isValid(): Boolean = name.isNotBlank()
     }
 }

@@ -67,6 +67,9 @@
       - Views handles any length here, so no limitations.
       -->
     <string name="message_dumb_brief_empty_action_list">You need at least one action to execute a scenario</string>
+    <string name="dialog_stop_confirmation_title">Stop Macrion?</string>
+    <string name="dialog_stop_confirmation_message">The current scenario will be stopped.</string>
+    <string name="dialog_stop_confirmation_stop">Stop</string>
 
     <!--
       - List header.

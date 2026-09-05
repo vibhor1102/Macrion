@@ -135,6 +135,8 @@
 
     <string name="field_scenario_switcher_title">عرض مبدّل السيناريو</string>
     <string name="field_scenario_switcher_desc">يظهر مبدّل السيناريو في شريط الأدوات العائم للتبديل السريع.</string>
+    <string name="field_home_button_title">إظهار زر الصفحة الرئيسية لـ Macrion</string>
+    <string name="field_home_button_desc">يضيف زرًا إلى شريط الأدوات لإيقاف السيناريو وفتح الصفحة الرئيسية لـ Macrion.</string>
 
     <string name="field_legacy_action_ui_title">واجهة الإجراءات القديمة</string>
     <string name="field_legacy_action_ui_desc">تغيير عرض الإجراءات إلى قائمة. مفيد للسيناريوهات المعقدة.</string>
@@ -175,4 +177,26 @@
     <string name="message_locale_plugin_background_launch">تعذر على Klick\'r فتح نافذة تسجيل الشاشة تلقائيًا.\n\nلإكمال تشغيل السيناريو، أظهر إشعارًا بدلًا من ذلك.\n\nتفرض بعض هواتف Android قيودًا أكبر على التطبيقات في الخلفية. راجع هذا الدليل لتحسين استقرار الأذونات.</string>
     <string name="field_tutorial_title">البرنامج التعليمي</string>
     <string name="field_tutorial_desc">تعرّف على كيفية استخدام Klick\'r</string>
+    <string name="dialog_title_copy_scenario">نسخ السيناريو</string>
+    <string name="content_desc_back">رجوع</string>
+    <string name="crash_reports_title">تقارير الأعطال المحلية</string>
+    <string name="crash_report_prompt_title">عذرًا، تعطّل Macrion</string>
+    <string name="crash_report_prompt_message">واجه Macrion مشكلة واضطر إلى الإغلاق. يمكن أن يساعد إرسال تقرير العطل Vibhor في العثور على سبب المشكلة وإصلاحها، وسيراجعه في أقرب وقت ممكن.\n\nيحتوي التقرير على تفاصيل تقنية عن العطل والجهاز، ويُفحص لتقليل المعلومات الشخصية. لن يُرسل أي شيء ما لم تختر إرسال التقرير.</string>
+    <string name="crash_report_local_notice">تم حفظ تقرير تقني على هذا الجهاز. لن يُرسل أي شيء ما لم تختر إرسال التقرير. تتضمن التقارير تفاصيل عن العطل والجهاز. نحاول إزالة المعلومات الشخصية، ولكن قد يبقى بعضها في تفاصيل الخطأ. تنتهي صلاحية التقارير المحلية بعد سبعة أيام، وتُحتفظ بالتقارير المرسلة لمدة تصل إلى 30 يومًا.</string>
+    <string name="crash_report_send">إرسال التقرير</string>
+    <string name="crash_report_sending">جارٍ الإرسال…</string>
+    <string name="crash_report_sent">تم إرسال تقرير العطل. شكرًا لك.</string>
+    <string name="crash_report_send_failed">تعذّر إرسال التقرير. لا يزال محفوظًا على هذا الجهاز.</string>
+    <string name="crash_report_rejected">تعذّر على الخادم قبول هذا التقرير. لا يزال محفوظًا على هذا الجهاز.</string>
+    <string name="crash_report_review">مراجعة</string>
+    <string name="crash_report_discard">تجاهل</string>
+    <string name="crash_report_copy">نسخ</string>
+    <string name="crash_report_copied">تم نسخ التقرير</string>
+    <string name="crash_reports_empty">لا توجد تقارير أعطال محلية.</string>
+    <string name="crash_reports_error">تعذّر الوصول إلى تقارير الأعطال المحلية. حاول مرة أخرى.</string>
+    <string name="crash_reports_loading">جارٍ تحميل التقارير المحلية…</string>
+    <string name="crash_reports_sample">إنشاء تقرير اصطناعي (لتصحيح الأخطاء فقط)</string>
+    <string name="crash_report_label">التقرير %1$s</string>
+    <string name="field_stop_confirmation_title">تأكيد قبل الإيقاف</string>
+    <string name="field_stop_confirmation_desc">اطلب التأكيد قبل إيقاف Macrion من شريط أدوات التراكب.</string>
 </resources>

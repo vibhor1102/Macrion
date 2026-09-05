@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.vibhor1102.macrion.core.ui.R
@@ -55,7 +54,7 @@ class TopBarNavigationView(context: Context) : FrameLayout(context) {
             val state = states.getValue(type).value
             if (state.visible) when (type) {
                 DialogNavigationButton.DISMISS -> IconButton({ callbacks[type]?.invoke() }, enabled = state.enabled) {
-                    Icon(painterResource(icon), null, tint = colorResource(R.color.overlayViewPrimary))
+                    Icon(painterResource(icon), null, tint = MaterialTheme.colorScheme.onSurface)
                 }
                 DialogNavigationButton.DELETE -> FilledTonalIconButton({ callbacks[type]?.invoke() }, enabled = state.enabled) { Icon(painterResource(icon), null) }
                 DialogNavigationButton.SAVE -> FilledIconButton({ callbacks[type]?.invoke() }, enabled = state.enabled) { Icon(painterResource(icon), null) }

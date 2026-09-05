@@ -127,6 +127,10 @@
 
     <string name="field_scenario_switcher_title">Show scenario switcher</string>
     <string name="field_scenario_switcher_desc">Shows the scenario switcher in the floating toolbar for quick swaps.</string>
+    <string name="field_home_button_title">Show Macrion home button</string>
+    <string name="field_home_button_desc">Adds a toolbar button that stops the scenario and opens Macrion’s home screen.</string>
+    <string name="field_stop_confirmation_title">Confirm before stopping</string>
+    <string name="field_stop_confirmation_desc">Ask before stopping Macrion from the overlay toolbar.</string>
 
     <string name="field_legacy_action_ui_title">Legacy Action UI</string>
     <string name="field_legacy_action_ui_desc">Change the action display by a list. Useful for complex scenarios.</string>
@@ -143,6 +147,10 @@
     <string name="field_privacy">Privacy settings</string>
     <string name="field_remove_ads">Remove ads</string>
     <string name="field_troubleshooting">Troubleshooting</string>
+    <string name="settings_support_title" translatable="false">Support</string>
+    <string name="settings_github" translatable="false">Visit GitHub</string>
+    <string name="settings_discord" translatable="false">Join the Discord server</string>
+    <string name="settings_report_bug" translatable="false">Report a bug</string>
 
 
     <!-- Legacy condition migration dialog  ======================================================================== -->
@@ -165,5 +173,25 @@
 
     <string name="field_tutorial_title">Tutorial</string>
     <string name="field_tutorial_desc">Learn how to use Klick\'r</string>
+
+    <!-- Crash reporting -->
+    <string name="crash_reports_title">Local crash reports</string>
+    <string name="crash_report_prompt_title">Uh-oh, Macrion crashed</string>
+    <string name="crash_report_prompt_message">Macrion ran into a problem and had to close. Sending the crash report can help Vibhor find and fix what went wrong, and he’ll look into it as soon as possible.\n\nThe report contains technical crash and device details and is checked to reduce personal information. Nothing is sent unless you choose Send report.</string>
+    <string name="crash_report_local_notice">A technical report was saved on this device. Nothing is sent unless you choose Send report. Reports include crash and device details. We try to remove personal information, but some may remain in error details. Local reports expire after seven days; sent reports are retained for up to 30 days.</string>
+    <string name="crash_report_send">Send report</string>
+    <string name="crash_report_sending">Sending…</string>
+    <string name="crash_report_sent">Crash report sent. Thank you.</string>
+    <string name="crash_report_send_failed">Could not send the report. It remains on this device.</string>
+    <string name="crash_report_rejected">The server could not accept this report. It remains on this device.</string>
+    <string name="crash_report_review">Review</string>
+    <string name="crash_report_discard">Dismiss</string>
+    <string name="crash_report_copy">Copy</string>
+    <string name="crash_report_copied">Report copied</string>
+    <string name="crash_reports_empty">No local crash reports.</string>
+    <string name="crash_reports_error">Could not access local crash reports. Please try again.</string>
+    <string name="crash_reports_loading">Loading local reports…</string>
+    <string name="crash_reports_sample">Create synthetic report (debug only)</string>
+    <string name="crash_report_label">Report %1$s</string>
 
 </resources>

@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -34,8 +33,8 @@ import io.github.vibhor1102.macrion.feature.smart.debugging.ui.dialog.report.tim
 
 @Composable
 internal fun ReportTimelineItem(item: DebugReportTimelineEventOccurrenceItem, onClick: () -> Unit) {
-    val primary = colorResource(R.color.overlayViewPrimary)
-    val secondary = primary.copy(alpha = 0.7f)
+    val primary = MaterialTheme.colorScheme.onSurface
+    val secondary = MaterialTheme.colorScheme.onSurfaceVariant
     ElevatedCard(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).clickable(onClick = onClick),
     ) {
@@ -96,7 +95,7 @@ internal fun ReportTimelineItem(item: DebugReportTimelineEventOccurrenceItem, on
 
 @Composable
 private fun TimingLine(value: String, label: String, modifier: Modifier = Modifier) {
-    val color = colorResource(R.color.overlayViewPrimary).copy(alpha = 0.7f)
+    val color = MaterialTheme.colorScheme.onSurfaceVariant
     Row(modifier) {
         Text(value, style = MaterialTheme.typography.bodySmall, color = color)
         Text(
@@ -111,7 +110,7 @@ private fun TimingLine(value: String, label: String, modifier: Modifier = Modifi
 
 @Composable
 internal fun ReportOccurrenceMetadata(timestamp: String, occurrence: String) {
-    val color = colorResource(R.color.overlayViewPrimary).copy(alpha = 0.7f)
+    val color = MaterialTheme.colorScheme.onSurfaceVariant
     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
         Text(timestamp, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = color)
         Text(occurrence, modifier = Modifier.padding(start = 16.dp), style = MaterialTheme.typography.bodySmall, color = color)

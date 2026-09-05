@@ -97,4 +97,7 @@
     <string name="content_desc_add_action">Adicionar uma nova ação ao cenário</string>
     <string name="content_desc_show_actions">Mostrar ou ocultar as ações criadas</string>
     <string name="content_desc_open_action_list">Abrir a lista de ações</string>
+    <string name="dialog_stop_confirmation_title">Parar o Macrion?</string>
+    <string name="dialog_stop_confirmation_message">O cenário atual será interrompido.</string>
+    <string name="dialog_stop_confirmation_stop">Parar</string>
 </resources>

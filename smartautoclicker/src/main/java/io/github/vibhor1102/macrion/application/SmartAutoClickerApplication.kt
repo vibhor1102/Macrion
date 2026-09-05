@@ -17,6 +17,9 @@
 package io.github.vibhor1102.macrion.application
 
 import android.app.Application
+import android.content.Context
+import io.github.vibhor1102.macrion.crash.initializeLocalCrashReporting
+import io.github.vibhor1102.macrion.crash.captureHistoricalNativeCrash
 import io.github.vibhor1102.macrion.ComponentConfig
 import io.github.vibhor1102.macrion.core.base.data.AppComponentsManager
 import com.google.android.material.color.DynamicColors
@@ -28,8 +31,15 @@ class SmartAutoClickerApplication : Application() {
 
     @Inject lateinit var appComponentsManager: AppComponentsManager
 
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(base)
+        initializeLocalCrashReporting()
+    }
+
     override fun onCreate() {
         super.onCreate()
+
+        captureHistoricalNativeCrash()
 
         val componentConfig = ComponentConfig
         appComponentsManager.apply {

@@ -40,7 +40,7 @@ internal fun DumbScenarioWithActions.toDomain(asDomain: Boolean = false): DumbSc
 internal fun DumbScenario.toEntity(): DumbScenarioEntity =
     DumbScenarioEntity(
         id = id.databaseId,
-        name = name,
+        name = name.trim(),
         repeatCount = repeatCount,
         isRepeatInfinite = isRepeatInfinite,
         maxDurationMin = maxDurationMin,

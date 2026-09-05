@@ -13,7 +13,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
@@ -48,7 +47,6 @@ class DebugReportTimelineContent(appContext: Context) : NavBarDialogContent(appC
 
     @Composable private fun Content() {
         val state = viewModel.uiState.collectAsStateWithLifecycle().value
-        val overlayColor = colorResource(R.color.overlayViewPrimary)
         LaunchedEffect(state) {
             updateFiltersBadge(state.activeFilterCount())
             if (state == DebugReportTimelineUiState.NotAvailable) dialogController.back()
@@ -57,17 +55,14 @@ class DebugReportTimelineContent(appContext: Context) : NavBarDialogContent(appC
             }
         }
         when (state) {
-                DebugReportTimelineUiState.Loading -> ReportLoading(overlayColor)
+                DebugReportTimelineUiState.Loading -> ReportLoading()
                 DebugReportTimelineUiState.NotAvailable -> Unit
                 DebugReportTimelineUiState.Empty -> ReportEmptyMessage(
                     context.getString(R.string.title_event_occurrence_empty),
-                    contentColor = overlayColor,
                 )
                 is DebugReportTimelineUiState.FilteredEmpty -> ReportEmptyMessage(
                     context.getString(R.string.title_event_occurrence_filtered_empty),
                     context.getString(R.string.desc_event_occurrence_filtered_empty),
-                    contentColor = overlayColor,
-                    secondaryColor = overlayColor.copy(alpha = 0.7f),
                 ) {
                     Button(onClick = viewModel::clearFilters, modifier = Modifier.padding(top = 8.dp)) {
                         Text(context.getString(R.string.button_clear_timeline_filters))

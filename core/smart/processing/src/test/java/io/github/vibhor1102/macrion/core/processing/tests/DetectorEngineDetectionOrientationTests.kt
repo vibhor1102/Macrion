@@ -46,6 +46,7 @@ import io.github.vibhor1102.macrion.core.processing.domain.DebugReportTimingList
 import io.mockk.MockKAnnotations
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
+import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.verify
@@ -233,6 +234,21 @@ class DetectorEngineDetectionOrientationTests {
         verify(exactly = 2) { mockScalingManager.refreshScaling() }
 
         stopDetection(engine)
+    }
+
+    @Test
+    fun `pausing clears bitmap cache after restoring recorder size`() = runTest {
+        val (engine, _) = startDetectionAndCaptureOrientationListener()
+
+        stopDetection(engine)
+
+        // Detection start clears stale entries once; settled pause clears the bitmaps loaded by that run.
+        verify(exactly = 2) { mockBitmapRepository.clearCache() }
+        coVerifyOrder {
+            mockScalingManager.stopScaling()
+            mockDisplayRecorder.resizeDisplay(TEST_DISPLAY_SIZE)
+            mockBitmapRepository.clearCache()
+        }
     }
 
     // ---- helpers ----

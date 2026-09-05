@@ -10,7 +10,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.colorResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.NavBarDialogContent
 import io.github.vibhor1102.macrion.core.common.overlays.dialog.implementation.navbar.viewModels
@@ -53,7 +52,6 @@ class ConditionPerformanceContent(appContext: Context) : NavBarDialogContent(app
 
     @Composable private fun Content() {
         val state = viewModel.uiState.collectAsStateWithLifecycle().value
-        val overlayColor = colorResource(R.color.overlayViewPrimary)
         LaunchedEffect(state) {
             dialogController.floatingActionButtons.root.visibility =
                 if (state is ConditionPerformanceUiState.Available) View.VISIBLE else View.GONE
@@ -66,10 +64,9 @@ class ConditionPerformanceContent(appContext: Context) : NavBarDialogContent(app
             } else if (state is ConditionPerformanceUiState.NotAvailable) adapter.submitList(emptyList())
         }
         when (state) {
-            ConditionPerformanceUiState.Loading -> ReportLoading(overlayColor)
+            ConditionPerformanceUiState.Loading -> ReportLoading()
             ConditionPerformanceUiState.NotAvailable -> ReportEmptyMessage(
                 context.getString(R.string.title_condition_performance_unavailable),
-                contentColor = overlayColor,
             )
             is ConditionPerformanceUiState.Available -> ReportRecycler(
                 R.string.content_desc_condition_performance_fast_scroller,

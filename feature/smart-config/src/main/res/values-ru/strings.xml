@@ -490,8 +490,7 @@
 
     <string name="scenario_switcher_dismiss">Закрыть переключатель сценариев</string>
     <string name="dialog_title_scenario_switcher">Переключить сценарий</string>
-    <string name="scenario_switcher_current">Текущий: %1$s</string>
-    <string name="scenario_switcher_current_unknown">Неизвестно</string>
+    <string name="content_desc_open_home">Остановить сценарий и открыть главный экран Macrion</string>
     <string name="scenario_switcher_empty">Нет других доступных умных сценариев</string>
     <string name="scenario_switcher_error_service">Служба сценариев больше недоступна.</string>
     <string name="scenario_switcher_error_paused">Приостановите сценарий перед переключением.</string>
@@ -516,4 +515,9 @@
     <string name="dialog_title_external_action_selection">Внешние действия</string>
     <string name="message_empty_external_action_list_title">Внешние действия не найдены</string>
     <string name="message_empty_external_action_list_desc">Сначала введите новое имя внешнего действия в умном сценарии.</string>
+    <string name="content_desc_switch_scenario">Сменить сценарий</string>
+    <string name="default_external_action_name">Внешнее действие</string>
+    <string name="dialog_stop_confirmation_title">Остановить Macrion?</string>
+    <string name="dialog_stop_confirmation_message">Текущий сценарий будет остановлен.</string>
+    <string name="dialog_stop_confirmation_stop">Остановить</string>
 </resources>

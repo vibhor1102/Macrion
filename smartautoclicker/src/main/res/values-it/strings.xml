@@ -126,6 +126,8 @@
 
     <string name="field_scenario_switcher_title">Mostra il selettore di scenario</string>
     <string name="field_scenario_switcher_desc">Mostra il selettore di scenario nella barra degli strumenti flottante per cambi rapidi.</string>
+    <string name="field_home_button_title">Mostra il pulsante Home di Macrion</string>
+    <string name="field_home_button_desc">Aggiunge un pulsante alla barra degli strumenti per arrestare lo scenario e aprire la schermata principale di Macrion.</string>
 
     <string name="field_legacy_action_ui_title">Interfaccia utente dell\'azione legacy</string>
     <string name="field_legacy_action_ui_desc">Modifica la visualizzazione delle azioni tramite un elenco. Utile per scenari complessi.</string>
@@ -167,4 +169,26 @@
     <string name="message_locale_plugin_background_launch">Klick\'r non ha potuto aprire automaticamente la finestra di cattura dello schermo.\n\nPer completare l\'avvio dello scenario, è stata mostrata una notifica.\n\nAlcuni telefoni Android impongono restrizioni maggiori alle app in background. Consulta questa guida per migliorare la stabilità delle autorizzazioni.</string>
     <string name="field_tutorial_title">Tutorial</string>
     <string name="field_tutorial_desc">Scopri come usare Klick\'r</string>
+    <string name="dialog_title_copy_scenario">Copia scenario</string>
+    <string name="content_desc_back">Torna indietro</string>
+    <string name="crash_reports_title">Rapporti sugli arresti anomali locali</string>
+    <string name="crash_report_prompt_title">Ops, Macrion si è arrestato</string>
+    <string name="crash_report_prompt_message">Macrion ha riscontrato un problema e ha dovuto chiudersi. Inviare il rapporto può aiutare Vibhor a trovare e correggere il problema, che verrà esaminato il prima possibile.\n\nIl rapporto contiene dettagli tecnici sull’arresto e sul dispositivo e viene controllato per ridurre le informazioni personali. Nulla viene inviato senza scegliere Invia rapporto.</string>
+    <string name="crash_report_local_notice">Un rapporto tecnico è stato salvato su questo dispositivo. Nulla viene inviato senza scegliere Invia rapporto. I rapporti includono dettagli sull’arresto e sul dispositivo. Cerchiamo di rimuovere le informazioni personali, ma alcune potrebbero rimanere nei dettagli dell’errore. I rapporti locali scadono dopo sette giorni; quelli inviati vengono conservati fino a 30 giorni.</string>
+    <string name="crash_report_send">Invia rapporto</string>
+    <string name="crash_report_sending">Invio…</string>
+    <string name="crash_report_sent">Rapporto inviato. Grazie.</string>
+    <string name="crash_report_send_failed">Impossibile inviare il rapporto. Rimane su questo dispositivo.</string>
+    <string name="crash_report_rejected">Il server non ha potuto accettare il rapporto. Rimane su questo dispositivo.</string>
+    <string name="crash_report_review">Esamina</string>
+    <string name="crash_report_discard">Ignora</string>
+    <string name="crash_report_copy">Copia</string>
+    <string name="crash_report_copied">Rapporto copiato</string>
+    <string name="crash_reports_empty">Nessun rapporto locale.</string>
+    <string name="crash_reports_error">Impossibile accedere ai rapporti locali. Riprova.</string>
+    <string name="crash_reports_loading">Caricamento dei rapporti locali…</string>
+    <string name="crash_reports_sample">Crea rapporto sintetico (solo debug)</string>
+    <string name="crash_report_label">Rapporto %1$s</string>
+    <string name="field_stop_confirmation_title">Conferma prima di interrompere</string>
+    <string name="field_stop_confirmation_desc">Chiedi conferma prima di interrompere Macrion dalla barra degli strumenti in sovrimpressione.</string>
 </resources>

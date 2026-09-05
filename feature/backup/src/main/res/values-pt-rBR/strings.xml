@@ -58,4 +58,12 @@
       -->
     <string name="content_desc_backup_state">O estado do backup</string>
 
+    <string name="item_title_backup_klickr_compatible">Criar backup compatível com o Klick’r</string>
+    <string name="message_backup_import_malformed">Este backup parece estar corrompido ou mistura os formatos de backup do Macrion e do Klick’r.</string>
+    <string name="message_backup_klickr_compatibility_loss">Os recursos exclusivos do Macrion serão removidos deste backup para que o Klick’r possa importá-lo.</string>
+    <string name="message_backup_klickr_compatibility_analysis">Verificando a compatibilidade dos cenários selecionados com o Klick’r…</string>
+    <string name="message_backup_klickr_compatibility_review_without_loss">Destino de compatibilidade: %1$s\n\nNenhum componente exclusivo do Macrion precisa ser removido. Continue para escolher onde salvar o backup.</string>
+    <string name="message_backup_klickr_compatibility_review">Destino de compatibilidade: %1$s\n\nComponentes que serão removidos: %2$d\nCenários que não podem ser exportados: %3$d\n\nContinue para escolher onde salvar o backup ou cancele sem criar um arquivo.</string>
+    <string name="message_backup_create_klickr_compatible_completed">Backup compatível com o Klick’r concluído. Componentes exclusivos do Macrion removidos: %1$d.</string>
+    <string name="message_backup_create_klickr_compatible_completed_without_loss">Backup compatível com o Klick’r concluído. Nenhum recurso exclusivo do Macrion precisou ser removido.</string>
 </resources>

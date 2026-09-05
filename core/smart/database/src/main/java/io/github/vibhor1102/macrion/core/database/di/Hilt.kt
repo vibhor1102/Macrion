@@ -21,18 +21,7 @@ import android.content.Context
 import androidx.room.Room
 
 import io.github.vibhor1102.macrion.core.database.ClickDatabase
-import io.github.vibhor1102.macrion.core.database.migrations.Migration10to11
-import io.github.vibhor1102.macrion.core.database.migrations.Migration12to13
-import io.github.vibhor1102.macrion.core.database.migrations.Migration19to20
-import io.github.vibhor1102.macrion.core.database.migrations.Migration21to22
-import io.github.vibhor1102.macrion.core.database.migrations.Migration1to2
-import io.github.vibhor1102.macrion.core.database.migrations.Migration2to3
-import io.github.vibhor1102.macrion.core.database.migrations.Migration3to4
-import io.github.vibhor1102.macrion.core.database.migrations.Migration4to5
-import io.github.vibhor1102.macrion.core.database.migrations.Migration5to6
-import io.github.vibhor1102.macrion.core.database.migrations.Migration6to7
-import io.github.vibhor1102.macrion.core.database.migrations.Migration9to10
-import io.github.vibhor1102.macrion.core.database.migrations.Migration23to24
+import io.github.vibhor1102.macrion.core.database.migrations.clickDatabaseMigrations
 
 import dagger.Module
 import dagger.Provides
@@ -53,19 +42,6 @@ internal object SmartDatabaseModule {
             context.applicationContext,
             ClickDatabase::class.java,
             "click_database"
-        ).addMigrations(
-            Migration1to2,
-            Migration2to3,
-            Migration3to4,
-            Migration4to5,
-            Migration5to6,
-            Migration6to7,
-            Migration9to10,
-            Migration10to11,
-            Migration12to13,
-            Migration19to20,
-            Migration21to22,
-            Migration23to24,
-        ).build()
+        ).addMigrations(*clickDatabaseMigrations).build()
 
 }

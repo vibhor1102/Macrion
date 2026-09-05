@@ -63,7 +63,7 @@ class TriggerConditionListDialog : OverlayDialog(R.style.ScenarioConfigTheme) {
             topBar = {
                 Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box {
-                        IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_cancel), null) }
+                        IconButton(onClick = ::back) { Icon(painterResource(R.drawable.ic_back), null) }
                         TutorialClickAnchor(
                             onViewChanged = { view ->
                                 closeButtonAnchor = view

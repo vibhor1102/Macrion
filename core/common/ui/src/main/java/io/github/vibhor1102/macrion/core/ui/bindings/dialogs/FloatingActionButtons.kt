@@ -3,7 +3,6 @@ package io.github.vibhor1102.macrion.core.ui.bindings.dialogs
 import android.content.Context
 import android.view.Gravity
 import android.view.View
-import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
@@ -40,16 +39,23 @@ class FloatingActionButtonsView(context: Context) : LinearLayout(context) {
         clipChildren = false
         clipToPadding = false
         translationZ = 100 * resources.displayMetrics.density
-        addView(secondary, LayoutParams(40.dpPx, 40.dpPx).apply { gravity = Gravity.CENTER_HORIZONTAL; bottomMargin = 24.dpPx })
-        addView(FrameLayout(context).apply {
-            addView(primary, FrameLayout.LayoutParams(56.dpPx, 56.dpPx, Gravity.TOP or Gravity.CENTER_HORIZONTAL))
-        }, LayoutParams(88.dpPx, 72.dpPx).apply { bottomMargin = 96.dpPx })
+        addView(
+            secondary,
+            LayoutParams(40.dpPx, 40.dpPx).apply {
+                gravity = Gravity.CENTER_HORIZONTAL
+                bottomMargin = 16.dpPx
+            },
+        )
+        addView(
+            primary,
+            LayoutParams(64.dpPx, 64.dpPx).apply { gravity = Gravity.CENTER_HORIZONTAL },
+        )
         secondary.visibility = View.GONE
         secondary.setContent { MacrionTheme { SmallFloatingActionButton(onClick = { onSecondary() }) {
             Icon(painterResource(secondaryIcon.intValue), secondary.contentDescription?.toString())
         } } }
-        primary.setContent { MacrionTheme { Box(Modifier.fillMaxSize()) {
-            FloatingActionButton(onClick = { onPrimary() }, modifier = Modifier.fillMaxSize()) {
+        primary.setContent { MacrionTheme { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            FloatingActionButton(onClick = { onPrimary() }, modifier = Modifier.size(56.dp)) {
                 Icon(painterResource(primaryIcon.intValue), primary.contentDescription?.toString())
             }
             badgeText.value?.let { Badge(Modifier.align(Alignment.TopEnd).size(18.dp)) { Text(it) } }

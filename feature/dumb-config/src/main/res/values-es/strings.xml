@@ -98,4 +98,7 @@
     <string name="content_desc_show_actions">Mostrar u ocultar las acciones creadas</string>
     <string name="content_desc_open_action_list">Abrir la lista de acciones</string>
 
+    <string name="dialog_stop_confirmation_title">¿Detener Macrion?</string>
+    <string name="dialog_stop_confirmation_message">Se detendrá el escenario actual.</string>
+    <string name="dialog_stop_confirmation_stop">Detener</string>
 </resources>

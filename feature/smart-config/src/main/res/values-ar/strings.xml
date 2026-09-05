@@ -490,8 +490,7 @@
 
     <string name="scenario_switcher_dismiss">إغلاق مبدّل السيناريو</string>
     <string name="dialog_title_scenario_switcher">تبديل السيناريو</string>
-    <string name="scenario_switcher_current">الحالي: %1$s</string>
-    <string name="scenario_switcher_current_unknown">غير معروف</string>
+    <string name="content_desc_open_home">إيقاف السيناريو وفتح الصفحة الرئيسية لـ Macrion</string>
     <string name="scenario_switcher_empty">لا توجد سيناريوهات ذكية أخرى متاحة</string>
     <string name="scenario_switcher_error_service">لم تعد خدمة السيناريو متاحة.</string>
     <string name="scenario_switcher_error_paused">أوقف السيناريو مؤقتًا قبل التبديل.</string>
@@ -516,4 +515,9 @@
     <string name="dialog_title_external_action_selection">الإجراءات الخارجية</string>
     <string name="message_empty_external_action_list_title">لم يتم العثور على إجراء خارجي</string>
     <string name="message_empty_external_action_list_desc">اكتب أولاً اسم إجراء خارجي جديد في سيناريو ذكي.</string>
+    <string name="content_desc_switch_scenario">تبديل السيناريو</string>
+    <string name="default_external_action_name">إجراء خارجي</string>
+    <string name="dialog_stop_confirmation_title">إيقاف Macrion؟</string>
+    <string name="dialog_stop_confirmation_message">سيتم إيقاف السيناريو الحالي.</string>
+    <string name="dialog_stop_confirmation_stop">إيقاف</string>
 </resources>

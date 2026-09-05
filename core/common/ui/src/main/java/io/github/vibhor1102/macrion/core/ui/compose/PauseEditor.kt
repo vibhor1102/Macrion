@@ -107,7 +107,8 @@ fun MacrionPauseEditor(
                         modifier = Modifier.weight(0.7f),
                         isError = durationError,
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        keyboardOptions = macrionDoneKeyboardOptions(KeyboardType.Number),
+                        keyboardActions = macrionDoneKeyboardActions(),
                     )
                     Spacer(Modifier.width(16.dp))
                     TimeUnitDropdown(

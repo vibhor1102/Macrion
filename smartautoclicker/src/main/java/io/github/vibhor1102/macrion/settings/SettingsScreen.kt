@@ -18,19 +18,27 @@ package io.github.vibhor1102.macrion.settings
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -48,9 +56,15 @@ internal fun SettingsRoute(
     onShowPrivacySettings: () -> Unit,
     onShowPurchase: () -> Unit,
     onShowTroubleshooting: () -> Unit,
+    onShowCrashReports: () -> Unit,
+    onOpenGithub: () -> Unit,
+    onJoinDiscord: () -> Unit,
+    onReportBug: () -> Unit,
 ) {
     val isScenarioFiltersEnabled by viewModel.isScenarioFiltersUiEnabled.collectAsStateWithLifecycle(false)
     val isScenarioSwitcherEnabled by viewModel.isScenarioSwitcherEnabled.collectAsStateWithLifecycle(false)
+    val isHomeButtonEnabled by viewModel.isHomeButtonEnabled.collectAsStateWithLifecycle(false)
+    val isStopConfirmationEnabled by viewModel.isStopConfirmationEnabled.collectAsStateWithLifecycle(false)
     val isLegacyActionUiEnabled by viewModel.isLegacyActionUiEnabled.collectAsStateWithLifecycle(false)
     val isLegacyNotificationUiEnabled by viewModel.isLegacyNotificationUiEnabled.collectAsStateWithLifecycle(false)
     val isEntireScreenCaptureForced by viewModel.isEntireScreenCaptureForced.collectAsStateWithLifecycle(false)
@@ -65,6 +79,8 @@ internal fun SettingsRoute(
             items = buildList {
                 add(SettingsItem.Switch(R.string.field_show_scenario_filters_ui_title, R.string.field_show_scenario_filters_ui_desc, isScenarioFiltersEnabled, viewModel::toggleScenarioFiltersUi))
                 add(SettingsItem.Switch(R.string.field_scenario_switcher_title, R.string.field_scenario_switcher_desc, isScenarioSwitcherEnabled, viewModel::toggleScenarioSwitcher))
+                add(SettingsItem.Switch(R.string.field_home_button_title, R.string.field_home_button_desc, isHomeButtonEnabled, viewModel::toggleHomeButton))
+                add(SettingsItem.Switch(R.string.field_stop_confirmation_title, R.string.field_stop_confirmation_desc, isStopConfirmationEnabled, viewModel::toggleStopConfirmation))
                 add(SettingsItem.Switch(R.string.field_legacy_action_ui_title, R.string.field_legacy_action_ui_desc, isLegacyActionUiEnabled, viewModel::toggleLegacyActionUi))
                 add(SettingsItem.Switch(R.string.field_legacy_notification_ui_title, R.string.field_legacy_notification_ui_desc, isLegacyNotificationUiEnabled, viewModel::toggleLegacyNotificationUi))
                 if (shouldShowEntireScreenCapture) add(SettingsItem.Switch(R.string.field_force_entire_screen_title, R.string.field_force_entire_screen_desc, isEntireScreenCaptureForced, viewModel::toggleForceEntireScreenCapture))
@@ -72,15 +88,25 @@ internal fun SettingsRoute(
                 if (shouldShowPrivacySettings) add(SettingsItem.Action(R.string.field_privacy, onShowPrivacySettings))
                 if (shouldShowPurchase) add(SettingsItem.Action(R.string.field_remove_ads, onShowPurchase))
                 add(SettingsItem.Action(R.string.field_troubleshooting, onShowTroubleshooting))
+                add(SettingsItem.Action(R.string.crash_reports_title, onShowCrashReports))
             },
             onNavigateBack = onNavigateBack,
+            onOpenGithub = onOpenGithub,
+            onJoinDiscord = onJoinDiscord,
+            onReportBug = onReportBug,
         )
     }
 }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun SettingsScreen(items: List<SettingsItem>, onNavigateBack: () -> Unit) {
+private fun SettingsScreen(
+    items: List<SettingsItem>,
+    onNavigateBack: () -> Unit,
+    onOpenGithub: () -> Unit,
+    onJoinDiscord: () -> Unit,
+    onReportBug: () -> Unit,
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -109,6 +135,80 @@ private fun SettingsScreen(items: List<SettingsItem>, onNavigateBack: () -> Unit
                     )
                 }
             }
+            item {
+                SupportCards(
+                    onOpenGithub = onOpenGithub,
+                    onJoinDiscord = onJoinDiscord,
+                    onReportBug = onReportBug,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SupportCards(onOpenGithub: () -> Unit, onJoinDiscord: () -> Unit, onReportBug: () -> Unit) {
+    Text(
+        text = stringResource(R.string.settings_support_title),
+        modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp),
+        color = MaterialTheme.colorScheme.primary,
+        style = MaterialTheme.typography.titleSmall,
+    )
+    SupportCard(
+        title = stringResource(R.string.settings_github),
+        icon = R.drawable.ic_github,
+        onClick = onOpenGithub,
+    )
+    SupportCard(
+        title = stringResource(R.string.settings_discord),
+        icon = R.drawable.ic_discord,
+        onClick = onJoinDiscord,
+    )
+    SupportCard(
+        title = stringResource(R.string.settings_report_bug),
+        icon = R.drawable.ic_bug_report,
+        onClick = onReportBug,
+        isBugReport = true,
+    )
+}
+
+@Composable
+private fun SupportCard(
+    title: String,
+    icon: Int,
+    onClick: () -> Unit,
+    isBugReport: Boolean = false,
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isBugReport) MaterialTheme.colorScheme.errorContainer
+            else MaterialTheme.colorScheme.surfaceContainerHigh,
+        ),
+    ) {
+        androidx.compose.foundation.layout.Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                painter = painterResource(icon),
+                contentDescription = null,
+                modifier = Modifier.size(28.dp),
+                tint = if (isBugReport) MaterialTheme.colorScheme.onErrorContainer else androidx.compose.ui.graphics.Color.Unspecified,
+            )
+            Spacer(Modifier.width(16.dp))
+            Text(
+                text = title,
+                modifier = Modifier.weight(1f),
+                color = if (isBugReport) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Icon(
+                painter = painterResource(R.drawable.ic_chevron_right),
+                contentDescription = null,
+                tint = if (isBugReport) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

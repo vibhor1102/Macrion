@@ -84,7 +84,7 @@ class Migration23to24Tests {
     @Test
     fun migrate_v15Database_throughTheRegisteredUpgradeChain() {
         val lowerVersionDbPath = ApplicationProvider.getApplicationContext<Context>()
-            .getDatabasePath("migration-v15-to-v24-test").path
+            .getDatabasePath("migration-v15-to-current-test").path
 
         helper.createDatabase(lowerVersionDbPath, 15).use { db ->
             db.insertV15Scenario(2L)
@@ -94,11 +94,7 @@ class Migration23to24Tests {
             ApplicationProvider.getApplicationContext(),
             ClickDatabase::class.java,
             lowerVersionDbPath,
-        ).addMigrations(
-            Migration19to20,
-            Migration21to22,
-            Migration23to24,
-        ).build()
+        ).addMigrations(*clickDatabaseMigrations).build()
         try {
             database.openHelper.writableDatabase.query(
                 "SELECT name FROM $SCENARIO_TABLE WHERE id = 2",

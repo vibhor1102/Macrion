@@ -26,6 +26,8 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <!-- Needed to keep the screen active while detecting, only if defined by the user. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Used only when the user explicitly sends a locally reviewed crash report. -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name="${smartAutoClickerApplication}"
@@ -36,6 +38,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="DataExtractionRules">
+
+        <!-- Macrion sends only through its explicit one-time flow; no ACRA sender or attachment provider. -->
+        <service android:name="org.acra.sender.LegacySenderService" tools:node="remove" />
+        <service android:name="org.acra.sender.JobSenderService" tools:node="remove" />
+        <provider android:name="org.acra.attachment.AcraContentProvider" tools:node="remove" />
+
+        <activity android:name="io.github.vibhor1102.macrion.crash.CrashReportsActivity"
+            android:exported="false" />
 
         <activity
             android:name="${scenarioActivity}"

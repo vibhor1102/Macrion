@@ -128,6 +128,8 @@
 
     <string name="field_scenario_switcher_title">Afficher le sélecteur de scénario</string>
     <string name="field_scenario_switcher_desc">Affiche le sélecteur de scénario dans la barre d\'outils flottante pour changer rapidement de scénario.</string>
+    <string name="field_home_button_title">Afficher le bouton d’accueil Macrion</string>
+    <string name="field_home_button_desc">Ajoute un bouton à la barre d’outils pour arrêter le scénario et ouvrir l’accueil de Macrion.</string>
 
     <string name="field_legacy_action_ui_title">Legacy Action UI</string>
     <string name="field_legacy_action_ui_desc">Modifie l\'affichage de l\'action par une liste. Utile pour les scénarios complexes.</string>
@@ -169,4 +171,26 @@
     <string name="message_locale_plugin_background_launch">Klick\'r n\'a pas pu ouvrir automatiquement la fenêtre de capture d\'écran.\n\nPour terminer le lancement du scénario, Klick\'r a affiché une notification à la place.\n\nCertains téléphones Android imposent davantage de restrictions aux applications en arrière-plan. Consultez ce guide pour améliorer la stabilité des autorisations.</string>
     <string name="field_tutorial_title">Tutoriel</string>
     <string name="field_tutorial_desc">Apprenez à utiliser Klick\'r</string>
+    <string name="dialog_title_copy_scenario">Copier le scénario</string>
+    <string name="content_desc_back">Revenir en arrière</string>
+    <string name="crash_reports_title">Rapports de plantage locaux</string>
+    <string name="crash_report_prompt_title">Oups, Macrion a planté</string>
+    <string name="crash_report_prompt_message">Macrion a rencontré un problème et a dû se fermer. Envoyer le rapport de plantage peut aider Vibhor à trouver et corriger le problème. Il l’examinera dès que possible.\n\nLe rapport contient des détails techniques sur le plantage et l’appareil, et il est vérifié afin de réduire les informations personnelles. Rien n’est envoyé sans choisir Envoyer le rapport.</string>
+    <string name="crash_report_local_notice">Un rapport technique a été enregistré sur cet appareil. Rien n’est envoyé sans choisir Envoyer le rapport. Les rapports incluent des détails sur le plantage et l’appareil. Nous essayons de supprimer les informations personnelles, mais certaines peuvent subsister dans les détails de l’erreur. Les rapports locaux expirent après sept jours ; les rapports envoyés sont conservés jusqu’à 30 jours.</string>
+    <string name="crash_report_send">Envoyer le rapport</string>
+    <string name="crash_report_sending">Envoi…</string>
+    <string name="crash_report_sent">Rapport de plantage envoyé. Merci.</string>
+    <string name="crash_report_send_failed">Impossible d’envoyer le rapport. Il reste sur cet appareil.</string>
+    <string name="crash_report_rejected">Le serveur n’a pas pu accepter ce rapport. Il reste sur cet appareil.</string>
+    <string name="crash_report_review">Examiner</string>
+    <string name="crash_report_discard">Ignorer</string>
+    <string name="crash_report_copy">Copier</string>
+    <string name="crash_report_copied">Rapport copié</string>
+    <string name="crash_reports_empty">Aucun rapport de plantage local.</string>
+    <string name="crash_reports_error">Impossible d’accéder aux rapports de plantage locaux. Réessayez.</string>
+    <string name="crash_reports_loading">Chargement des rapports locaux…</string>
+    <string name="crash_reports_sample">Créer un rapport synthétique (débogage uniquement)</string>
+    <string name="crash_report_label">Rapport %1$s</string>
+    <string name="field_stop_confirmation_title">Confirmer avant l’arrêt</string>
+    <string name="field_stop_confirmation_desc">Demande confirmation avant d’arrêter Macrion depuis la barre d’outils superposée.</string>
 </resources>

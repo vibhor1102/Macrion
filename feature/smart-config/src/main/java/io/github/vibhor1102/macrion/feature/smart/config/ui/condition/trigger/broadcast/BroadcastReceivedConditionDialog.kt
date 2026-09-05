@@ -23,6 +23,8 @@ import io.github.vibhor1102.macrion.core.common.overlays.dialog.OverlayDialog
 import io.github.vibhor1102.macrion.core.common.tutorial.domain.model.monitoring.MonitoredOverlayType
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTextField
 import io.github.vibhor1102.macrion.core.ui.compose.MacrionTheme
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardActions
+import io.github.vibhor1102.macrion.core.ui.compose.macrionDoneKeyboardOptions
 import io.github.vibhor1102.macrion.feature.smart.config.R
 import io.github.vibhor1102.macrion.feature.smart.config.di.ScenarioConfigViewModelsEntryPoint
 import io.github.vibhor1102.macrion.feature.smart.config.ui.common.dialogs.intent.IntentActionsSelectionDialog
@@ -68,6 +70,8 @@ class BroadcastReceivedConditionDialog(private val listener: OnConditionConfigCo
                             Icon(painterResource(R.drawable.ic_search), null)
                         } },
                         isError = actionError, singleLine = true,
+                        keyboardOptions = macrionDoneKeyboardOptions(),
+                        keyboardActions = macrionDoneKeyboardActions(),
                     )
                 }
             }

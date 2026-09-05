@@ -42,6 +42,14 @@ interface SettingsRepository {
     suspend fun isScenarioSwitcherEnabled(): Boolean
     fun toggleScenarioSwitcher()
 
+    val isHomeButtonEnabledFlow: Flow<Boolean>
+    suspend fun isHomeButtonEnabled(): Boolean
+    fun toggleHomeButton()
+
+    val isStopConfirmationEnabledFlow: Flow<Boolean>
+    suspend fun isStopConfirmationEnabled(): Boolean
+    fun toggleStopConfirmation()
+
     val isInputBlockWorkaroundEnabledFlow: Flow<Boolean>
     fun isInputBlockWorkaroundEnabled(): Boolean
     fun toggleInputBlockWorkaround()

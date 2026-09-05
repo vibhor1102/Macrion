@@ -42,7 +42,7 @@ class DumbScenarioConfigContentViewModel @Inject constructor(
         .take(1)
     /** Tells if the scenario name is valid or not. */
     val scenarioNameError: Flow<Boolean> = userModifications
-        .map { it?.name?.isEmpty() == true }
+        .map { it?.name?.isBlank() == true }
 
     /** The number of times to repeat the scenario. */
     val repeatCount: Flow<String> = userModifications
