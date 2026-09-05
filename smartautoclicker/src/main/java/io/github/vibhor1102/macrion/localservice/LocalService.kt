@@ -439,7 +439,7 @@ class LocalService(
             newOverlay = ScenarioSwitchDialog(
                 onScenarioSelected = smartScenarioSwitcher::switchTo,
             ),
-            hideCurrent = false,
+            hideCurrent = true,
         )
     }
 }
